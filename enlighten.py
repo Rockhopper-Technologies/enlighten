@@ -12,10 +12,14 @@ Provides progress bars and counters which play nice in a TTY console
 """
 
 import atexit
-from collections import OrderedDict
 import signal
 import sys
 import time
+
+try:
+    from collections import OrderedDict
+except ImportError:  # pragma: no cover (Python 2.6)
+    from ordereddict import OrderedDict
 
 # Prefer blessed, but fall back to blessings
 try:
