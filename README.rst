@@ -7,7 +7,7 @@
     * - docs
       - |docs|
 
-.. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/?style=flat
+.. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
 
