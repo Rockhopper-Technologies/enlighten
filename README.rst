@@ -5,7 +5,7 @@
 .. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
-.. |travis| image:: https://img.shields.io/Rockhopper-Technologies/enlighten.svg
+.. |travis| image:: https://img.shields.io/travis/Rockhopper-Technologies/enlighten.svg
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/Rockhopper-Technologies/enlighten
 
