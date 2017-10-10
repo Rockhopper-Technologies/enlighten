@@ -26,7 +26,7 @@ redirection.
 Documentation
 =============
 
-https://python-nameless.readthedocs.io
+https://python-enlighten.readthedocs.io
 
 Examples
 ========
