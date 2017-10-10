@@ -14,7 +14,7 @@ Examples
 Basic
 -----
 
-For a basic status bar, invoke the :py:class:`Counter` class directly.
+For a basic status bar, invoke the :py:class:`~enlighten.Counter` class directly.
 
 .. code-block:: python
 
@@ -32,9 +32,9 @@ Advanced
 To maintain multiple progress bars simultaneously or write to the console, a manager is required.
 
 Advanced output will only work when the output stream, :py:data:`sys.stdout` by default,
-is attached to a TTY. :py:func:`get_manager` should be used to get a manager instance.
-It will return a :py:class:`NullManager` instance if the stream is not attached to a TTY
-and a :py:class:`Manager` instance if it is.
+is attached to a TTY. :py:func:`~enlighten.get_manager` can be used to get a manager instance.
+It will return a disabled :py:class:`~enlighten.Manager` instance if the stream is not attached to a TTY
+and an enabled instance if it is.
 
 .. code-block:: python
 
@@ -57,7 +57,7 @@ and a :py:class:`Manager` instance if it is.
 Counters
 --------
 
-The :py:class:`Counter` class has two output formats, progress bar and counter.
+The :py:class:`~enlighten.Counter` class has two output formats, progress bar and counter.
 
 The progress bar format is used when a total is not :py:data:`None` and the count is less than the
 total. If neither of these conditions are met, the counter format is used:

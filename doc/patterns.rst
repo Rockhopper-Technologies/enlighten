@@ -28,7 +28,7 @@ output redirection occurs.
     enableCounter = config['useCounter'] and stream.isatty()
     manager = enlighten.Manager(stream=config['stream'], enabled=enableCounter)
 
-The :py:func:`get_manager` function slightly simplifies this
+The :py:func:`~enlighten.get_manager` function slightly simplifies this
 
 .. code-block:: python
 
