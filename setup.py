@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+# Copyright 2017 Avram Lubkin, All Rights Reserved
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+"""
+Enlighten Progress Bar is console progress bar module for Python. (Yes, another one.)
+The main advantage of Enlighten is it allows writing to stdout and stderr without any
+redirection.
+"""
+
+import sys
+
+from setuptools import setup
+
+from setup_helpers import get_version
+
+
+REQUIRES = ['blessed']
+SETUP_REQUIRES = []
+TESTS_REQUIRE = []
+
+# Ugly hack to use blessings instead of blessed for older environments
+if '--use_blessings' in sys.argv:
+    sys.argv.remove('--use_blessings')
+    REQUIRES = ['blessings']
+
+# Additional requirements
+# html requires sphinx, sphinx_rtd_theme
+# spelling requires sphinxcontrib-spelling
+
+if sys.version_info[:2] < (3, 3):
+
+    # Include unittest.mock from 3.3
+    TESTS_REQUIRE.append('mock')
+
+if sys.version_info[:2] < (2, 7):
+
+    # Include unittest from 2.7
+    TESTS_REQUIRE.append('unittest2')
+
+setup(
+    name='enlighten',
+    version=get_version('enlighten.py'),
+    description='Enlighten Progress Bar',
+    author='Avram Lubkin',
+    author_email='aviso@rockhopper.net',
+    url='',
+    long_description=__doc__,
+    license='MPLv2.0',
+    zip_safe=False,
+    install_requires=REQUIRES,
+    setup_requires=SETUP_REQUIRES,
+    tests_require=TESTS_REQUIRE,
+    py_modules=['enlighten'],
+    test_suite='tests',
+
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)'
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Utilities',
+    ],
+    keywords=['progress', 'bar', 'progress bar', 'progressbar', 'counter'],
+)

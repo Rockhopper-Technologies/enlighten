@@ -1,0 +1,22 @@
+*.egg-info
+*.pyc
+__pycache__
+
+# Testing
+.cache
+
+# Spyder
+.spyproject
+
+# Tox
+.tox
+# Coverage
+htmlcov
+.coverage
+
+# Setup
+dist
+build
+
+# Misc
+notes

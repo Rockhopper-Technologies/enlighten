@@ -1,0 +1,26 @@
+
+[REPORTS]
+output-format=colorized
+
+[FORMAT]
+# Use max line length of 100
+max-line-length=100
+
+[BASIC]
+# As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
+# a specific naming convention for variables and arguments
+# prefer mixedcase, starting with a lowercase or underscore
+argument-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
+variable-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
+
+[MESSAGES CONTROL]
+disable=no-else-return
+
+[SPELLING]
+
+# Spelling dictionary name. Available dictionaries: en_US (myspell).
+spelling-dict=en_US
+
+# List of comma separated words that should not be checked.
+spelling-ignore-words=Avram, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, BaseManager, bool, desc, html, incr, kwargs, len, Lubkin, meth, Mozilla, MPL, noqa, NullManager, pragma, py, redirector, resize, resizing, setscroll, sphinxcontrib, ss, stdout, stderr, str, sys, TestCase, tty, TTY, tuple, unicode, unittest
+
