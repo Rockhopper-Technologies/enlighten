@@ -4,6 +4,11 @@ matrix:
   include:
     - python: "3.6"
       env: TOXENV=lint
+
+    - python: "3.6"
+      env: TOXENV=docs
+
+    - python: "3.6"
       env: TOXENV=py36
 
     - python: "3.5"
@@ -14,10 +19,14 @@ matrix:
 
     - python: "2.7"
       env: TOXENV=py27
+
+    - python: "2.7"
       env: TOXENV=el7
 
     - python: "2.6"
       env: TOXENV=py26
+
+    - python: "2.6"
       env: TOXENV=el6
 
     - python: pypy
