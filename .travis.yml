@@ -1,5 +1,11 @@
 language: python
 
+addons:
+    apt_packages:
+        - enchant
+        - aspell
+        - aspell-en
+
 matrix:
   include:
     - python: "3.6"
