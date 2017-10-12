@@ -1,14 +1,16 @@
 
 .. start-badges
-|docs| |travis|
+|docs| |travis| |codecov|
 
 .. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
 .. |travis| image:: https://img.shields.io/travis/Rockhopper-Technologies/enlighten.svg
-    :alt: Travis-CI Build Status
     :target: https://travis-ci.org/Rockhopper-Technologies/enlighten
-
+    :alt: Travis-CI Build Status
+.. |codecov| image:: https://img.shields.io/codecov/c/github/Rockhopper-Technologies/enlighten.svg
+    :target: https://codecov.io/gh/Rockhopper-Technologies/enlighten
+    :alt: Coverage Status
 .. end-badges
 
 Overview
