@@ -287,6 +287,20 @@ class Counter(object):
 
         return self.manager.counters.get(self, 0)
 
+    @property
+    def elapsed(self):
+        """
+        Get elapsed time is seconds (float)
+        """
+
+        # Clock stops running when total is reached
+        if self.count == self.total:
+            elapsed = self.last_update - self.start
+        else:
+            elapsed = time.time() - self.start
+
+        return elapsed
+
     def clear(self, flush=True):
         """
         Args:
@@ -338,11 +352,7 @@ class Counter(object):
 
         # Get elapsed time
         if elapsed is None:
-            # Clock stops running when total is reached
-            if self.count == self.total:
-                elapsed = self.last_update - self.start
-            else:
-                elapsed = time.time() - self.start
+            elapsed = self.elapsed
 
         fields['elapsed'] = _format_time(elapsed)
 

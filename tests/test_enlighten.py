@@ -325,6 +325,17 @@ class TestCounter(TestCase):
     def test_position(self):
         self.assertEqual(self.ctr.position, 3)
 
+    def test_elapsed(self):
+        ctr = self.ctr
+        ctr.start = time.time() - 5.0
+        ctr.last_update = ctr.start + 3.0
+
+        self.assertEqual(int(ctr.elapsed), 5)
+
+        # Clock stops running when total is reached
+        ctr.count = ctr.total
+        self.assertEqual(int(ctr.elapsed), 3)
+
     def test_refresh(self):
         self.ctr.refresh()
         self.assertRegex(self.manager.output[0],
