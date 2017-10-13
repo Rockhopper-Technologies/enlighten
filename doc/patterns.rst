@@ -10,7 +10,7 @@
 Common Patterns
 ===============
 
-enable / disable
+Enable / Disable
 ----------------
 
 A program may want to disable progress bars based on a configuration setting as well as if
@@ -32,7 +32,6 @@ The :py:func:`~enlighten.get_manager` function slightly simplifies this
 
 .. code-block:: python
 
-    import sys
     import enlighten
 
     # Example configuration object
@@ -42,3 +41,17 @@ The :py:func:`~enlighten.get_manager` function slightly simplifies this
     manager = enlighten.get_manager(stream=config['stream'], enabled=config['useCounter'])
 
 
+Context Managers
+----------------
+
+Both :py:class:`~enlighten.Counter` and :py:class:`~enlighten.Manager`
+can be used as context managers.
+
+.. code-block:: python
+
+    import enlighten
+
+    with enlighten.Manager() as manager:
+        with manager.counter(total=SPLINES, desc='Reticulating:', unit='splines') as retic:
+            for num in range(SPLINES):
+                retic.update()

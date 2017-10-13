@@ -543,6 +543,14 @@ class TestCounter(TestCase):
         self.assertEqual(ctr.calls, ['clear(flush=True)'])
         self.assertEqual(manager.remove.call_count, 3)
 
+    def test_context_manager(self):
+        mgr = enlighten.Manager(stream=self.tty.stdout, enabled=False)
+        with mgr.counter(total=10, leave=False) as ctr:
+            self.assertTrue(ctr in mgr.counters)
+            ctr.update()
+
+        self.assertFalse(ctr in mgr.counters)
+
 
 class TestManager(TestCase):
 
@@ -1102,6 +1110,17 @@ class TestManager(TestCase):
         # No Output
         self.tty.stdout.write('X\n')
         self.assertEqual(self.tty.stdread.readline(), 'X\n')
+
+    def test_context_manager(self):
+
+        mgr = None
+
+        with enlighten.Manager(stream=self.tty.stdout) as manager:
+            self.assertIsInstance(manager, enlighten.Manager)
+            self.assertTrue(manager.enabled)
+            mgr = manager
+
+        self.assertFalse(mgr.enabled)
 
 
 class TestGetManager(TestCase):

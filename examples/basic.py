@@ -18,10 +18,10 @@ def process_files():
     Process files with a single progress bar
     """
 
-    pbar = enlighten.Counter(total=100, desc='Simple', unit='ticks')
-    for num in range(100):  # pylint: disable=unused-variable
-        time.sleep(0.05)
-        pbar.update()
+    with enlighten.Counter(total=100, desc='Simple', unit='ticks') as pbar:
+        for num in range(100):  # pylint: disable=unused-variable
+            time.sleep(0.05)
+            pbar.update()
 
 
 if __name__ == '__main__':

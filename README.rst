@@ -96,6 +96,7 @@ total. If neither of these conditions are met, the counter format is used:
 Additional Examples
 -------------------
 * `basic <examples/basic.py>`_ - Basic progress bar
+* `context manager <examples/context_manager.py>`_ - Managers and counters as context managers
 * `floats <examples/floats.py>`_ - Support totals and counts that are ``floats``
 * `multiple with logging <examples/multiple_logging.py>`_ - Nested progress bars and logging
 

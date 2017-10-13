@@ -273,6 +273,12 @@ class Counter(object):
                                    counter_class=self.__class__, set_scroll=False)
             self.manager.counters[self] = 1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
     @property
     def position(self):
         """
@@ -496,6 +502,12 @@ class Manager(object):
         self.sigwinch_orig = signal.getsignal(signal.SIGWINCH)
 
         self.defaults = kwargs  # Counter defaults
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
 
     def counter(self, position=None, **kwargs):
         """
