@@ -16,16 +16,12 @@ import signal
 import sys
 import time
 
+from blessed import Terminal as _Terminal
+
 try:
     from collections import OrderedDict
 except ImportError:  # pragma: no cover (Python 2.6)
     from ordereddict import OrderedDict
-
-# Prefer blessed, but fall back to blessings
-try:
-    from blessed import Terminal as _Terminal
-except ImportError:  # pragma: no cover (Environment dependent)
-    from blessings import Terminal as _Terminal
 
 # Flag to support unicode in Python 2
 NEEDS_UNICODE_HELP = sys.version_info[:2] <= (2, 7)

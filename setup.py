@@ -22,11 +22,6 @@ REQUIRES = ['blessed']
 SETUP_REQUIRES = []
 TESTS_REQUIRE = []
 
-# Ugly hack to use blessings instead of blessed for older environments
-if '--use_blessings' in sys.argv:
-    sys.argv.remove('--use_blessings')
-    REQUIRES = ['blessings']
-
 # Additional requirements
 # html requires sphinx, sphinx_rtd_theme
 # spelling requires sphinxcontrib-spelling
