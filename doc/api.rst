@@ -21,6 +21,7 @@ Classes
 
 .. autoclass:: Counter
     :members:
+    :exclude-members: elapsed, position
 
 Functions
 ---------

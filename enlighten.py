@@ -141,7 +141,7 @@ class Counter(object):
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
         desc(str): Description
-        enabled(bool): True
+        enabled(bool): Status (Default: True)
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
         manager(:py:class:`Manager`): Manager instance. Creates instance if not specified
         min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
@@ -157,10 +157,12 @@ class Counter(object):
     class can be called directly. The output stream will default to :py:data:`sys.stdout` unless
     ``stream`` is set.
 
-    With the default values for ``bar_format`` and ``counter_format``, :py:class:`floats <float>`
-    can not be used for ``total``, ``count``, or provided to :py:meth:`~Counter.update`.
-    In order to use :py:class:`floats <float>`, provide custom formats to
-    ``bar_format`` and ``counter_format``. See :ref:`Format <counter_format>` below.
+    .. note::
+
+        With the default values for ``bar_format`` and ``counter_format``,
+        :py:class:`floats <float>` can not be used for ``total``, ``count``, or provided to
+        :py:meth:`~Counter.update`. In order to use :py:class:`floats <float>`, provide custom
+        formats to ``bar_format`` and ``counter_format``. See :ref:`Format <counter_format>` below.
 
     .. _series:
 
@@ -244,6 +246,42 @@ class Counter(object):
         Addition fields for ``counter_format`` only:
 
         - fill(:py:class:`str`) - blank spaces, number needed to fill line
+
+    **Instance Attributes**
+
+        .. py:attribute:: count
+
+            :py:class:`int` - Current count
+
+        .. py:attribute:: desc
+
+            :py:class:`str` - Description
+
+        .. py:attribute:: elapsed
+
+            :py:class:`float` - Time since start
+            (since last update if :py:attr:`count`equals :py:attr:`total`)
+
+        .. py:attribute:: enabled
+
+            :py:class:`bool` - Current status
+
+        .. py:attribute:: manager
+
+            :py:class:`Manager` - Manager Instance
+
+        .. py:attribute:: position
+
+            :py:class:`int` - Current position
+
+        .. py:attribute:: total
+
+            :py:class:`int` - Total count when complete
+
+        .. py:attribute:: unit
+
+            :py:class:`str` - Unit label
+
     """
     # pylint: disable=too-many-instance-attributes
 
@@ -449,6 +487,7 @@ class Manager(object):
         set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
         companion_stream(:py:term:`file object`): See :ref:`companion_stream <companion_stream>`
             below. (Default: :py:data:`None`)
+        enabled(bool): Status (Default: True)
         kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
