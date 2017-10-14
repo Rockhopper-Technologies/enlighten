@@ -30,6 +30,15 @@ def get_version(filename):
     return None
 
 
+def readme(filename):
+    """
+    Read the contents of a file
+    """
+
+    with open(filename) as source:
+        return source.read()
+
+
 def print_spelling_errors(filename):
     """
     Print misspelled words returned by sphinxcontrib-spelling

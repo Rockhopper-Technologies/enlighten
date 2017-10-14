@@ -34,7 +34,7 @@ BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{tota
 
 SERIES_STD = u' ▏▎▍▌▋▊▉█'
 
-__version__ = '1.0.0'
+__version__ = '1.0.6'
 
 
 def _format_time(seconds):

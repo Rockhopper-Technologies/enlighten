@@ -1,6 +1,7 @@
-
 .. start-badges
-|docs| |travis| |codecov|
+
+| |docs| |travis| |codecov|
+| |pypi| |supported-versions| |supported-implementations|
 
 .. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/
     :target: https://python-enlighten.readthedocs.org
@@ -11,6 +12,16 @@
 .. |codecov| image:: https://img.shields.io/codecov/c/github/Rockhopper-Technologies/enlighten.svg
     :target: https://codecov.io/gh/Rockhopper-Technologies/enlighten
     :alt: Coverage Status
+.. |pypi| image:: https://img.shields.io/pypi/v/enlighten.svg
+    :alt: PyPI Package latest release
+    :target: https://pypi.python.org/pypi/enlighten
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/enlighten.svg
+    :alt: Supported versions
+    :target: https://pypi.python.org/pypi/enlighten
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg
+    :alt: Supported implementations
+    :target: https://pypi.python.org/pypi/enlighten
+
 .. end-badges
 
 Overview
@@ -21,7 +32,7 @@ Enlighten Progress Bar is a console progress bar module for Python. (Yes, anothe
 The main advantage of Enlighten is it allows writing to stdout and stderr without any
 redirection.
 
-.. image:: doc/_static/multiple_logging.gif
+.. image:: https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/doc/_static/multiple_logging.gif
 
 Documentation
 =============
@@ -95,10 +106,10 @@ total. If neither of these conditions are met, the counter format is used:
 
 Additional Examples
 -------------------
-* `basic <examples/basic.py>`_ - Basic progress bar
-* `context manager <examples/context_manager.py>`_ - Managers and counters as context managers
-* `floats <examples/floats.py>`_ - Support totals and counts that are ``floats``
-* `multiple with logging <examples/multiple_logging.py>`_ - Nested progress bars and logging
+* `basic <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/basic.py>`__ - Basic progress bar
+* `context manager <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/context_manager.py>`__ - Managers and counters as context managers
+* `floats <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/floats.py>`__ - Support totals and counts that are ``floats``
+* `multiple with logging <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/multiple_logging.py>`__ - Nested progress bars and logging
 
 Customization
 -------------
