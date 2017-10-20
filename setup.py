@@ -41,7 +41,9 @@ setup(
     description='Enlighten Progress Bar',
     long_description=readme('README.rst'),
     author='Avram Lubkin',
-    author_email='aviso@rockhopper.net',
+    author_email='avylove@rockhopper.net',
+    maintainer='Avram Lubkin',
+    maintainer_email='avylove@rockhopper.net',
     url='https://github.com/Rockhopper-Technologies/enlighten',
     license='MPLv2.0',
     zip_safe=False,
@@ -67,5 +69,5 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Utilities',
     ],
-    keywords=['progress', 'bar', 'progress bar', 'progressbar', 'counter'],
+    keywords='progress bar, progressbar, counter',
 )
