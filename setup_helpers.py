@@ -8,6 +8,7 @@
 Functions to help with build and setup
 """
 
+import io
 import os
 import re
 import sys
@@ -16,12 +17,12 @@ import sys
 RE_VERSION = re.compile(r'__version__\s*=\s*[\'\"](.+)[\'\"]$')
 
 
-def get_version(filename):
+def get_version(filename, encoding='utf8'):
     """
     Get __version__ definition out of a source file
     """
 
-    with open(filename) as sourcecode:
+    with io.open(filename, encoding=encoding) as sourcecode:
         for line in sourcecode:
             version = RE_VERSION.match(line)
             if version:
@@ -30,16 +31,16 @@ def get_version(filename):
     return None
 
 
-def readme(filename):
+def readme(filename, encoding='utf8'):
     """
     Read the contents of a file
     """
 
-    with open(filename) as source:
+    with io.open(filename, encoding=encoding) as source:
         return source.read()
 
 
-def print_spelling_errors(filename):
+def print_spelling_errors(filename, encoding='utf8'):
     """
     Print misspelled words returned by sphinxcontrib-spelling
     """
@@ -47,7 +48,7 @@ def print_spelling_errors(filename):
     filesize = os.stat(filename).st_size
     if filesize:
         sys.stdout.write('Misspelled Words:\n')
-        with open(filename) as wordlist:
+        with io.open(filename, encoding=encoding) as wordlist:
             for line in wordlist:
                 sys.stdout.write('    ' + line)
         return 1
