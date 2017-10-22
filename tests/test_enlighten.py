@@ -1133,6 +1133,54 @@ class TestManager(TestCase):
 
         self.assertFalse(mgr.enabled)
 
+    def test_no_resize_signal(self):
+
+        # Test normal case initialization
+        stdmgr = enlighten.Manager(stream=self.tty.stdout)
+        self.assertTrue(hasattr(stdmgr, 'sigwinch_orig'))
+        stdmgr.counters[MockCounter(manager=stdmgr)] = 3
+        stdmgr.counters[MockCounter(manager=stdmgr)] = 4
+
+        # Test no resize signal initialization
+        with mock.patch.object(enlighten, 'RESIZE_SUPPORTED', False):
+            manager = enlighten.Manager(stream=self.tty.stdout)
+            self.assertFalse(hasattr(manager, 'sigwinch_orig'))
+
+            manager.counters[MockCounter(manager=manager)] = 3
+            manager.counters[MockCounter(manager=manager)] = 4
+
+        # Test set_scroll_area()
+        with mock.patch.object(enlighten.signal, 'signal',
+                               wraps=enlighten.signal.signal) as mocksignal:
+            with mock.patch('enlighten.atexit'):
+
+                # Test no resize signal set_scroll_area
+                with mock.patch.object(enlighten, 'RESIZE_SUPPORTED', False):
+                    with mock.patch.object(manager.term, 'change_scroll'):
+                        manager._set_scroll_area()
+
+                self.assertFalse(mocksignal.called)
+
+                # Test normal case set_scroll_area
+                with mock.patch.object(stdmgr.term, 'change_scroll'):
+                    stdmgr._set_scroll_area()
+                self.assertTrue(mocksignal.called)
+
+        # Test stop()
+        with mock.patch.object(enlighten.signal, 'signal',
+                               wraps=enlighten.signal.signal) as mocksignal:
+
+            with mock.patch('enlighten.Terminal.reset'):
+
+                # Test no resize signal stop
+                with mock.patch.object(enlighten, 'RESIZE_SUPPORTED', False):
+                    manager.stop()
+                self.assertFalse(mocksignal.called)
+
+                # Test normal case stop
+                stdmgr.stop()
+                self.assertTrue(mocksignal.called)
+
 
 class TestGetManager(TestCase):
 

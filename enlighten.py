@@ -34,6 +34,8 @@ BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{tota
 
 SERIES_STD = u' ▏▎▍▌▋▊▉█'
 
+RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
+
 __version__ = '1.0.6'
 
 
@@ -548,7 +550,8 @@ class Manager(object):
         self.width = self.term.width
         self.set_scroll = kwargs.pop('set_scroll', True)
         self.resize_lock = False
-        self.sigwinch_orig = signal.getsignal(signal.SIGWINCH)
+        if RESIZE_SUPPORTED:
+            self.sigwinch_orig = signal.getsignal(signal.SIGWINCH)
 
         self.defaults = kwargs  # Counter defaults
 
@@ -668,7 +671,8 @@ class Manager(object):
         # Set exit handling only once
         if not self.process_exit:
             atexit.register(self._at_exit)
-            signal.signal(signal.SIGWINCH, self._resize_handler)
+            if RESIZE_SUPPORTED:
+                signal.signal(signal.SIGWINCH, self._resize_handler)
             self.process_exit = True
 
         if self.set_scroll:
@@ -752,7 +756,8 @@ class Manager(object):
             stream = self.stream
             positions = self.counters.values()
 
-            signal.signal(signal.SIGWINCH, self.sigwinch_orig)
+            if RESIZE_SUPPORTED:
+                signal.signal(signal.SIGWINCH, self.sigwinch_orig)
 
             try:
                 for num in range(self.scroll_offset - 1, 0, -1):
