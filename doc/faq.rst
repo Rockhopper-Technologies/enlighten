@@ -21,9 +21,10 @@ Enlighten, meaning "to inform", seems a fitting name.
 Is Windows supported?
 ---------------------
 
-It hasn't been tested, but Enlighten is generally subject to the same
+Enlighten is subject to the same
 `limitations <http://blessed.readthedocs.io/en/latest/intro.html#brief-overview>`_
-as the `blessed <https://github.com/jquast/blessed>`_ module.
+as the `blessed <https://github.com/jquast/blessed>`_ module which currently doesn't
+work with windows.
 
 If you have ideas,
 `patches <https://github.com/Rockhopper-Technologies/enlighten/pulls>`_
