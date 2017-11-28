@@ -39,6 +39,34 @@ Documentation
 
 https://python-enlighten.readthedocs.io
 
+Installation
+============
+
+PIP
+---
+
+.. code-block:: console
+
+    $ pip install enlighten
+
+EL6 and EL7 (RHEL/CentOS/Scientific)
+------------------------------------
+
+(EPEL_ repositories must be configured_)
+
+.. code-block:: console
+
+    $ yum install python-enlighten
+
+Fedora
+------
+
+.. code-block:: console
+
+    $ dnf install python2-enlighten
+    $ dnf install python3-enlighten
+
+
 Examples
 ========
 
@@ -122,3 +150,6 @@ Series_ and Format_ sections of the Counter_ documentation.
 .. _get_manager: http://python-enlighten.readthedocs.io/en/latest/api.html#enlighten.get_manager
 .. _Format: http://python-enlighten.readthedocs.io/en/latest/api.html#counter-format
 .. _Series: http://python-enlighten.readthedocs.io/en/latest/api.html#series
+.. _EPEL: https://fedoraproject.org/wiki/EPEL
+.. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
+

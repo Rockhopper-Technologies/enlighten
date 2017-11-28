@@ -11,6 +11,7 @@
    :hidden:
 
    self
+   install.rst
    examples.rst
    patterns.rst
    faq.rst
