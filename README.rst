@@ -2,25 +2,34 @@
 
 | |docs| |travis| |codecov|
 | |pypi| |supported-versions| |supported-implementations|
+| |fedora| |EPEL|
 
-.. |docs| image:: https://readthedocs.org/projects/python-enlighten/badge/
+.. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
-.. |travis| image:: https://img.shields.io/travis/Rockhopper-Technologies/enlighten.svg
+.. |travis| image:: https://img.shields.io/travis/Rockhopper-Technologies/enlighten.svg?style=plastic
     :target: https://travis-ci.org/Rockhopper-Technologies/enlighten
     :alt: Travis-CI Build Status
-.. |codecov| image:: https://img.shields.io/codecov/c/github/Rockhopper-Technologies/enlighten.svg
+.. |codecov| image:: https://img.shields.io/codecov/c/github/Rockhopper-Technologies/enlighten.svg?style=plastic
     :target: https://codecov.io/gh/Rockhopper-Technologies/enlighten
     :alt: Coverage Status
-.. |pypi| image:: https://img.shields.io/pypi/v/enlighten.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/enlighten.svg?style=plastic
     :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/enlighten
-.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/enlighten.svg
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/enlighten.svg?style=plastic
     :alt: Supported versions
     :target: https://pypi.python.org/pypi/enlighten
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg?style=plastic
     :alt: Supported implementations
     :target: https://pypi.python.org/pypi/enlighten
+
+.. |fedora| image:: https://img.shields.io/badge/Fedora-27-lightgrey.svg?style=plastic
+    :alt: Fedora version support
+    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
+
+.. |EPEL| image:: https://img.shields.io/badge/EPEL-6,_7-lightgrey.svg?style=plastic
+    :alt: EPEL version support
+    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
 
 .. end-badges
 
