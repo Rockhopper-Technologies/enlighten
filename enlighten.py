@@ -36,7 +36,7 @@ SERIES_STD = u' ▏▎▍▌▋▊▉█'
 
 RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
 
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 
 def _format_time(seconds):
