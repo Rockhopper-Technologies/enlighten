@@ -51,7 +51,9 @@ can be used as context managers.
 
     import enlighten
 
+    SPLINES = 100
+
     with enlighten.Manager() as manager:
         with manager.counter(total=SPLINES, desc='Reticulating:', unit='splines') as retic:
-            for num in range(SPLINES):
+            for num in range(SPLINES + 1):
                 retic.update()
