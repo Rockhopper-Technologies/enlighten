@@ -187,7 +187,7 @@ class Counter(object):
 
         The last character is the full character. When the ``count`` is equal to ``total``,
         the bar will be made up of only this character.
-        In the example below, characters 0 through 3 are fill characters.
+        In the example below, characters 0 through 3 are full characters.
 
 
         The remaining characters are fractional characters used to more accurately represent the
