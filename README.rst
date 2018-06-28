@@ -3,7 +3,7 @@
 .. raw:: html
 
     <a href="https://repology.org/metapackage/python:enlighten">
-        <img src="https://repology.org/badge/vertical-allrepos/python:enlighten.svg" alt="Packaging status" align="right">
+        <img src="https://repology.org/badge/vertical-allrepos/python:enlighten.svg?header=" alt="Packaging status" align="right">
     </a>
 
 | |docs| |travis| |codecov|
