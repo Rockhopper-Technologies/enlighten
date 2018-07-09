@@ -17,8 +17,6 @@ from setuptools import setup
 
 from setup_helpers import get_version, readme
 
-REQUIRES = ['blessed']
-SETUP_REQUIRES = []
 TESTS_REQUIRE = []
 
 # Additional requirements
@@ -47,8 +45,7 @@ setup(
     url='https://github.com/Rockhopper-Technologies/enlighten',
     license='MPLv2.0',
     zip_safe=False,
-    install_requires=REQUIRES,
-    setup_requires=SETUP_REQUIRES,
+    install_requires=['blessed'],
     tests_require=TESTS_REQUIRE,
     py_modules=['enlighten'],
     test_suite='tests',
