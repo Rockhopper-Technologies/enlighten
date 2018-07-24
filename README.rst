@@ -1,13 +1,8 @@
 .. start-badges
 
-.. raw:: html
-
-    <a href="https://repology.org/metapackage/python:enlighten">
-        <img src="https://repology.org/badge/vertical-allrepos/python:enlighten.svg?header=" alt="Packaging status" align="right">
-    </a>
-
 | |docs| |travis| |codecov|
 | |pypi| |supported-versions| |supported-implementations|
+| |fedora| |EPEL|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic
     :target: https://python-enlighten.readthedocs.org
@@ -27,6 +22,14 @@
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg?style=plastic
     :alt: Supported implementations
     :target: https://pypi.python.org/pypi/enlighten
+
+.. |fedora| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22f%22))].name&label=Fedora&colorB=lightgray&style=plastic
+    :alt: Fedora version support
+    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
+
+.. |EPEL| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22e%22))].name&label=EPEL&colorB=lightgray&style=plastic
+    :alt: EPEL version support
+    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
 
 .. end-badges
 
