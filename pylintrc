@@ -14,7 +14,9 @@ argument-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
 variable-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
 
 [MESSAGES CONTROL]
-disable=no-else-return
+disable=
+    no-else-return,
+    useless-object-inheritance
 
 [SPELLING]
 

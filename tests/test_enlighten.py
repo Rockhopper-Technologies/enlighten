@@ -31,7 +31,7 @@ else:
 if sys.version_info[:2] < (3, 3):
     import mock
 else:
-    import unittest.mock as mock  # noqa: F401  # pylint: disable=no-name-in-module
+    from unittest import mock # noqa: F401  # pylint: disable=no-name-in-module
 
 if sys.version_info[0] < 3:
     from StringIO import StringIO
