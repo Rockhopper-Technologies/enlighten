@@ -51,9 +51,8 @@ def print_spelling_errors(filename, encoding='utf8'):
         with io.open(filename, encoding=encoding) as wordlist:
             for line in wordlist:
                 sys.stdout.write('    ' + line)
-        return 1
-    else:
-        return 0
+
+    return 1 if filesize else 0
 
 
 if __name__ == '__main__':
