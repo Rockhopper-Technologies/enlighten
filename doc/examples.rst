@@ -80,6 +80,7 @@ Additional Examples
 * :download:`context manager <../examples/context_manager.py>` - Managers and counters as context managers
 * :download:`floats <../examples/floats.py>` - Support totals and counts that are :py:class:`floats<float>`
 * :download:`multiple with logging <../examples/multiple_logging.py>` - Nested progress bars and logging
+* :download:`FTP downloader <../examples/ftp_downloader.py>` - Show progress downloading files from FTP
 
 Customization
 -------------
