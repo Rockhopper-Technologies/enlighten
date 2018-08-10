@@ -67,5 +67,5 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Utilities',
     ],
-    keywords='progress bar progressbar counter status statusbar',
+    keywords='progress, bar, progressbar, counter, status, statusbar',
 )
