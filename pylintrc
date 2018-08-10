@@ -15,6 +15,7 @@ variable-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
 
 [MESSAGES CONTROL]
 disable=
+    too-few-public-methods,
     useless-object-inheritance
 
 [SPELLING]
@@ -23,5 +24,19 @@ disable=
 spelling-dict=en_US
 
 # List of comma separated words that should not be checked.
-spelling-ignore-words=Avram, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr, BaseManager, bool, desc, html, incr, kwargs, len, Lubkin, meth, Mozilla, MPL, noqa, pragma, py, redirector, resize, resizing, setscroll, sphinxcontrib, ss, stdout, stderr, str, sys, TestCase, tty, TTY, tuple, unicode, unittest
+spelling-ignore-words=
+    Avram, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
+    BaseManager, bool,
+    desc, downloader,
+    html,
+    incr,
+    kwargs,
+    len, Lubkin,
+    meth, Mozilla, MPL,
+    noqa,
+    pragma, py,
+    redirector, resize, resizing,
+    setscroll, sphinxcontrib, ss, stdout, stderr, str, sys,
+    TestCase, tty, TTY, tuple,
+    unicode, unittest
 
