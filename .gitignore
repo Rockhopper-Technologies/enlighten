@@ -5,8 +5,9 @@ __pycache__
 # Testing
 .cache
 
-# Spyder
+# Editors
 .spyproject
+.vscode
 
 # Tox
 .tox
