@@ -11,9 +11,10 @@ The main advantage of Enlighten is it allows writing to stdout and stderr withou
 redirection.
 """
 
+import os
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
@@ -35,7 +36,7 @@ if sys.version_info[:2] < (2, 7):
 
 setup(
     name='enlighten',
-    version=get_version('enlighten.py'),
+    version=get_version(os.path.join('enlighten', '__init__.py')),
     description='Enlighten Progress Bar',
     long_description=readme('README.rst'),
     author='Avram Lubkin',
@@ -47,7 +48,7 @@ setup(
     zip_safe=False,
     install_requires=['blessed'],
     tests_require=TESTS_REQUIRE,
-    py_modules=['enlighten'],
+    packages=find_packages(exclude=['tests', 'tests.*']),
     test_suite='tests',
 
     classifiers=[

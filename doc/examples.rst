@@ -88,4 +88,3 @@ Customization
 Enlighten is highly configurable. For information on modifying the output, see the
 :ref:`Series <series>` and :ref:`Format <counter_format>`
 sections of the :py:class:`~enlighten.Counter` documentation.
-

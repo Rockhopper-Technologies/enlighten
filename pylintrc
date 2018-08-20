@@ -36,7 +36,6 @@ spelling-ignore-words=
     noqa,
     pragma, py,
     redirector, resize, resizing,
-    setscroll, sphinxcontrib, ss, stdout, stderr, str, sys,
+    setscroll, sphinxcontrib, ss, stdout, stderr, str, submodule, sys,
     TestCase, tty, TTY, tuple,
     unicode, unittest
-
