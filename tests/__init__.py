@@ -50,7 +50,6 @@ class TestCase(unittest.TestCase):
     """
     Subclass of :py:class:`unittest.TestCase` for customization
     """
-    pass
 
 
 # Fix deprecated methods for EL6
