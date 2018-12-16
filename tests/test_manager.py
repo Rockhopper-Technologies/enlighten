@@ -36,8 +36,8 @@ class TestManager(TestCase):
 
         # Companion stream is stderr if stream is stdout
         manager = _manager.Manager()
-        self.assertIs(manager.stream, sys.__stdout__)
-        self.assertIs(manager.term.stream, sys.__stdout__)
+        self.assertIs(manager.stream, sys.stdout)
+        self.assertIs(manager.term.stream, sys.stdout)
         # This will fail building rpm packages since stderr is redirected
         if sys.__stderr__.isatty():
             self.assertIs(manager.companion_stream, sys.__stderr__)
