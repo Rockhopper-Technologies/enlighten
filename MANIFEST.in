@@ -1,3 +1,3 @@
 include LICENSE setup_helpers.py README.*
-graft tests
+graft tests examples
 

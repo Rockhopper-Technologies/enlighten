@@ -48,7 +48,7 @@ setup(
     zip_safe=False,
     install_requires=['blessed'],
     tests_require=TESTS_REQUIRE,
-    packages=find_packages(exclude=['tests', 'tests.*']),
+    packages=find_packages(exclude=['tests', 'tests.*', 'examples']),
     test_suite='tests',
 
     classifiers=[
