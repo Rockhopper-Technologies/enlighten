@@ -14,7 +14,8 @@ import sys
 
 from enlighten import _manager
 
-from tests import TestCase, mock, MockTTY, MockCounter, OUTPUT, redirect_output
+from tests import (unittest, TestCase, mock, MockTTY, MockCounter,
+                   redirect_output, OUTPUT, STDOUT_NO_FD)
 
 
 TERMINAL = 'enlighten._terminal.Terminal'
@@ -32,8 +33,15 @@ class TestManager(TestCase):
         self.tty.close()
         signal.signal(signal.SIGWINCH, self.resize_sig)
 
-    def test_init(self):
+    def test_init_safe(self):
+        with redirect_output('stdout', self.tty.stdout):
+            # Companion stream is stderr if stream is stdout
+            manager = _manager.Manager()
+            self.assertIs(manager.stream, sys.stdout)
+            self.assertIs(manager.term.stream, sys.stdout)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init(self):
         # Companion stream is stderr if stream is stdout
         manager = _manager.Manager()
         self.assertIs(manager.stream, sys.stdout)
@@ -43,11 +51,15 @@ class TestManager(TestCase):
             self.assertIs(manager.companion_stream, sys.__stderr__)
             self.assertIs(manager.companion_term.stream, sys.__stderr__)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_companion_hc(self):
         # Hard-coded companion stream always wins
         manager = _manager.Manager(companion_stream=OUTPUT)
         self.assertIs(manager.companion_stream, OUTPUT)
         self.assertIs(manager.companion_term.stream, OUTPUT)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_stderr(self):
         # Companion stream is stdout if stream is stderr
         manager = _manager.Manager(stream=sys.__stderr__)
         self.assertIs(manager.stream, sys.__stderr__)
@@ -57,6 +69,8 @@ class TestManager(TestCase):
             self.assertIs(manager.companion_stream, sys.__stdout__)
             self.assertIs(manager.companion_term.stream, sys.__stdout__)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_redirect(self):
         # If stdout is redirected, but stderr is still a tty, use it for companion
         with redirect_output('stdout', OUTPUT):
             manager = _manager.Manager()
@@ -67,6 +81,8 @@ class TestManager(TestCase):
                 self.assertIs(manager.companion_stream, sys.stderr)
                 self.assertIs(manager.companion_term.stream, sys.stderr)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_stderr_redirect(self):
         # If stderr is redirected, but stdout is still a tty, use it for companion
         with redirect_output('stderr', OUTPUT):
             manager = _manager.Manager(stream=sys.stderr)
@@ -77,10 +93,16 @@ class TestManager(TestCase):
                 self.assertIs(manager.companion_stream, sys.stdout)
                 self.assertIs(manager.companion_term.stream, sys.stdout)
 
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_stderr_companion_hc(self):
+
         # Hard-coded companion stream always wins
         manager = _manager.Manager(stream=sys.__stderr__, companion_stream=OUTPUT)
         self.assertIs(manager.companion_stream, OUTPUT)
         self.assertIs(manager.companion_term.stream, OUTPUT)
+
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_init_hc(self):
 
         # Nonstandard stream doesn't get a companion stream by default
         manager = _manager.Manager(stream=OUTPUT)
@@ -91,7 +113,7 @@ class TestManager(TestCase):
 
     def test_counter_and_remove(self):
         # pylint: disable=no-member,assigning-non-slot
-        manager = _manager.Manager(counter_class=MockCounter)
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertEqual(len(manager.counters), 0)
 
         with mock.patch.object(manager, '_set_scroll_area') as ssa:
@@ -167,7 +189,7 @@ class TestManager(TestCase):
             manager.counter(position=200)
 
     def test_inherit_kwargs(self):
-        manager = _manager.Manager(counter_class=MockCounter,
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                    unit='knights', not_real=True, desc='Default')
 
         self.assertTrue('unit' in manager.defaults)
@@ -647,7 +669,7 @@ class TestGetManager(TestCase):
     def tearDown(self):
         self.tty.close()
 
-    def test_get_manager(self):
+    def test_get_manager_tty(self):
 
         # stdout is attached to a tty
         with redirect_output('stdout', self.tty.stdout):
@@ -655,6 +677,12 @@ class TestGetManager(TestCase):
             manager = _manager.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)
+            self.assertTrue('enabled' in manager.defaults)
+            self.assertTrue(manager.enabled)
+            self.assertTrue(manager.defaults['enabled'])
+
+    @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
+    def test_get_manager_notty(self):
 
         # stdout is not attached to a tty
         with redirect_output('stdout', OUTPUT):
@@ -662,3 +690,6 @@ class TestGetManager(TestCase):
             manager = _manager.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)
+            self.assertFalse(manager.enabled)
+            self.assertTrue('enabled' in manager.defaults)
+            self.assertFalse(manager.defaults['enabled'])

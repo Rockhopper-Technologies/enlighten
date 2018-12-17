@@ -87,6 +87,15 @@ if not hasattr(TestCase, 'assertRaisesRegex'):
     TestCase.assertRaisesRegex = assert_raises_regex
 
 
+# Some tests fail if "real" stdout is does not have a file descriptor
+try:
+    sys.__stdout__.fileno()
+except ValueError:
+    STDOUT_NO_FD = True
+else:
+    STDOUT_NO_FD = False
+
+
 @contextmanager
 def redirect_output(stream, target):
     """
@@ -111,8 +120,9 @@ class MockTTY(object):
             self.stdout = os.fdopen(self.slave, 'w', 1)
             self.stdread = os.fdopen(self.master, 'r')
         else:
-            self.stdout = os.fdopen(self.slave, 'w', 1, newline='\n')  # line buffering for pypy2
-            self.stdread = os.fdopen(self.master, 'r', newline='\n')
+            self.stdout = os.fdopen(self.slave, 'w', 1, encoding='UTF-8',
+                                    newline='\n')  # line buffering for pypy2
+            self.stdread = os.fdopen(self.master, 'r', encoding='UTF-8', newline='\n')
 
         # Make sure linefeed behavior is consistent between Python 2 and Python 3
         termattrs = termios.tcgetattr(self.slave)

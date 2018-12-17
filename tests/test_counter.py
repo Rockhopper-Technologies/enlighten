@@ -179,14 +179,14 @@ class TestCounter(TestCase):
     def test_format_no_total(self):
 
         # No unit, No desc
-        ctr = Counter()
+        ctr = Counter(stream=self.tty.stdout, )
         self.assertRegex(ctr.format(width=80), r'0 \[00:0\d, 0.00/s\]')
         ctr.count = 50
         ctr.start = time.time() - 50
         self.assertRegex(ctr.format(width=80), r'50 \[00:5\d, \d.\d\d/s\]')
 
         # With unit and description
-        ctr = Counter(desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, desc='Test', unit='ticks')
         rtn = ctr.format(width=80)
         self.assertEqual(len(rtn), 80)
         self.assertRegex(rtn, r'Test 0 ticks \[00:0\d, 0.00 ticks/s\]')
@@ -201,7 +201,7 @@ class TestCounter(TestCase):
         Counter should fall back to no-total format if count is greater than total
         """
 
-        ctr = Counter(total=10, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=10, desc='Test', unit='ticks')
         ctr.count = 50
         ctr.start = time.time() - 50
         rtn = ctr.format(width=80)
@@ -213,20 +213,20 @@ class TestCounter(TestCase):
         Test for an empty counter
         """
 
-        ctr = Counter(total=10, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=10, desc='Test', unit='ticks')
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'Test   0%\|[ ]+ \|  0/10 \[00:0\d<\?, 0.00 ticks/s\]')
 
         # No unit, no description
-        ctr = Counter(total=10)
+        ctr = Counter(stream=self.tty.stdout, total=10)
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'  0%\|[ ]+ \|  0/10 \[00:0\d<\?, 0.00/s\]')
 
     def test_full_bar(self):
 
-        ctr = Counter(total=10, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=10, desc='Test', unit='ticks')
         ctr.count = 10
         ctr.start = time.time() - 10
         formatted = ctr.format(width=80)
@@ -239,14 +239,14 @@ class TestCounter(TestCase):
         If the total is 0, the bar should be full
         """
 
-        ctr = Counter(total=0, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=0, desc='Test', unit='ticks')
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'Test 100%\|' u'█+' + r'\| 0/0 \[00:0\d<00:00, 0.00 ticks/s\]')
 
     def test_partial_bar(self):
 
-        ctr = Counter(total=100, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
         ctr.count = 50
         formatted = ctr.format(elapsed=50, width=80)
         self.assertEqual(len(formatted), 80)
@@ -270,7 +270,8 @@ class TestCounter(TestCase):
         self.assertEqual(formatted, u'█▎        ')
 
     def test_custom_series(self):
-        ctr = Counter(total=100, desc='Test', unit='ticks', series=[' ', '>', '-'])
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks',
+                      series=[' ', '>', '-'])
         ctr.count = 50
         formatted = ctr.format(elapsed=50, width=80)
         self.assertEqual(len(formatted), 80)
@@ -283,7 +284,8 @@ class TestCounter(TestCase):
         self.assertRegex(formatted, r'Test  13%\|' + u'---->' +
                          r'[ ]+\|  13/100 \[00:1\d<01:\d\d, \d.\d\d ticks/s\]')
 
-        ctr = Counter(total=100, desc='Test', unit='ticks', series=[u'⭘', u'⬤'])
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks',
+                      series=[u'⭘', u'⬤'])
         ctr.count = 50
         formatted = ctr.format(elapsed=50, width=80)
         self.assertEqual(len(formatted), 80)
@@ -317,7 +319,7 @@ class TestCounter(TestCase):
         default format strings
         """
 
-        ctr = Counter(total=100.2, desc='Test', unit='ticks', min_delta=500)
+        ctr = Counter(stream=self.tty.stdout, total=100.2, desc='Test', unit='ticks', min_delta=500)
         ctr.update(50.1)
         self.assertEqual(ctr.count, 50.1)
 
