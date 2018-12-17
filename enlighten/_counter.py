@@ -34,17 +34,17 @@ def _format_time(seconds):
     # Always do minutes and seconds in mm:ss format
     minutes = seconds // 60
     hours = minutes // 60
-    rtn = '{0:02.0f}:{1:02.0f}'.format(minutes % 60, seconds % 60)
+    rtn = u'{0:02.0f}:{1:02.0f}'.format(minutes % 60, seconds % 60)
 
     #  Add hours if there are any
     if hours:
 
-        rtn = '{0:d}h {1}'.format(int(hours % 24), rtn)
+        rtn = u'{0:d}h {1}'.format(int(hours % 24), rtn)
 
         #  Add days if there are any
         days = int(hours // 24)
         if days:
-            rtn = '{0:d}d {1}'.format(days, rtn)
+            rtn = u'{0:d}d {1}'.format(days, rtn)
 
     return rtn
 
@@ -297,13 +297,13 @@ class Counter(object):
 
         iterations = abs(self.count - self.start_count)
 
-        fields = {'bar': '{0}',
+        fields = {'bar': u'{0}',
                   'count': self.count,
-                  'desc': self.desc or '',
+                  'desc': self.desc or u'',
                   'total': self.total,
-                  'unit': self.unit or '',
-                  'desc_pad': ' ' if self.desc else '',
-                  'unit_pad': ' ' if self.unit else ''}
+                  'unit': self.unit or u'',
+                  'desc_pad': u' ' if self.desc else u'',
+                  'unit_pad': u' ' if self.unit else u''}
 
         # Get elapsed time
         if elapsed is None:
@@ -327,7 +327,7 @@ class Counter(object):
             if self.total == 0:
                 # If total is 0, force to 100 percent
                 percentage = 1
-                fields['eta'] = '00:00'
+                fields['eta'] = u'00:00'
             else:
                 # Use float to force to float in Python 2
                 percentage = self.count / float(self.total)
@@ -338,7 +338,7 @@ class Counter(object):
                     eta = (self.total - iterations) / fields['rate']
                     fields['eta'] = _format_time(eta)
                 else:
-                    fields['eta'] = '?'
+                    fields['eta'] = u'?'
 
             fields['percentage'] = percentage * 100
 
@@ -349,16 +349,16 @@ class Counter(object):
             barWidth = width - len(rtn) + 3  # 3 is for the bar placeholder
             complete = barWidth * percentage
             barLen = int(complete)
-            partial = fill = ''
+            partial = fill = u''
             if barLen < barWidth:
                 partial = self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
                 fill = self.series[0] * (barWidth - barLen - 1)
             return rtn.format(u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill))
 
         else:
-            fields['fill'] = '{0}'
+            fields['fill'] = u'{0}'
             rtn = self.counter_format.format(**fields)
-            return rtn.format(' ' * (width - len(rtn) + 3))
+            return rtn.format(u' ' * (width - len(rtn) + 3))
 
     def refresh(self, flush=True, elapsed=None):
         """
