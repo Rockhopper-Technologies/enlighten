@@ -281,6 +281,19 @@ class Counter(object):
 
         self.manager.remove(self)
 
+    def get_bar(self, barWidth):
+        ret = ''
+
+        # Use float to force to float in Python 2
+        percentage = self.count / float(self.total)
+        complete = barWidth * percentage
+        barLen = int(complete)
+        partial = fill = ''
+        if barLen < barWidth:
+            partial = self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
+            fill = self.series[0] * (barWidth - barLen - 1)
+        return u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill)
+
     def format(self, width=None, elapsed=None):
         """
         Args:
@@ -347,13 +360,7 @@ class Counter(object):
 
             # Format the bar
             barWidth = width - len(rtn) + 3  # 3 is for the bar placeholder
-            complete = barWidth * percentage
-            barLen = int(complete)
-            partial = fill = ''
-            if barLen < barWidth:
-                partial = self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
-                fill = self.series[0] * (barWidth - barLen - 1)
-            return rtn.format(u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill))
+            return rtn.format(self.get_bar(barWidth))
 
         else:
             fields['fill'] = '{0}'
