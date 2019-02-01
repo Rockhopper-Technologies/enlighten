@@ -8,7 +8,7 @@ from enlighten import Counter
 class _SubCounter(object):
     def __init__(self, **kwargs):
         self.count = kwargs.get("count", 0)
-        self.color = kwargs.get("color", None)
+        self.colour = kwargs.get("colour", None)
 
 
 class MultiCounter(Counter):
@@ -17,7 +17,7 @@ class MultiCounter(Counter):
 
         subcounts = kwargs.get("subcounts", [])
         self._subcounts = OrderedDict(
-            [(name, _SubCounter(color=color)) for (name, color) in subcounts]
+            [(name, _SubCounter(colour=colour)) for (name, colour) in subcounts]
         )
 
     @property
@@ -31,7 +31,7 @@ class MultiCounter(Counter):
         return _SubCounter(
             count=self.count
             - sum((subcount.count for subcount in self._subcounts.values())),
-            color="normal",
+            colour="normal",
         )
 
     def update(self, incr=1, force=False, subcount=None):
@@ -45,9 +45,9 @@ class MultiCounter(Counter):
         percentages = [
             subcount.count / float(self.total) for subcount in self.subcounts.values()
         ]
-        colors = [subcount.color for subcount in self.subcounts.values()]
+        colours = [subcount.colour for subcount in self.subcounts.values()]
 
-        for percentage, color in zip(itertools.accumulate(percentages), colors):
+        for percentage, colour in zip(itertools.accumulate(percentages), colours):
             complete = barWidth * percentage
             barLen = int(complete)
             partial = fill = ""
@@ -58,8 +58,8 @@ class MultiCounter(Counter):
             sub_bar = "{0}{1}".format(self.series[-1] * barLen, partial)
             sub_bar = sub_bar[self.manager.term.length(bar) :]
             bar += (
-                getattr(self.manager.term, color)(sub_bar)
-                if color is not "normal"
+                getattr(self.manager.term, colour)(sub_bar)
+                if colour is not "normal"
                 else sub_bar
             )
         fill = self.series[0] * (barWidth - self.manager.term.length(bar) - 1)
