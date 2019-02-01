@@ -10,13 +10,10 @@ Multiple progress bars example
 
 import logging
 import random
-import time
 import sys
-from pathlib import Path
+import time
 
-sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 import enlighten
-
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("enlighten")
@@ -37,7 +34,6 @@ def complete_tests(pbar):
 
 
 def run_tests():
-    # fmt: off
     with enlighten.get_manager(counter_class=enlighten.MultiCounter) as manager, \
         manager.counter(
             total=TESTS,
@@ -46,7 +42,6 @@ def run_tests():
             subcounts=[("failed", "red"), ("passed", "green")],
         ) as pbar:
         complete_tests(pbar)
-    # fmt: on
 
 
 if __name__ == "__main__":
