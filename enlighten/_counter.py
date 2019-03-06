@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2018 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2019 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -353,12 +353,14 @@ class Counter(object):
             if barLen < barWidth:
                 partial = self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
                 fill = self.series[0] * (barWidth - barLen - 1)
-            return rtn.format(u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill))
+            rtn = rtn.format(u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill))
 
         else:
             fields['fill'] = u'{0}'
             rtn = self.counter_format.format(**fields)
-            return rtn.format(u' ' * (width - len(rtn) + 3))
+            rtn = rtn.format(u' ' * (width - len(rtn) + 3))
+
+        return rtn
 
     def refresh(self, flush=True, elapsed=None):
         """
