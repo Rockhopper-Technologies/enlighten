@@ -537,7 +537,8 @@ class Counter(BaseCounter):
                 interations = abs(subcounter.count - subcounter.start_count)
 
                 if elapsed:
-                    rate = fields['rate_{0}'.format(num)] = interations / elapsed
+                    # Use float to force to float in Python 2
+                    rate = fields['rate_{0}'.format(num)] = interations / float(elapsed)
                 else:
                     rate = fields['rate_{0}'.format(num)] = 0.0
 
