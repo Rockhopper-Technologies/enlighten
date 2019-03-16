@@ -14,7 +14,7 @@ Provides Counter class
 import sys
 
 from enlighten._counter import Counter as _Counter
-from enlighten._counter import SubCounter  # pylint: disable=unused-import
+from enlighten._counter import SubCounter  # pylint: disable=unused-import # noqa: F401
 from enlighten._manager import Manager
 
 

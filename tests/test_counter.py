@@ -170,7 +170,6 @@ class TestSubCounter(TestCase):
         self.assertEqual(counter.count, 3)
         self.assertEqual(self.parent.count, 6)
 
-
     def test_update_from_invalid_source(self):
         """Must be peer or parent"""
         counter = enlighten._counter.SubCounter(self.parent)
