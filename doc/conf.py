@@ -16,12 +16,12 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-from setup_helpers import get_version
+from setup_helpers import get_version  # noqa: E402
 
 # -- General configuration ------------------------------------------------
 
@@ -90,9 +90,9 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-#if os.environ.get('READTHEDOCS') == 'True':
+# if os.environ.get('READTHEDOCS') == 'True':
 #    html_theme = 'default'
-#else:
+# else:
 #    try:
 #        import sphinx_rtd_theme
 #        html_theme = 'sphinx_rtd_theme'
@@ -115,7 +115,7 @@ html_static_path = ['_static']
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-#html_sidebars = {
+# html_sidebars = {
 #    '**': [
 #        'about.html',
 #        'navigation.html',
@@ -123,7 +123,7 @@ html_static_path = ['_static']
 #        'searchbox.html',
 #        'donate.html',
 #    ]
-#}
+# }
 
 
 # -- Options for HTMLHelp output ------------------------------------------
