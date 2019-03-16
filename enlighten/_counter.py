@@ -151,6 +151,9 @@ class SubCounter(BaseCounter):
             all_fields(bool): Populate ``rate`` and ``eta`` fields (Default: False)
         """
 
+        if parent.count - parent.subcount - count < 0:
+            raise ValueError('Invalid count: %s' % count)
+
         super(SubCounter, self).__init__(manager=parent.manager, color=color, count=count)
 
         self.parent = parent
@@ -189,14 +192,18 @@ class SubCounter(BaseCounter):
 
         # Make sure source is a parent or peer
         if source is self.parent or getattr(source, 'parent', None) is self.parent:
+
             if self.count + incr < 0 or source.count - incr < 0:
-                raise ValueError('Invalid increment %s' % incr)
+                    raise ValueError('Invalid increment: %s' % incr)
 
-            self.count += incr
+            if source is self.parent:
+                if self.parent.count - self.parent.subcount - incr < 0:
+                    raise ValueError('Invalid increment: %s' % incr)
 
-            if source is not self.parent:
+            else:
                 source.count -= incr
 
+            self.count += incr
             self.parent.update(0, force)
 
         else:
@@ -463,6 +470,14 @@ class Counter(BaseCounter):
 
         return elapsed
 
+    @property
+    def subcount(self):
+        """
+        Sum of counts from all subcounters
+        """
+
+        return sum(subcounter.count for subcounter in self._subcounters)
+
     def clear(self, flush=True):
         """
         Args:
@@ -504,7 +519,11 @@ class Counter(BaseCounter):
         subcounters = []
 
         for num, subcounter in enumerate(self._subcounters, 1):
-            subPercentage = subcounter.count / float(self.total)
+
+            if self.total:
+                subPercentage = subcounter.count / float(self.total)
+            else:
+                subPercentage = 0.0
 
             # Save in tuple: count, percentage, color
             subcounters.append((subcounter, subPercentage))
@@ -520,7 +539,7 @@ class Counter(BaseCounter):
                 if elapsed:
                     rate = fields['rate_{0}'.format(num)] = interations / elapsed
                 else:
-                    rate = fields['rate_{0}'.format(num)] = 0
+                    rate = fields['rate_{0}'.format(num)] = 0.0
 
                 if self.total == 0:
                     fields['eta_{0}'.format(num)] = u'00:00'
@@ -567,7 +586,7 @@ class Counter(BaseCounter):
             # Use iterations so a counter running backwards is accurate
             fields['rate'] = iterations / elapsed
         else:
-            fields['rate'] = 0
+            fields['rate'] = 0.0
 
         # Only process bar if total was given and n doesn't exceed total
         if self.total is not None and self.count <= self.total:
@@ -599,7 +618,7 @@ class Counter(BaseCounter):
             if subcounters:
                 fields.update(subFields)
                 fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
-                fields['percentage_0'] = percentage - sum(sub[1] for sub in subcounters) * 100
+                fields['percentage_0'] = (percentage - sum(sub[1] for sub in subcounters)) * 100
 
             # Partially format
             rtn = self.bar_format.format(**fields)
