@@ -194,7 +194,7 @@ class SubCounter(BaseCounter):
         if source is self.parent or getattr(source, 'parent', None) is self.parent:
 
             if self.count + incr < 0 or source.count - incr < 0:
-                    raise ValueError('Invalid increment: %s' % incr)
+                raise ValueError('Invalid increment: %s' % incr)
 
             if source is self.parent:
                 if self.parent.count - self.parent.subcount - incr < 0:

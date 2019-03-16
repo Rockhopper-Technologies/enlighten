@@ -101,7 +101,7 @@ class TestBaseCounter(TestCase):
         self.assertEqual(counter._colorize('test'), 'test')
 
     def test_colorize(self):
-        """Return string formated with color"""
+        """Return string formatted with color"""
         # Color is a string
         counter = enlighten._counter.BaseCounter(manager=self.manager, color='red')
         self.assertIsNone(counter._color)
@@ -201,7 +201,9 @@ class TestSubCounter(TestCase):
             counter.update_from(self.parent, 2)
 
     def test_update_from_parent(self):
-        """"""
+        """
+        subcounter should gain increment, parent should remain unchanged
+        """
         counter = enlighten._counter.SubCounter(self.parent)
         self.parent.count = 4
 
@@ -217,7 +219,9 @@ class TestSubCounter(TestCase):
             self.assertEqual(counter.count, 3)
 
     def test_update_from_peer(self):
-        """"""
+        """
+        Peer should lose increment, subcounter should gain increment
+        """
         counter = enlighten._counter.SubCounter(self.parent)
         self.parent.count = 6
         peer = enlighten._counter.SubCounter(self.parent, count=4)
@@ -558,39 +562,18 @@ class TestCounter(TestCase):
         terminal = ctr.manager.term
         ctr.count = 50
         subcounter1 = ctr.add_subcounter('yellow', all_fields=True)
-        subcounter1.count=5
-        subcounter2 = ctr.add_subcounter('blue', count=10)
+        subcounter1.count = 5
+        ctr.add_subcounter('blue', count=10)
 
         formatted = ctr.format(width=80)
-        bar = terminal.blue(u'█'*8) + terminal.yellow(u'█'*4) + u'█'*28 + ' ' * 40
-        self.assertEqual(formatted, bar)
+        bartext = terminal.blue(u'█'*8) + terminal.yellow(u'█'*4) + u'█'*28 + ' ' * 40
+        self.assertEqual(formatted, bartext)
 
         ctr.bar_format = u'{count_0} {percentage_0} | {count_1} {percentage_1} {rate_1} {eta_1}' + \
                          u' | {count_2} {percentage_2}'
 
         formatted = ctr.format(elapsed=5, width=80)
         self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0')
-
-
-        # self.assertEqual(len(formatted), 80)
-        # self.assertRegex(formatted, r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
-        #                  r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
-
-        # ctr.count = 13
-        # formatted = ctr.format(elapsed=13, width=80)
-        # self.assertEqual(len(formatted), 80)
-        # self.assertRegex(formatted, r'Test  13%\|' + u'█+[▏▎▍▌▋▊▉]?' +
-        #                  r'[ ]+\|  13/100 \[00:1\d<01:\d\d, \d.\d\d ticks/s\]')
-
-        # # Explicit test
-        # ctr.bar_format = u'{bar}'
-        # ctr.count = 50
-        # formatted = ctr.format(width=10)
-        # self.assertEqual(formatted, u'█████     ')
-
-        # ctr.count = 13
-        # formatted = ctr.format(width=10)
-        # self.assertEqual(formatted, u'█▎        ')
 
     def test_close(self):
         manager = mock.Mock()
