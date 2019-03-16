@@ -49,6 +49,193 @@ class TestFormatTime(TestCase):
         self.assertEqual(enlighten._counter._format_time(1447597), '16d 18h 06:37')
 
 
+class TestBaseCounter(TestCase):
+    """
+    Test the BaseCounter class
+    """
+
+    def setUp(self):
+        self.tty = MockTTY()
+        self.manager = MockManager(stream=self.tty.stdout)
+
+    def tearDown(self):
+        self.tty.close()
+
+    def test_init_default(self):
+        """Ensure default values are set"""
+        counter = enlighten._counter.BaseCounter(manager=self.manager)
+        self.assertIsNone(counter.color)
+        self.assertIsNone(counter.color)
+        self.assertIs(counter.manager, self.manager)
+        self.assertEqual(counter.count, 0)
+        self.assertEqual(counter.start_count, 0)
+
+    def test_no_manager(self):
+        """Raise an error if there is no manager specified"""
+        with self.assertRaisesRegex(TypeError, 'manager must be specified'):
+            enlighten._counter.BaseCounter()
+
+    def test_color(self):
+        """Color must be a valid string or int 0 - 255"""
+        # Unsupported type
+        with self.assertRaisesRegex(TypeError, 'color must be a string or integer'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=[])
+
+        # Color is a string
+        counter = enlighten._counter.BaseCounter(manager=self.manager, color='red')
+        self.assertEqual(counter.color, 'red')
+        with self.assertRaisesRegex(ValueError, 'Unsupported color: banana'):
+            enlighten._counter.BaseCounter(manager=self.manager, color='banana')
+
+        # Color is an integer
+        counter = enlighten._counter.BaseCounter(manager=self.manager, color=15)
+        self.assertEqual(counter.color, 15)
+        with self.assertRaisesRegex(ValueError, 'Unsupported color: -1'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=-1)
+        with self.assertRaisesRegex(ValueError, 'Unsupported color: 256'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=256)
+
+    def test_colorize_none(self):
+        """If color is None, return content unchanged"""
+        counter = enlighten._counter.BaseCounter(manager=self.manager)
+        self.assertEqual(counter._colorize('test'), 'test')
+
+    def test_colorize(self):
+        """Return string formated with color"""
+        # Color is a string
+        counter = enlighten._counter.BaseCounter(manager=self.manager, color='red')
+        self.assertIsNone(counter._color)
+        self.assertNotEqual(counter._colorize('test'), 'test')
+        cache = counter._color
+        self.assertEqual(counter._colorize('test'), self.manager.term.red('test'))
+        self.assertEqual(counter._color[0], 'red')
+        self.assertIs(counter._color[1], self.manager.term.red)
+        self.assertIs(counter._color, cache)
+
+        # Color is an integer
+        counter = enlighten._counter.BaseCounter(manager=self.manager, color=40)
+        self.assertIsNone(counter._color)
+        self.assertNotEqual(counter._colorize('test'), 'test')
+        cache = counter._color
+        self.assertEqual(counter._colorize('test'), self.manager.term.color(40)('test'))
+        self.assertEqual(counter._color[0], 40)
+        # New instance is generated each time, so just compare strings
+        self.assertEqual(counter._color[1], self.manager.term.color(40))
+        self.assertIs(counter._color, cache)
+
+
+class TestSubCounter(TestCase):
+    """
+    Test the BaseCounter class
+    """
+    def setUp(self):
+        self.tty = MockTTY()
+        self.manager = MockManager(stream=self.tty.stdout)
+        self.parent = Counter(total=10, desc='Test', unit='ticks', manager=self.manager)
+
+    def tearDown(self):
+        self.tty.close()
+
+    def test_init(self):
+        """Ensure initial values are set"""
+        counter = enlighten._counter.SubCounter(self.parent)
+        self.assertIsNone(counter.color)
+        self.assertEqual(counter.count, 0)
+        self.assertFalse(counter.all_fields)
+        self.assertIs(counter.parent, self.parent)
+        self.assertIs(counter.manager, self.manager)
+
+        self.parent.count = 4
+        counter = enlighten._counter.SubCounter(self.parent, color='green',
+                                                count=4, all_fields=True)
+        self.assertEqual(counter.color, 'green')
+        self.assertEqual(counter.count, 4)
+        self.assertTrue(counter.all_fields)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid count: 6'):
+            counter = enlighten._counter.SubCounter(self.parent, count=6)
+
+    def test_update(self):
+        """Increment and update parent"""
+        counter = enlighten._counter.SubCounter(self.parent)
+        self.assertEqual(counter.count, 0)
+        self.assertEqual(self.parent.count, 0)
+        counter.update()
+        self.assertEqual(counter.count, 1)
+        self.assertEqual(self.parent.count, 1)
+        self.parent.update(3)
+        self.assertEqual(counter.count, 1)
+        self.assertEqual(self.parent.count, 4)
+        counter.update(2)
+        self.assertEqual(counter.count, 3)
+        self.assertEqual(self.parent.count, 6)
+
+
+    def test_update_from_invalid_source(self):
+        """Must be peer or parent"""
+        counter = enlighten._counter.SubCounter(self.parent)
+
+        notparent = Counter(manager=self.manager)
+        with self.assertRaisesRegex(ValueError, 'source must be parent or peer'):
+            counter.update_from(notparent)
+
+        notpeer = enlighten._counter.SubCounter(notparent)
+        with self.assertRaisesRegex(ValueError, 'source must be parent or peer'):
+            counter.update_from(notpeer)
+
+    def test_update_from_invalid_incr(self):
+        """Increment can't make source negative"""
+        counter = enlighten._counter.SubCounter(self.parent)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid increment: 1'):
+            counter.update_from(self.parent)
+
+        self.parent.count = 4
+        peer = enlighten._counter.SubCounter(self.parent, count=3)
+        self.parent._subcounters.append(peer)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid increment: 4'):
+            counter.update_from(peer, 4)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid increment: 2'):
+            counter.update_from(self.parent, 2)
+
+    def test_update_from_parent(self):
+        """"""
+        counter = enlighten._counter.SubCounter(self.parent)
+        self.parent.count = 4
+
+        with mock.patch.object(self.parent, 'update', wraps=self.parent.update) as update:
+            counter.update_from(self.parent)
+            update.assert_called_with(0, False)
+            self.assertEqual(self.parent.count, 4)
+            self.assertEqual(counter.count, 1)
+
+            counter.update_from(self.parent, 2)
+            update.assert_called_with(0, False)
+            self.assertEqual(self.parent.count, 4)
+            self.assertEqual(counter.count, 3)
+
+    def test_update_from_peer(self):
+        """"""
+        counter = enlighten._counter.SubCounter(self.parent)
+        self.parent.count = 6
+        peer = enlighten._counter.SubCounter(self.parent, count=4)
+
+        with mock.patch.object(self.parent, 'update', wraps=self.parent.update) as update:
+            counter.update_from(peer)
+            update.assert_called_with(0, False)
+            self.assertEqual(self.parent.count, 6)
+            self.assertEqual(counter.count, 1)
+            self.assertEqual(peer.count, 3)
+
+            counter.update_from(peer, 3)
+            update.assert_called_with(0, False)
+            self.assertEqual(self.parent.count, 6)
+            self.assertEqual(counter.count, 4)
+            self.assertEqual(peer.count, 0)
+
+
 class TestCounter(TestCase):
     """
     Test the Counter classes
@@ -163,6 +350,33 @@ class TestCounter(TestCase):
         self.ctr.enabled = False
         self.ctr.clear()
         self.assertEqual(len(self.manager.output), 0)
+
+    def test_get_subcounter(self):
+        self.ctr.count = 6
+        subcounter1 = self.ctr.add_subcounter('green')
+        subcounter2 = self.ctr.add_subcounter('red', all_fields=True)
+        subcounter2.count = 4
+        subcounter3 = self.ctr.add_subcounter('white', count=1, all_fields=True)
+
+        subcounters, fields = self.ctr._get_subcounters(8)
+
+        self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.4), (subcounter3, 0.1)])
+        self.assertEqual(fields, {'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
+                                  'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'rate_2': 0.5, 'eta_2': '00:12', 'rate_3': 0.0, 'eta_3': '?'})
+
+        subcounters, fields = self.ctr._get_subcounters(0)
+        self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.4), (subcounter3, 0.1)])
+        self.assertEqual(fields, {'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
+                                  'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'rate_2': 0.0, 'eta_2': '?', 'rate_3': 0.0, 'eta_3': '?'})
+
+        self.ctr = Counter(total=0, desc='Test', unit='ticks', manager=self.manager)
+        subcounter1 = self.ctr.add_subcounter('red', all_fields=True)
+        subcounters, fields = self.ctr._get_subcounters(8)
+        self.assertEqual(subcounters, [(subcounter1, 0.0)])
+        self.assertEqual(fields, {'percentage_1': 0.0, 'count_1': 0,
+                                  'rate_1': 0.0, 'eta_1': '00:00'})
 
     def test_remove(self):
         self.ctr.leave = False
@@ -335,6 +549,49 @@ class TestCounter(TestCase):
         self.assertRegex(formatted, r'Test  50%\|' + u'█+' +
                          r'[ ]+\| 50.1/100.2 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
 
+    def test_subcounter(self):
+        """
+        When subcounter is present, bar will be drawn in multiple colors
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=100, bar_format=u'{bar}')
+        terminal = ctr.manager.term
+        ctr.count = 50
+        subcounter1 = ctr.add_subcounter('yellow', all_fields=True)
+        subcounter1.count=5
+        subcounter2 = ctr.add_subcounter('blue', count=10)
+
+        formatted = ctr.format(width=80)
+        bar = terminal.blue(u'█'*8) + terminal.yellow(u'█'*4) + u'█'*28 + ' ' * 40
+        self.assertEqual(formatted, bar)
+
+        ctr.bar_format = u'{count_0} {percentage_0} | {count_1} {percentage_1} {rate_1} {eta_1}' + \
+                         u' | {count_2} {percentage_2}'
+
+        formatted = ctr.format(elapsed=5, width=80)
+        self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0')
+
+
+        # self.assertEqual(len(formatted), 80)
+        # self.assertRegex(formatted, r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
+        #                  r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
+
+        # ctr.count = 13
+        # formatted = ctr.format(elapsed=13, width=80)
+        # self.assertEqual(len(formatted), 80)
+        # self.assertRegex(formatted, r'Test  13%\|' + u'█+[▏▎▍▌▋▊▉]?' +
+        #                  r'[ ]+\|  13/100 \[00:1\d<01:\d\d, \d.\d\d ticks/s\]')
+
+        # # Explicit test
+        # ctr.bar_format = u'{bar}'
+        # ctr.count = 50
+        # formatted = ctr.format(width=10)
+        # self.assertEqual(formatted, u'█████     ')
+
+        # ctr.count = 13
+        # formatted = ctr.format(width=10)
+        # self.assertEqual(formatted, u'█▎        ')
+
     def test_close(self):
         manager = mock.Mock()
 
@@ -363,3 +620,24 @@ class TestCounter(TestCase):
             ctr.update()
 
         self.assertFalse(ctr in mgr.counters)
+
+    def test_add_subcounter(self):
+
+        self.assertEqual(self.ctr._subcounters, [])
+        subcounter1 = self.ctr.add_subcounter('blue')
+        self.assertEqual(len(self.ctr._subcounters), 1)
+        self.assertEqual(self.ctr.subcount, 0)
+        self.assertIs(self.ctr._subcounters[0], subcounter1)
+        self.assertEqual(subcounter1.count, 0)
+        self.assertFalse(subcounter1.all_fields)
+
+        with self.assertRaisesRegex(ValueError, 'Invalid count: 5'):
+            self.ctr.add_subcounter('yellow', count=5, all_fields=True)
+
+        self.ctr.count = 5
+        subcounter2 = self.ctr.add_subcounter('yellow', count=5, all_fields=True)
+        self.assertEqual(len(self.ctr._subcounters), 2)
+        self.assertEqual(self.ctr.subcount, 5)
+        self.assertIs(self.ctr._subcounters[1], subcounter2)
+        self.assertEqual(subcounter2.count, 5)
+        self.assertTrue(subcounter2.all_fields)

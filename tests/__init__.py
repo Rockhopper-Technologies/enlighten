@@ -41,7 +41,7 @@ else:
 
 
 OUTPUT = StringIO()
-os.environ['TERM'] = 'vt100'  # Default to VT100
+os.environ['TERM'] = 'xterm-256color'  # Default to xterm-256color
 
 
 # pylint: disable=missing-docstring
