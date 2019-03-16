@@ -553,6 +553,17 @@ class TestCounter(TestCase):
         self.assertRegex(formatted, r'Test  50%\|' + u'█+' +
                          r'[ ]+\| 50.1/100.2 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
 
+    def test_color(self):
+        """
+        Only bar characters should be colorized
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=100, bar_format=u'|{bar}|',
+                      count=50, color='red')
+        terminal = ctr.manager.term
+        formatted = ctr.format(width=80)
+        self.assertEqual(formatted, '|' + terminal.red(u'█' * 39 + ' ' * 39) + '|')
+
     def test_subcounter(self):
         """
         When subcounter is present, bar will be drawn in multiple colors
