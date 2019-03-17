@@ -467,7 +467,7 @@ class TestCounter(TestCase):
         """
 
         barFormat = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}|{count:{len_total}d}/{total:d} ' + \
-                     u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+                    u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
         barFormat = self.manager.term.blue(barFormat)
 
         ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
