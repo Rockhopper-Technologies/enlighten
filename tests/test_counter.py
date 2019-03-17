@@ -461,6 +461,39 @@ class TestCounter(TestCase):
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'Test 100%\|' u'█+' + r'\| 0/0 \[00:0\d<00:00, 0.00 ticks/s\]')
 
+    def test_offset(self):
+        """
+        Offset reduces count of printable characters when formatting
+        """
+
+        barFormat = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}|{count:{len_total}d}/{total:d} ' + \
+                     u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+        barFormat = self.manager.term.blue(barFormat)
+
+        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
+                                   unit='ticks', count=10, bar_format=barFormat)
+        formatted1 = ctr.format(width=80)
+        self.assertEqual(len(formatted1), 80)
+        barLen1 = formatted1.count(u'█')
+
+        offset = len(self.manager.term.blue(''))
+        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
+                                   unit='ticks', count=10, bar_format=barFormat, offset=offset)
+        formatted2 = ctr.format(width=80)
+        self.assertEqual(len(formatted2), 80 + offset)
+        barLen2 = formatted2.count(u'█')
+
+        self.assertTrue(barLen2 == barLen1 + offset)
+
+        # Test in counter format
+        ctr = self.manager.counter(stream=self.tty.stdout, total=10, count=50)
+        formatted = ctr.format(width=80)
+        self.assertEqual(len(formatted), 80)
+
+        ctr = self.manager.counter(stream=self.tty.stdout, total=10, count=50, offset=10)
+        formatted = ctr.format(width=80)
+        self.assertEqual(len(formatted), 90)
+
     def test_partial_bar(self):
 
         ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
