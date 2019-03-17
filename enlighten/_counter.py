@@ -226,6 +226,7 @@ class Counter(BaseCounter):
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
         manager(:py:class:`Manager`): Manager instance. Creates instance if not specified.
         min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
+        offset(int): Number of non-printable characters to account for when formatting
         series(:py:term:`sequence`): Progression series, see :ref:`Series <series>` below
         stream(:py:term:`file object`): Output stream. Not used when instantiated through a manager
         total(int): Total count when complete
@@ -421,7 +422,7 @@ class Counter(BaseCounter):
     # pylint: disable=too-many-instance-attributes
 
     __slots__ = ('bar_format', 'color', 'counter_format', 'desc', 'enabled', 'last_update',
-                 'leave', 'manager', 'min_delta', 'series', 'start', 'total', 'unit',
+                 'leave', 'manager', 'min_delta', 'offset', 'series', 'start', 'total', 'unit',
                  '_subcounters')
 
     # pylint: disable=too-many-arguments
@@ -435,6 +436,7 @@ class Counter(BaseCounter):
         self.enabled = kwargs.get('enabled', True)
         self.leave = kwargs.get('leave', True)
         self.min_delta = kwargs.get('min_delta', 0.1)
+        self.offset = kwargs.get('offset', 0)
         self.series = kwargs.get('series', SERIES_STD)
         self.total = kwargs.get('total', None)
         self.unit = kwargs.get('unit', None)
@@ -625,7 +627,7 @@ class Counter(BaseCounter):
             rtn = self.bar_format.format(**fields)
 
             # Format the bar
-            barWidth = width - len(rtn) + 3  # 3 is for the bar placeholder
+            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
             complete = barWidth * percentage
             barLen = int(complete)
             barText = u''
@@ -648,7 +650,7 @@ class Counter(BaseCounter):
         # Otherwise return a counter
         fields['fill'] = u'{0}'
         rtn = self.counter_format.format(**fields)
-        return rtn.format(u' ' * (width - len(rtn) + 3))
+        return rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
 
     def refresh(self, flush=True, elapsed=None):
         """

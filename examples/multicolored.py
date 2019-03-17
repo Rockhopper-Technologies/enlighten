@@ -17,14 +17,17 @@ import enlighten
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("enlighten")
 
+MANAGER = enlighten.get_manager()
+TERMINAL = MANAGER.term
+
 BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
-          u'S:{count_0:{len_total}d} F:{count_2:{len_total}d} E:{count_1:{len_total}d} ' + \
+          u'S:' + TERMINAL.green(u'{count_0:{len_total}d}') + u' ' + \
+          u'F:' + TERMINAL.red(u'{count_2:{len_total}d}') + u' ' + \
+          u'E:' + TERMINAL.yellow(u'{count_1:{len_total}d}') + u' ' + \
           u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
 BAR_FMT2 = u'{desc}{desc_pad}{percentage_2:3.0f}%|{bar}| {count_2:{len_total}d}/{total:d} ' + \
            u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
-
-MANAGER = enlighten.get_manager()
 
 
 def run_tests(tests=100):
@@ -33,9 +36,11 @@ def run_tests(tests=100):
     Tests will error (white), fail (red), or succeed (green)
     """
 
-    with MANAGER.counter(total=tests, desc='Testing', unit='tests',
+    offset = len(TERMINAL.green('')) + len(TERMINAL.red('')) + len(TERMINAL.yellow(''))
+
+    with MANAGER.counter(total=tests, desc='Testing', unit='tests', offset=offset,
                          color='green', bar_format=BAR_FMT) as success:
-        errors = success.add_subcounter('white')
+        errors = success.add_subcounter('yellow')
         failures = success.add_subcounter('red')
 
         for num in range(tests):
