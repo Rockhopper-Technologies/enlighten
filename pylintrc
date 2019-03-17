@@ -10,7 +10,6 @@ max-line-length=100
 # As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
 # a specific naming convention for variables and arguments
 # prefer mixedcase, starting with a lowercase or underscore
-argument-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
 variable-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
 
 [MESSAGES CONTROL]
@@ -36,6 +35,6 @@ spelling-ignore-words=
     noqa,
     pragma, py,
     redirector, resize, resizing,
-    setscroll, sphinxcontrib, ss, stdout, stderr, str, submodule, sys,
+    setscroll, sphinxcontrib, ss, stdout, stderr, str, subcounter, subcounters, submodule, sys,
     TestCase, tty, TTY, tuple,
     unicode, unittest

@@ -24,7 +24,7 @@ class TestTerminal(TestCase):
 
     def setUp(self):
         self.tty = MockTTY()
-        self.terminal = _terminal.Terminal(stream=self.tty.stdout, kind='vt100')
+        self.terminal = _terminal.Terminal(stream=self.tty.stdout, kind='xterm-256color')
 
     def tearDown(self):
         self.tty.close()
