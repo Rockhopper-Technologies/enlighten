@@ -18,11 +18,11 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("enlighten")
 
 BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
-          u'S:{count_0:{len_total}d} F:{count_1:{len_total}d} E:{count_2:{len_total}d} ' + \
+          u'S:{count_0:{len_total}d} F:{count_2:{len_total}d} E:{count_1:{len_total}d} ' + \
           u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-BAR_FMT2 = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{total:d} ' + \
-          u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
+BAR_FMT2 = u'{desc}{desc_pad}{percentage_2:3.0f}%|{bar}| {count_2:{len_total}d}/{total:d} ' + \
+           u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
 
 MANAGER = enlighten.get_manager()
 
@@ -59,32 +59,32 @@ def startup(services=88):
     in that order
     """
 
-    initialized = MANAGER.counter(total=services, desc='Starting', unit='services',
-                                  color='red', bar_format=BAR_FMT2)
-    starting = initialized.add_subcounter('yellow')
-    started = initialized.add_subcounter('green', all_fields=True)
+    initializing = MANAGER.counter(total=services, desc='Starting', unit='services',
+                                   color='red', bar_format=BAR_FMT2)
+    starting = initializing.add_subcounter('yellow')
+    started = initializing.add_subcounter('green', all_fields=True)
 
     while started.count < services:
-        remaining = services - initialized.count
-        if initialized.count < services:
-            num = random.randint(0, min(3, remaining))
+        remaining = services - initializing.count
+        if remaining:
+            num = random.randint(0, min(4, remaining))
             print('Initializing %d services' % num)
-            initialized.update(num)
+            initializing.update(num)
 
-        ready = initialized.count - starting.count - started.count
+        ready = initializing.count - starting.count - started.count
         if ready:
             num = random.randint(0, min(3, ready))
             print('Starting %d services' % num)
-            starting.update_from(initialized, num)
+            starting.update_from(initializing, num)
 
         if starting.count:
-            num = random.randint(0, min(3, starting.count))
+            num = random.randint(0, min(2, starting.count))
             print('Started %d services' % num)
             started.update_from(starting, num)
 
         time.sleep(random.uniform(0.1, 0.5))  # Random processing time
 
-    initialized.close()
+    initializing.close()
 
 
 if __name__ == "__main__":
