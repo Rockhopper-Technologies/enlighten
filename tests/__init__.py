@@ -18,7 +18,7 @@ import sys
 import termios
 
 from enlighten import Manager
-from enlighten._counter import Counter
+from enlighten._counter import Counter, BaseCounter
 
 # pylint: disable=import-error
 
@@ -142,6 +142,19 @@ class MockTTY(object):
 
     def resize(self, height, width):
         fcntl.ioctl(self.slave, termios.TIOCSWINSZ, struct.pack('hhhh', height, width, 0, 0))
+
+
+class MockBaseCounter(BaseCounter):
+    """
+    Mock version of base counter for testing
+    """
+
+    def update(self, incr=1, force=False):
+        """
+        Simple update that updates the count. We know it's called based on the count.
+        """
+
+        self.count += 1
 
 
 class MockCounter(Counter):

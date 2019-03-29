@@ -57,3 +57,31 @@ can be used as context managers.
         with manager.counter(total=SPLINES, desc='Reticulating:', unit='splines') as retic:
             for num in range(SPLINES + 1):
                 retic.update()
+
+
+Automatic Updating
+------------------
+
+Both :py:class:`~enlighten.Counter` and Both :py:class:`~enlighten.SubCounter` instances can be
+called as functions on one or more iterators. A generator is returned which yields each element of
+the iterables and then updates the count by 1.
+
+.. note::
+    When a :py:class:`~enlighten.Counter` instance is called as a function, type checking is lazy
+    and won't validate an iterable was passed until iteration begins.
+
+.. code-block:: python
+
+    import time
+    import enlighten
+
+    flock1 = ['Harry', 'Sally', 'Randy', 'Mandy', 'Danny', 'Joe']
+    flock2 = ['Punchy', 'Kicky', 'Spotty', 'Touchy', 'Brenda']
+    total = len(flock1) + len(flock2)
+
+    manager = enlighten.Manager()
+    pbar = manager.counter(total=total, desc='Counting Sheep', unit='sheep')
+
+    for sheep in pbar(flock1, flock2):
+        time.sleep(0.2)
+        print('%s: Baaa' % sheep)

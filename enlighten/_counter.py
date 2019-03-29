@@ -13,6 +13,10 @@ Provides Counter base class
 
 import time
 
+try:
+    from collections.abc import Iterable
+except ImportError:  # pragma: no cover(Python 2)
+    from collections import Iterable
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -120,6 +124,23 @@ class BaseCounter(object):
 
         self._color = (self.color, spec)
         return spec(content)
+
+    def update(self, incr=1, force=False):
+        """
+        Placeholder for update method
+        """
+
+        raise NotImplementedError
+
+    def __call__(self, *args):
+
+        for iterable in args:
+            if not isinstance(iterable, Iterable):
+                raise TypeError('Argument type %s is not iterable' % type(iterable).__name__)
+
+            for element in iterable:
+                yield element
+                self.update()
 
 
 class SubCounter(BaseCounter):

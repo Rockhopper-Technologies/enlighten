@@ -10,12 +10,13 @@ Test module for enlighten._counter and enlighten.counter
 """
 
 import time
+from types import GeneratorType
 
 from enlighten import Counter, Manager
 import enlighten._counter
 from enlighten._manager import NEEDS_UNICODE_HELP
 
-from tests import TestCase, mock, MockManager, MockTTY, MockCounter
+from tests import TestCase, mock, MockManager, MockTTY, MockCounter, MockBaseCounter
 
 
 # pylint: disable=missing-docstring, protected-access, too-many-public-methods
@@ -122,6 +123,30 @@ class TestBaseCounter(TestCase):
         # New instance is generated each time, so just compare strings
         self.assertEqual(counter._color[1], self.manager.term.color(40))
         self.assertIs(counter._color, cache)
+
+    def test_call(self):
+        """Returns generator when used as a function"""
+
+        # Bad arguments
+        counter = MockBaseCounter(manager=self.manager)
+        with self.assertRaisesRegex(TypeError, 'Argument type int is not iterable'):
+            list(counter(1))
+        with self.assertRaisesRegex(TypeError, 'Argument type bool is not iterable'):
+            list(counter([1, 2, 3], True))
+
+        # Expected
+        counter = MockBaseCounter(manager=self.manager)
+        rtn = counter([1, 2, 3])
+        self.assertIsInstance(rtn, GeneratorType)
+        self.assertEqual(list(rtn), [1, 2, 3])
+        self.assertEqual(counter.count, 3)
+
+        # Multiple arguments
+        counter = MockBaseCounter(manager=self.manager)
+        rtn = counter([1, 2, 3], (3, 2, 1))
+        self.assertIsInstance(rtn, GeneratorType)
+        self.assertEqual(tuple(rtn), (1, 2, 3, 3, 2, 1))
+        self.assertEqual(counter.count, 6)
 
 
 class TestSubCounter(TestCase):
