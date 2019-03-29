@@ -10,7 +10,7 @@ max-line-length=100
 # As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
 # a specific naming convention for variables and arguments
 # prefer mixedcase, starting with a lowercase or underscore
-variable-rgx=[a-z_][A-Za-z0-9]{1,29}[A-Za-z0-9_]$
+variable-rgx=[a-z_][A-Za-z0-9_]{1,29}[A-Za-z0-9_]$
 
 [MESSAGES CONTROL]
 disable=
@@ -27,6 +27,7 @@ spelling-ignore-words=
     Avram, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
     BaseManager, bool,
     desc, downloader,
+    Enlighten's,
     html,
     incr,
     kwargs,

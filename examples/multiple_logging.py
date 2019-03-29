@@ -1,4 +1,4 @@
-# Copyright 2017 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2019 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,26 +18,15 @@ import enlighten
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger('enlighten')
 
-SPLINES = 15
 DATACENTERS = 5
-SYSTEMS = (10, 50)  # Range
+SYSTEMS = (10, 20)  # Range
 FILES = (100, 1000)  # Range
 
 
-def process_files():
+def process_files(manager):
     """
     Process a random number of files on a random number of systems across multiple data centers
     """
-
-    # Start with a manager
-    manager = enlighten.get_manager()
-
-    # Simulated preparation
-    prep = manager.counter(total=SPLINES, desc='Reticulating:', unit='splines')
-    for num in range(SPLINES):  # pylint: disable=unused-variable
-        time.sleep(random.uniform(0.1, 0.5))  # Random processing time
-        prep.update()
-    prep.close()
 
     # Get a top level progress bar
     enterprise = manager.counter(total=DATACENTERS, desc='Processing:', unit='datacenters')
@@ -72,9 +61,16 @@ def process_files():
 
     enterprise.close()  # Close counter, won't be removed but does a refresh
 
+
+def main():
+    """
+    Main function
+    """
+
+    manager = enlighten.get_manager()
+    process_files(manager)
     manager.stop()  # Clears all temporary counters and progress bars
 
 
 if __name__ == '__main__':
-
-    process_files()
+    main()

@@ -17,34 +17,92 @@ import enlighten
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("enlighten")
 
-MANAGER = enlighten.get_manager()
-TERMINAL = MANAGER.term
-
-BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
-          u'S:' + TERMINAL.green(u'{count_0:{len_total}d}') + u' ' + \
-          u'F:' + TERMINAL.red(u'{count_2:{len_total}d}') + u' ' + \
-          u'E:' + TERMINAL.yellow(u'{count_1:{len_total}d}') + u' ' + \
-          u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
-
-BAR_FMT2 = u'{desc}{desc_pad}{percentage_2:3.0f}%|{bar}| {count_2:{len_total}d}/{total:d} ' + \
-           u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
+BAR_FMT = u'{desc}{desc_pad}{percentage_2:3.0f}%|{bar}| {count_2:{len_total}d}/{total:d} ' + \
+          u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
 
 
-def run_tests(tests=100):
+class Node(object):
+    """
+    Simulated service node
+    """
+
+    def __init__(self, iden):
+        self.iden = iden
+        self._connected = None
+        self._loaded = None
+
+    def connect(self):
+        """
+        Connect to node
+        """
+
+        self._connected = False
+
+    def load(self):
+        """
+        Load service
+        """
+
+        self._loaded = False
+
+    @property
+    def connected(self):
+        """
+        Connected state
+        """
+
+        return self._state('_connected', 3)
+
+    @property
+    def loaded(self):
+        """
+        Loaded state
+        """
+
+        return self._state('_loaded', 5)
+
+    def _state(self, variable, num):
+        """
+        Generic method to randomly determine if state is reached
+        """
+
+        value = getattr(self, variable)
+
+        if value is None:
+            return False
+
+        if value is True:
+            return True
+
+        if random.randint(1, num) == num:
+            setattr(self, variable, True)
+            return True
+
+        return False
+
+
+def run_tests(manager, tests=100):
     """
     Simulate a test program
     Tests will error (white), fail (red), or succeed (green)
     """
 
-    offset = len(TERMINAL.green('')) + len(TERMINAL.red('')) + len(TERMINAL.yellow(''))
+    terminal = manager.term
+    bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
+                 u'S:' + terminal.green(u'{count_0:{len_total}d}') + u' ' + \
+                 u'F:' + terminal.red(u'{count_2:{len_total}d}') + u' ' + \
+                 u'E:' + terminal.yellow(u'{count_1:{len_total}d}') + u' ' + \
+                 u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-    with MANAGER.counter(total=tests, desc='Testing', unit='tests', offset=offset,
-                         color='green', bar_format=BAR_FMT) as success:
+    offset = len(terminal.green('')) + len(terminal.red('')) + len(terminal.yellow(''))
+
+    with manager.counter(total=tests, desc='Testing', unit='tests', offset=offset,
+                         color='green', bar_format=bar_format) as success:
         errors = success.add_subcounter('yellow')
         failures = success.add_subcounter('red')
 
         for num in range(tests):
-            time.sleep(random.uniform(0.1, 0.5))  # Random processing time
+            time.sleep(random.uniform(0.1, 0.3))  # Random processing time
             result = random.randint(0, 10)
             if result == 7:
                 LOGGER.error("Test %d did not complete", num)
@@ -57,41 +115,59 @@ def run_tests(tests=100):
                 success.update()
 
 
-def startup(services=88):
+def load(manager, units=80):
     """
-    Simulate system starting
-    Services go through initialization (red), starting (yellow), and started (green) states
-    in that order
+    Simulate loading services from a remote node
+    States are connecting (red), loading(yellow), and loaded (green)
     """
 
-    initializing = MANAGER.counter(total=services, desc='Starting', unit='services',
-                                   color='red', bar_format=BAR_FMT2)
-    starting = initializing.add_subcounter('yellow')
-    started = initializing.add_subcounter('green', all_fields=True)
+    pb_connecting = manager.counter(total=units, desc='Loading', unit='services',
+                                    color='red', bar_format=BAR_FMT)
+    pb_loading = pb_connecting.add_subcounter('yellow')
+    pb_loaded = pb_connecting.add_subcounter('green', all_fields=True)
 
-    while started.count < services:
-        remaining = services - initializing.count
-        if remaining:
-            num = random.randint(0, min(4, remaining))
-            print('Initializing %d services' % num)
-            initializing.update(num)
+    connecting = []
+    loading = []
+    loaded = []
+    count = 0
 
-        ready = initializing.count - starting.count - started.count
-        if ready:
-            num = random.randint(0, min(3, ready))
-            print('Starting %d services' % num)
-            starting.update_from(initializing, num)
+    while pb_loaded.count < units:
+        time.sleep(random.uniform(0.05, 0.15))  # Random processing time
 
-        if starting.count:
-            num = random.randint(0, min(2, starting.count))
-            print('Started %d services' % num)
-            started.update_from(starting, num)
+        for idx, node in enumerate(loading):
+            if node.loaded:
+                loading.pop(idx)
+                loaded.append(node)
+                LOGGER.info('Service %d loaded', node.iden)
+                pb_loaded.update_from(pb_loading)
 
-        time.sleep(random.uniform(0.1, 0.5))  # Random processing time
+        for idx, node in enumerate(connecting):
+            if node.connected:
+                connecting.pop(idx)
+                node.load()
+                loading.append(node)
+                LOGGER.info('Service %d connected', node.iden)
+                pb_loading.update_from(pb_connecting)
 
-    initializing.close()
+        # Connect to up to 5 units at a time
+        for _ in range(0, min(units - count, 5 - len(connecting))):
+            node = Node(count)
+            node.connect()
+            connecting.append(node)
+            LOGGER.info('Connection to service %d', node.iden)
+            pb_connecting.update()
+            count += 1
+
+
+def main():
+    """
+    Main function
+    """
+
+    manager = enlighten.get_manager()
+    run_tests(manager, 100)
+    load(manager, 80)
 
 
 if __name__ == "__main__":
-    run_tests(100)
-    startup(80)
+    main()
