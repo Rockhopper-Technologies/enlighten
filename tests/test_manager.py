@@ -660,6 +660,28 @@ class TestManager(TestCase):
                 stdmgr.stop()
                 self.assertTrue(mocksignal.called)
 
+    def test_no_resize(self):
+
+        with mock.patch.object(_manager.signal, 'signal',
+                               wraps=_manager.signal.signal) as mocksignal:
+
+            manager = _manager.Manager(stream=self.tty.stdout, no_resize=True)
+            self.assertFalse(hasattr(manager, 'sigwinch_orig'))
+            self.assertFalse(mocksignal.called)
+
+            manager.counters[MockCounter(manager=manager)] = 3
+            manager.counters[MockCounter(manager=manager)] = 4
+
+            with mock.patch.object(manager.term, 'change_scroll'):
+                manager._set_scroll_area()
+
+            self.assertFalse(mocksignal.called)
+
+            with mock.patch('%s.reset' % TERMINAL):
+                manager.stop()
+
+            self.assertFalse(mocksignal.called)
+
 
 class TestGetManager(TestCase):
 

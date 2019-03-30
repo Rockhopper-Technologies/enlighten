@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2018 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2019 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,6 +14,7 @@ Provides Counter class
 import sys
 
 from enlighten._counter import Counter as _Counter
+from enlighten._counter import SubCounter  # pylint: disable=unused-import # noqa: F401
 from enlighten._manager import Manager
 
 

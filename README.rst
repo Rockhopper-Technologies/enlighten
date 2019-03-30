@@ -41,7 +41,7 @@ Enlighten Progress Bar is a console progress bar module for Python. (Yes, anothe
 The main advantage of Enlighten is it allows writing to stdout and stderr without any
 redirection.
 
-.. image:: https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/doc/_static/multiple_logging.gif
+.. image:: https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/doc/_static/demo.gif
 
 Documentation
 =============
@@ -146,7 +146,9 @@ Additional Examples
 * `basic <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/basic.py>`__ - Basic progress bar
 * `context manager <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/context_manager.py>`__ - Managers and counters as context managers
 * `floats <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/floats.py>`__ - Support totals and counts that are ``floats``
+* `multicolored <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/multicolored.py>`__ - Multicolored progress bars
 * `multiple with logging <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/multiple_logging.py>`__ - Nested progress bars and logging
+* `FTP downloader <https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/examples/ftp_downloader.py>`__ - Show progress downloading files from FTP
 
 Customization
 -------------
@@ -161,4 +163,3 @@ Series_ and Format_ sections of the Counter_ documentation.
 .. _Series: http://python-enlighten.readthedocs.io/en/latest/api.html#series
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
-

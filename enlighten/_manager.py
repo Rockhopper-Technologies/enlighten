@@ -43,6 +43,7 @@ class Manager(object):
         companion_stream(:py:term:`file object`): See :ref:`companion_stream <companion_stream>`
             below. (Default: :py:data:`None`)
         enabled(bool): Status (Default: True)
+        no_resize(bool): Disable resizing support
         kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -73,6 +74,7 @@ class Manager(object):
         self.counter_class = counter_class
         self.counters = OrderedDict()
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
+        self.no_resize = kwargs.get('no_resize', False)
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
@@ -103,7 +105,7 @@ class Manager(object):
         self.width = self.term.width
         self.set_scroll = kwargs.pop('set_scroll', True)
         self.resize_lock = False
-        if RESIZE_SUPPORTED:
+        if not self.no_resize and RESIZE_SUPPORTED:
             self.sigwinch_orig = signal.getsignal(signal.SIGWINCH)
 
         self.defaults = kwargs  # Counter defaults
@@ -224,7 +226,7 @@ class Manager(object):
         # Set exit handling only once
         if not self.process_exit:
             atexit.register(self._at_exit)
-            if RESIZE_SUPPORTED:
+            if not self.no_resize and RESIZE_SUPPORTED:
                 signal.signal(signal.SIGWINCH, self._resize_handler)
             self.process_exit = True
 
@@ -309,7 +311,7 @@ class Manager(object):
             stream = self.stream
             positions = self.counters.values()
 
-            if RESIZE_SUPPORTED:
+            if not self.no_resize and RESIZE_SUPPORTED:
                 signal.signal(signal.SIGWINCH, self.sigwinch_orig)
 
             try:

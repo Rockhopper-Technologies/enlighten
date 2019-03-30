@@ -13,6 +13,10 @@ Provides Counter base class
 
 import time
 
+try:
+    from collections.abc import Iterable
+except ImportError:  # pragma: no cover(Python 2)
+    from collections import Iterable
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -21,6 +25,15 @@ BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{tota
           u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
 SERIES_STD = u' ▏▎▍▌▋▊▉█'
+
+COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+          'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
+          'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white')
+
+try:
+    BASESTRING = basestring
+except NameError:
+    BASESTRING = str
 
 
 def _format_time(seconds):
@@ -49,7 +62,176 @@ def _format_time(seconds):
     return rtn
 
 
-class Counter(object):
+class BaseCounter(object):
+    """
+    Args:
+        manager(:py:class:`Manager`): Manager instance. Required.
+        color(str): Color as a string or number 0 - 255 (Default: None)
+
+    Base class for counters
+    """
+
+    __slots__ = ('color', '_color', 'count', 'manager', 'start_count')
+
+    def __init__(self, **kwargs):
+
+        self.count = self.start_count = kwargs.get('count', 0)
+
+        self._color = None
+        self.color = kwargs.get('color', None)
+        if self.color is None:
+            pass
+        elif isinstance(self.color, BASESTRING):
+            if self.color not in COLORS:
+                raise ValueError('Unsupported color: %s' % self.color)
+        elif isinstance(self.color, int):
+            if self.color < 0 or self.color > 255:
+                raise ValueError('Unsupported color: %s' % self.color)
+        else:
+            raise TypeError('color must be a string or integer')
+
+        self._color = None
+
+        self.manager = kwargs.get('manager', None)
+        if self.manager is None:
+            raise TypeError('manager must be specified')
+
+    def _colorize(self, content):
+        """
+        Args:
+            content(str): Color as a string or number 0 - 255 (Default: None)
+
+        Returns:
+            :py:class:`str`: content formatted with color
+
+        Format ``content`` with the color specified for this progress bar
+
+        If no color is specified for this instance, the content is returned unmodified
+
+        The color discovery within this method is caching to improve performance
+        """
+
+        if self.color is None:
+            return content
+
+        if self._color and self._color[0] == self.color:
+            return self._color[1](content)
+
+        if self.color in COLORS:
+            spec = getattr(self.manager.term, self.color)
+        else:
+            spec = self.manager.term.color(self.color)
+
+        self._color = (self.color, spec)
+        return spec(content)
+
+    def update(self, incr=1, force=False):
+        """
+        Placeholder for update method
+        """
+
+        raise NotImplementedError
+
+    def __call__(self, *args):
+
+        for iterable in args:
+            if not isinstance(iterable, Iterable):
+                raise TypeError('Argument type %s is not iterable' % type(iterable).__name__)
+
+            for element in iterable:
+                yield element
+                self.update()
+
+
+class SubCounter(BaseCounter):
+    """
+    A child counter for multicolored progress bars.
+
+    This class tracks a portion of multicolored progress bar and should be initialized
+    through :py:meth:`Counter.add_subcounter`
+
+    **Instance Attributes**
+
+        .. py:attribute:: count
+
+            :py:class:`int` - Current count
+
+        .. py:attribute:: parent
+
+            :py:class:`Counter` - Parent counter
+
+    """
+
+    __slots__ = ('all_fields', 'color', 'parent')
+
+    def __init__(self, parent, color=None, count=0, all_fields=False):
+        """
+        Args:
+            color(str): Series color as a string or integer see :ref:`Series Color <series_color>`
+            count(int): Initial count (Default: 0)
+            all_fields(bool): Populate ``rate`` and ``eta`` fields (Default: False)
+        """
+
+        if parent.count - parent.subcount - count < 0:
+            raise ValueError('Invalid count: %s' % count)
+
+        super(SubCounter, self).__init__(manager=parent.manager, color=color, count=count)
+
+        self.parent = parent
+        self.all_fields = all_fields
+
+    def update(self, incr=1, force=False):
+        """
+        Args:
+            incr(int): Amount to increment ``count`` (Default: 1)
+            force(bool): Force refresh even if ``min_delta`` has not been reached
+
+        Increment progress bar and redraw
+
+        Both this counter and the parent are incremented.
+
+        Progress bar is only redrawn if min_delta seconds past since the last update on the parent.
+        """
+
+        self.count += incr
+        self.parent.update(incr, force)
+
+    def update_from(self, source, incr=1, force=False):
+        """
+        Args:
+            source(:py:class:`SubCounter`): :py:class:`SubCounter` or :py:class:`Counter`
+                to increment from
+            incr(int): Amount to increment ``count`` (Default: 1)
+            force(bool): Force refresh even if ``min_delta`` has not been reached
+
+        Move a value to this counter from another counter.
+
+        ``source`` must be the parent :py:class:`Counter` instance or a :py:class:`SubCounter` with
+        the same parent
+
+        """
+
+        # Make sure source is a parent or peer
+        if source is self.parent or getattr(source, 'parent', None) is self.parent:
+
+            if self.count + incr < 0 or source.count - incr < 0:
+                raise ValueError('Invalid increment: %s' % incr)
+
+            if source is self.parent:
+                if self.parent.count - self.parent.subcount - incr < 0:
+                    raise ValueError('Invalid increment: %s' % incr)
+
+            else:
+                source.count -= incr
+
+            self.count += incr
+            self.parent.update(0, force)
+
+        else:
+            raise ValueError('source must be parent or peer')
+
+
+class Counter(BaseCounter):
     """
     .. spelling::
         desc
@@ -59,11 +241,13 @@ class Counter(object):
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
+        color(str): Series color as a string or integer see :ref:`Series Color <series_color>` below
         desc(str): Description
-        enabled(bool): Status (Default: True)
+        enabled(bool): Status (Default: :py:data:`True`)
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
-        manager(:py:class:`Manager`): Manager instance. Creates instance if not specified
+        manager(:py:class:`Manager`): Manager instance. Creates instance if not specified.
         min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
+        offset(int): Number of non-printable characters to account for when formatting
         series(:py:term:`sequence`): Progression series, see :ref:`Series <series>` below
         stream(:py:term:`file object`): Output stream. Not used when instantiated through a manager
         total(int): Total count when complete
@@ -116,6 +300,39 @@ class Counter(object):
             '45% |████▋     |'
                  '0123456789'
 
+    .. _series_color:
+
+    **Series Color**
+
+        The characters specified by ``series`` will be displayed in the terminal's current
+        foreground color. This can be overwritten with the ``color`` argument.
+
+        ``color`` can be specified as :py:data:`None`, a string or an integer 0 - 255.
+        While most modern terminals can support 256 colors, the actual number of supported
+        colors will vary.
+
+        Valid colors for 8 color terminals:
+
+            - black
+            - blue
+            - cyan
+            - green
+            - magenta
+            - red
+            - white
+            - yellow
+
+        Additional colors for 16 color terminals:
+
+            - bright_black
+            - bright_blue
+            - bright_cyan
+            - bright_green
+            - bright_magenta
+            - bright_red
+            - bright_white
+            - bright_yellow
+
     .. _counter_format:
 
     **Format**
@@ -154,7 +371,7 @@ class Counter(object):
         - unit(:py:class:`str`) - Value of ``unit``
         - unit_pad(:py:class:`str`) - A single space if ``unit`` is set, otherwise empty
 
-        Addition fields for ``bar_format`` only:
+        Additional fields for ``bar_format`` only:
 
         - bar(:py:class:`str`) - Progress bar draw with characters from ``series``
         - eta(:py:class:`str`) - Estimated time to completion
@@ -165,6 +382,27 @@ class Counter(object):
         Addition fields for ``counter_format`` only:
 
         - fill(:py:class:`str`) - blank spaces, number needed to fill line
+
+        Additional fields when subcounters are used:
+
+        - count_n (:py:class:`int`) - Current value of ``count``
+        - count_0(:py:class:`int`) - Remaining count after deducting counts for all subcounters
+        - percentage_n (:py:class:`float`) - Percentage complete
+        - percentage_0(:py:class:`float`) - Remaining percentage after deducting percentages
+          for all subcounters
+
+        .. note::
+
+            **n** denotes the order the subcounter was added starting at 1.
+            For example, **count_1** is the count for the first subcounter added
+            and **count_2** is the count for the second subcounter added.
+
+        Additional fields when :py:meth:`add_subcounter` is called with
+        ``all_fields`` set to :py:data:`True`:
+
+        - eta_n (:py:class:`str`) - Estimated time to completion
+        - rate_n (:py:class:`float`) - Average increments per second since parent was created
+
 
     **Instance Attributes**
 
@@ -204,29 +442,28 @@ class Counter(object):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('bar_format', 'count', 'counter_format', 'desc', 'enabled', 'last_update',
-                 'leave', 'manager', 'min_delta', 'series', 'start', 'start_count', 'total', 'unit')
+    __slots__ = ('bar_format', 'color', 'counter_format', 'desc', 'enabled', 'last_update',
+                 'leave', 'manager', 'min_delta', 'offset', 'series', 'start', 'total', 'unit',
+                 '_subcounters')
 
     # pylint: disable=too-many-arguments
     def __init__(self, **kwargs):
 
+        super(Counter, self).__init__(**kwargs)
+
         self.bar_format = kwargs.get('bar_format', BAR_FMT)
-        self.count = kwargs.get('count', 0)
         self.counter_format = kwargs.get('counter_format', COUNTER_FMT)
         self.desc = kwargs.get('desc', None)
         self.enabled = kwargs.get('enabled', True)
         self.leave = kwargs.get('leave', True)
         self.min_delta = kwargs.get('min_delta', 0.1)
+        self.offset = kwargs.get('offset', 0)
         self.series = kwargs.get('series', SERIES_STD)
         self.total = kwargs.get('total', None)
         self.unit = kwargs.get('unit', None)
+        self._subcounters = []
 
-        self.last_update = time.time()
-        self.start = self.last_update
-        self.start_count = self.count
-        self.manager = kwargs.get('manager', None)
-        if self.manager is None:
-            raise TypeError('manager must be specified')
+        self.last_update = self.start = time.time()
 
     def __enter__(self):
         return self
@@ -256,6 +493,14 @@ class Counter(object):
 
         return elapsed
 
+    @property
+    def subcount(self):
+        """
+        Sum of counts from all subcounters
+        """
+
+        return sum(subcounter.count for subcounter in self._subcounters)
+
     def clear(self, flush=True):
         """
         Args:
@@ -281,6 +526,55 @@ class Counter(object):
 
         self.manager.remove(self)
 
+    def _get_subcounters(self, elapsed):
+        """
+        Args:
+            elapsed(float): Time since started.
+
+        Returns:
+            :py:class:`tuple`: list of subcounters and dictionary of additional fields
+
+        Each subcounter in the list will be in a tuple of (subcounter, percentage)
+        Fields in the dictionary are addressed in the Format documentation of this class
+        """
+
+        fields = {}
+        subcounters = []
+
+        for num, subcounter in enumerate(self._subcounters, 1):
+
+            if self.total:
+                subPercentage = subcounter.count / float(self.total)
+            else:
+                subPercentage = 0.0
+
+            # Save in tuple: count, percentage, color
+            subcounters.append((subcounter, subPercentage))
+
+            # Set fields
+            fields['percentage_{0}'.format(num)] = subPercentage * 100
+            fields['count_{0}'.format(num)] = subcounter.count
+
+            if subcounter.all_fields:
+
+                interations = abs(subcounter.count - subcounter.start_count)
+
+                if elapsed:
+                    # Use float to force to float in Python 2
+                    rate = fields['rate_{0}'.format(num)] = interations / float(elapsed)
+                else:
+                    rate = fields['rate_{0}'.format(num)] = 0.0
+
+                if self.total == 0:
+                    fields['eta_{0}'.format(num)] = u'00:00'
+                elif rate:
+                    fields['eta_{0}'.format(num)] = _format_time((self.total - interations) / rate)
+                else:
+                    fields['eta_{0}'.format(num)] = u'?'
+
+        return subcounters, fields
+
+    # pylint: disable=too-many-locals
     def format(self, width=None, elapsed=None):
         """
         Args:
@@ -316,7 +610,7 @@ class Counter(object):
             # Use iterations so a counter running backwards is accurate
             fields['rate'] = iterations / elapsed
         else:
-            fields['rate'] = 0
+            fields['rate'] = 0.0
 
         # Only process bar if total was given and n doesn't exceed total
         if self.total is not None and self.count <= self.total:
@@ -335,32 +629,49 @@ class Counter(object):
                 # Get eta
                 if fields['rate']:
                     # Use iterations so a counter running backwards is accurate
-                    eta = (self.total - iterations) / fields['rate']
-                    fields['eta'] = _format_time(eta)
+                    fields['eta'] = _format_time((self.total - iterations) / fields['rate'])
                 else:
                     fields['eta'] = u'?'
 
             fields['percentage'] = percentage * 100
 
+            # Have to go through subcounters here so the fields are available
+            subcounters, subFields = self._get_subcounters(elapsed)
+
+            # Calculate count and percentage for remainder
+            if subcounters:
+                fields.update(subFields)
+                fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
+                fields['percentage_0'] = (percentage - sum(sub[1] for sub in subcounters)) * 100
+
             # Partially format
             rtn = self.bar_format.format(**fields)
 
             # Format the bar
-            barWidth = width - len(rtn) + 3  # 3 is for the bar placeholder
+            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
             complete = barWidth * percentage
             barLen = int(complete)
-            partial = fill = u''
+            barText = u''
+            subOffset = 0
+
+            for subcounter, subPercentage in reversed(subcounters):
+                subLen = int(barWidth * subPercentage)
+                # pylint: disable=protected-access
+                barText += subcounter._colorize(self.series[-1] * subLen)
+                subOffset += subLen
+
+            barText += self.series[-1] * (barLen - subOffset)
+
             if barLen < barWidth:
-                partial = self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
-                fill = self.series[0] * (barWidth - barLen - 1)
-            rtn = rtn.format(u'{0}{1}{2}'.format(self.series[-1] * barLen, partial, fill))
+                barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
+                barText += self.series[0] * (barWidth - barLen - 1)
 
-        else:
-            fields['fill'] = u'{0}'
-            rtn = self.counter_format.format(**fields)
-            rtn = rtn.format(u' ' * (width - len(rtn) + 3))
+            return rtn.format(self._colorize(barText))
 
-        return rtn
+        # Otherwise return a counter
+        fields['fill'] = u'{0}'
+        rtn = self.counter_format.format(**fields)
+        return rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
 
     def refresh(self, flush=True, elapsed=None):
         """
@@ -394,3 +705,20 @@ class Counter(object):
                     currentTime - self.last_update >= self.min_delta:
                 self.last_update = currentTime
                 self.refresh(elapsed=currentTime - self.start)
+
+    def add_subcounter(self, color, count=0, all_fields=False):
+        """
+    Args:
+        color(str): Series color as a string or integer see :ref:`Series Color <series_color>`
+        count(int): Initial count (Default: 0)
+        all_fields(bool): Populate ``rate`` and ``eta`` formatting fields (Default: False)
+
+    Returns:
+        :py:class:`SubCounter`: Subcounter instance
+
+    Add a subcounter for multicolored progress bars
+        """
+
+        subcounter = SubCounter(self, color=color, count=count, all_fields=all_fields)
+        self._subcounters.append(subcounter)
+        return subcounter

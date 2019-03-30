@@ -1,2 +1,7 @@
+iterable
+iterables
+resizing
 stdout
 stderr
+subcounter
+subcounters
