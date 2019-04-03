@@ -582,6 +582,7 @@ class TestCounter(TestCase):
                          r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]X\n')
 
         with mock.patch.object(self.tty, 'stdout', wraps=self.tty.stdout) as mockstdout:
+            mockstdout.encoding = None
             ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
             ctr.refresh(flush=False)
             self.assertFalse(mockstdout.flush.called)
