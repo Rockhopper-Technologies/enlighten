@@ -11,7 +11,20 @@
 Provides Terminal class
 """
 
-from blessed import Terminal as _Terminal
+import platform
+
+
+if platform.system() == 'Windows':  # pragma: no cover(Windows)
+
+    if tuple(int(num) for num in platform.version().split('.')) >= (10, 0, 10586):
+        from enlighten._w10terminal import Terminal as _Terminal
+
+    else:
+        raise NotImplementedError('Enlighten is not supported on this platform.')
+
+else:
+
+    from blessed import Terminal as _Terminal
 
 
 class Terminal(_Terminal):

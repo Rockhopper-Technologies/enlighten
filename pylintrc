@@ -17,6 +17,10 @@ disable=
     too-few-public-methods,
     useless-object-inheritance
 
+[SIMILARITIES]
+# Minimum lines number of a similarity.
+min-similarity-lines=8
+
 [SPELLING]
 
 # Spelling dictionary name. Available dictionaries: en_US (myspell).

@@ -11,6 +11,7 @@
 Provides Counter base class
 """
 
+import platform
 import time
 
 try:
@@ -24,7 +25,11 @@ COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
 BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{total:d} ' + \
           u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-SERIES_STD = u' ▏▎▍▌▋▊▉█'
+# Even with cp65001, Windows doesn't seem to support all unicode characters
+if platform.system() == 'Windows':  # pragma: no cover(Windows)
+    SERIES_STD = u' ▌█'
+else:
+    SERIES_STD = u' ▏▎▍▌▋▊▉█'
 
 COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
           'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
