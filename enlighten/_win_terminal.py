@@ -149,14 +149,10 @@ class Terminal(object):
         """
 
         normal = u'\x1B[0m'
+        seq = u'\x1B[%sm' % code
 
-        if content:
-            seq = u'\x1B[%sm' % code
-
-            # Replace any normal sequences with this sequence to support nested colors
-            return seq + (normal + seq).join(content.split(normal)) + normal
-
-        return content
+        # Replace any normal sequences with this sequence to support nested colors
+        return seq + (normal + seq).join(content.split(normal)) + normal
 
     def color(self, code):
         """
@@ -165,7 +161,7 @@ class Terminal(object):
         this with 16 colors
         """
 
-        def func(content):
+        def func(content=''):
             return self._apply_color(u'38;5;%d' % code, content)
         return func
 
@@ -219,8 +215,8 @@ def create_color_method(color, code):
     Done inside this function to keep the variables out of the main scope
     """
 
-    def func(self, text):
-        return self._apply_color(code, text)  # pylint: disable=protected-access
+    def func(self, content=''):
+        return self._apply_color(code, content)  # pylint: disable=protected-access
 
     setattr(Terminal, color, func)
 
