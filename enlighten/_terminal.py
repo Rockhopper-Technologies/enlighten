@@ -19,7 +19,7 @@ if platform.system() == 'Windows':  # pragma: no cover(Windows)
 
     OS_VERSION = tuple(int(num) for num in platform.version().split('.'))
     if 'ANSICON' in os.environ or OS_VERSION >= (10, 0, 10586):
-        from enlighten._w10terminal import Terminal as _Terminal
+        from enlighten._win_terminal import Terminal as _Terminal
 
     else:
         raise NotImplementedError('Enlighten is not supported on this platform.')
