@@ -21,13 +21,16 @@ Enlighten, meaning "to inform", seems a fitting name.
 Is Windows supported?
 ---------------------
 
-Enlighten works relatively well in Linux-like subsystems for Windows such as
-`Cygwin <https://cygwin.com/>`_ and
-`Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
-
 Native support for Windows versions 10.0.10586 and newer is experimental
 and does not support resizing.
 
-Earlier versions do not easily support the scroll window setting that Enlighten's key features
-depend on. That said, we are looking at ways to expand Windows support,
+Earlier version of Windows are supported when
+`ANSICON <https://github.com/adoxa/ansicon>`_ is used.
+Support is experimental and does not support resizing.
+
+Enlighten also works relatively well in Linux-like subsystems for Windows such as
+`Cygwin <https://cygwin.com/>`_ or
+`Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
+
+`Issues <https://github.com/Rockhopper-Technologies/enlighten/issues>`_ and
 `patches <https://github.com/Rockhopper-Technologies/enlighten/pulls>`_ welcomed.
