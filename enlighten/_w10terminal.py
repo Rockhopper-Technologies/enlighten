@@ -137,7 +137,9 @@ class Terminal(object):
         self.stream = stream
         self.stream_fd = stream_fd
         self.stream_fh = msvcrt.get_osfhandle(self.stream_fd)
-        enable_vt_mode(self.stream_fh)
+
+        if 'ANSICON' not in os.environ:
+            enable_vt_mode(self.stream_fh)
     # pylint: enable=unused-argument
 
     @staticmethod
