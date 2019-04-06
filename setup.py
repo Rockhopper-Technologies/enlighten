@@ -12,17 +12,23 @@ redirection.
 """
 
 import os
+import platform
 import sys
 
 from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
+INSTALL_REQUIRES = ['blessed']
 TESTS_REQUIRE = []
 
 # Additional requirements
 # html requires sphinx, sphinx_rtd_theme
 # spelling requires sphinxcontrib-spelling
+
+if platform.system() == 'Windows':
+    # Blessed is not required on Windows
+    INSTALL_REQUIRES.remove('blessed')
 
 if sys.version_info[:2] < (3, 3):
 
@@ -46,7 +52,7 @@ setup(
     url='https://github.com/Rockhopper-Technologies/enlighten',
     license='MPLv2.0',
     zip_safe=False,
-    install_requires=['blessed'],
+    install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
     packages=find_packages(exclude=['tests', 'tests.*', 'examples']),
     test_suite='tests',
