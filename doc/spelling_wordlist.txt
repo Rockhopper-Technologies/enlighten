@@ -1,5 +1,7 @@
+detectible
 iterable
 iterables
+programmatically
 resizing
 stdout
 stderr

@@ -21,16 +21,46 @@ Enlighten, meaning "to inform", seems a fitting name.
 Is Windows supported?
 ---------------------
 
-Native support for Windows versions 10.0.10586 and newer is experimental
-and does not support resizing.
+Enlighten has supported Windows since version 1.3.0.
 
-Earlier version of Windows are supported when
-`ANSICON <https://github.com/adoxa/ansicon>`_ is used.
-Support is experimental and does not support resizing.
+Windows does not currently support resizing.
 
 Enlighten also works relatively well in Linux-like subsystems for Windows such as
 `Cygwin <https://cygwin.com/>`_ or
 `Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
 
-`Issues <https://github.com/Rockhopper-Technologies/enlighten/issues>`_ and
-`patches <https://github.com/Rockhopper-Technologies/enlighten/pulls>`_ welcomed.
+
+.. spelling::
+    csr
+    eos
+    eol
+
+Can you add support for _______ terminal?
+---------------------------------------------------
+
+We are happy to add support for as many terminals as we can.
+However, not all terminals can be supported. There a few requirements.
+
+  1. The terminal must be detectible programmatically
+
+      We need to be able to identify the terminal in some reasonable way
+      and differentiate it from other terminals. This could be through environment variables,
+      the :py:mod:`platform` module, or some other method.
+
+  2. A subset of terminal codes must be supported
+
+      While these codes may vary among terminals, the capability must be
+      provided and activated by printing a terminal sequence.
+      The required codes are listed below.
+
+        * move / CUP - Cursor Position
+        * hide_cursor / DECTCEM - Text Cursor Enable Mode
+        * show_cursor / DECTCEM - Text Cursor Enable Mode
+        * csr / DECSTBM - Set Top and Bottom Margins
+        * clear_eos / ED - Erase in Display
+        * clear_eol / EL - Erase in Line
+        * feed / CUD - Cursor Down (Or scroll with linefeed)
+
+  3. Terminal dimensions must be detectible
+
+      The height and width of the terminal must be available to the running process.
