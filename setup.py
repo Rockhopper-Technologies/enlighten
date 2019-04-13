@@ -30,6 +30,10 @@ if platform.system() == 'Windows':
     # Blessed is not required on Windows
     INSTALL_REQUIRES.remove('blessed')
 
+    # Require ansicon for Windows versions older than 10.0.10586
+    if tuple(int(num) for num in platform.version().split('.')) < (10, 0, 10586):
+        INSTALL_REQUIRES.append('ansicon')
+
 if sys.version_info[:2] < (3, 3):
 
     # Include unittest.mock from 3.3
@@ -63,6 +67,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: POSIX',
+        'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',

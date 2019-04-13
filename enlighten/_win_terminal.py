@@ -18,6 +18,7 @@ from ctypes import wintypes
 import io
 import msvcrt  # pylint: disable=import-error
 import os
+import platform
 import sys
 
 
@@ -138,8 +139,13 @@ class Terminal(object):
         self.stream_fd = stream_fd
         self.stream_fh = msvcrt.get_osfhandle(self.stream_fd)
 
-        if 'ANSICON' not in os.environ:
+        # Use built-in virtual terminal processing for Windows 10.0.10586 and newer
+        if tuple(int(num) for num in platform.version().split('.')) >= (10, 0, 10586):
             enable_vt_mode(self.stream_fh)
+        else:
+            # Use ansicon for older versions of Windows
+            import ansicon  # pylint: disable=import-error
+            ansicon.load()
     # pylint: enable=unused-argument
 
     @staticmethod
