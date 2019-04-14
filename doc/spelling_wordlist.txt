@@ -1,4 +1,3 @@
-detectible
 iterable
 iterables
 programmatically

@@ -41,7 +41,7 @@ Can you add support for _______ terminal?
 We are happy to add support for as many terminals as we can.
 However, not all terminals can be supported. There a few requirements.
 
-  1. The terminal must be detectible programmatically
+  1. The terminal must be detectable programmatically
 
       We need to be able to identify the terminal in some reasonable way
       and differentiate it from other terminals. This could be through environment variables,
@@ -61,6 +61,6 @@ However, not all terminals can be supported. There a few requirements.
         * clear_eol / EL - Erase in Line
         * feed / CUD - Cursor Down (Or scroll with linefeed)
 
-  3. Terminal dimensions must be detectible
+  3. Terminal dimensions must be detectable
 
       The height and width of the terminal must be available to the running process.
