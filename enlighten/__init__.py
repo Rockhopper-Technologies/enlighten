@@ -15,5 +15,5 @@ from enlighten.counter import Counter, SubCounter
 from enlighten._manager import Manager, get_manager
 
 
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 __all__ = ('Counter', 'Manager', 'SubCounter', 'get_manager')

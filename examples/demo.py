@@ -8,6 +8,7 @@
 Demo of Enlighten's features
 """
 
+import platform
 import random
 import time
 
@@ -45,4 +46,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+
+    # https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
+    if platform.system() == 'Windows':
+        from ctypes import windll
+        windll.winmm.timeBeginPeriod(1)
+        main()
+        windll.winmm.timeEndPeriod(1)
+    else:
+        main()

@@ -17,6 +17,10 @@ disable=
     too-few-public-methods,
     useless-object-inheritance
 
+[SIMILARITIES]
+# Minimum lines number of a similarity.
+min-similarity-lines=8
+
 [SPELLING]
 
 # Spelling dictionary name. Available dictionaries: en_US (myspell).
@@ -24,7 +28,7 @@ spelling-dict=en_US
 
 # List of comma separated words that should not be checked.
 spelling-ignore-words=
-    Avram, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
+    Avram, ansicon, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
     BaseManager, bool,
     desc, downloader,
     Enlighten's,

@@ -11,7 +11,13 @@
 Provides Terminal class
 """
 
-from blessed import Terminal as _Terminal
+import platform
+
+
+if platform.system() == 'Windows':  # pragma: no cover(Windows)
+    from enlighten._win_terminal import Terminal as _Terminal
+else:
+    from blessed import Terminal as _Terminal
 
 
 class Terminal(_Terminal):
