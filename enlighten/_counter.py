@@ -653,7 +653,11 @@ class Counter(BaseCounter):
             rtn = self.bar_format.format(**fields)
 
             # Format the bar
-            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+            if self.offset:
+                # Keeping offset support for backwards compatibility
+                barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+            else:
+                barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
             complete = barWidth * percentage
             barLen = int(complete)
             barText = u''
@@ -676,7 +680,11 @@ class Counter(BaseCounter):
         # Otherwise return a counter
         fields['fill'] = u'{0}'
         rtn = self.counter_format.format(**fields)
-        return rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+        if self.offset:
+            ret = rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+        else:
+            ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))
+        return ret
 
     def refresh(self, flush=True, elapsed=None):
         """
