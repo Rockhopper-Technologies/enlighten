@@ -580,6 +580,7 @@ class Counter(BaseCounter):
         return subcounters, fields
 
     # pylint: disable=too-many-locals
+    # pylint: disable=too-many-branches
     def format(self, width=None, elapsed=None):
         """
         Args:
