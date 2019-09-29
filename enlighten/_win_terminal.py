@@ -144,7 +144,7 @@ class Terminal(object):
             enable_vt_mode(self.stream_fh)
         else:
             # Use ansicon for older versions of Windows
-            import ansicon  # pylint: disable=import-error
+            import ansicon  # pylint: disable=import-error,import-outside-toplevel
             ansicon.load()
     # pylint: enable=unused-argument
 
