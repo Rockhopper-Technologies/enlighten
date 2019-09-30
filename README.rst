@@ -2,7 +2,7 @@
 
 | |docs| |travis| |codecov|
 | |pypi| |supported-versions| |supported-implementations|
-| |supported-platforms|
+| |linux| |windows| |mac| |bsd|
 | |fedora| |EPEL|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
@@ -28,9 +28,22 @@
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg?style=plastic&logo=pypi
     :alt: Supported implementations
     :target: https://pypi.python.org/pypi/enlighten
+    
+.. |linux| image:: https://img.shields.io/badge/Linux-yes-success?style=plastic&logo=linux
+    :alt: Linux supported
+    :target: https://pypi.python.org/pypi/enlighten
 
-.. |supported-platforms| image:: https://img.shields.io/badge/platforms-LInux%20%7C%20Windows%20%7C%20MacOS%20%7C%20BSD-blue.svg?style=plastic&logo=pypi
-    :alt: Supported platforms
+.. |windows| image:: https://img.shields.io/badge/Windows-yes-success?style=plastic&logo=windows
+    :alt: Windows supported
+    :target: https://pypi.python.org/pypi/enlighten
+    
+.. |mac| image:: https://img.shields.io/badge/MacOS-yes-success?style=plastic&logo=apple
+    :alt: MacOS supported
+    :target: https://pypi.python.org/pypi/enlighten
+ 
+.. |bsd| image:: https://img.shields.io/badge/BSD-yes-success?style=plastic&logo=freebsd
+    :alt: BSD supported
+    :target: https://pypi.python.org/pypi/enlighten
 
 .. |fedora| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22f%22))].name&label=Fedora&colorB=lightgray&style=plastic&logo=fedora
     :alt: Fedora version support
