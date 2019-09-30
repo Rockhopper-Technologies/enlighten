@@ -12,37 +12,19 @@ redirection.
 """
 
 import os
-import platform
-import sys
 
 from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
-INSTALL_REQUIRES = ['blessed']
-TESTS_REQUIRE = []
+INSTALL_REQUIRES = ['blessed; platform_system != "Windows"',
+                    'ansicon; platform_system == "Windows"']
+TESTS_REQUIRE = ['mock; python_version < "3.3"',
+                 'unittest2; python_version < "2.7"']
 
 # Additional requirements
 # html requires sphinx, sphinx_rtd_theme
 # spelling requires sphinxcontrib-spelling
-
-if platform.system() == 'Windows':
-    # Blessed is not required on Windows
-    INSTALL_REQUIRES.remove('blessed')
-
-    # Require ansicon for Windows versions older than 10.0.10586
-    if tuple(int(num) for num in platform.version().split('.')) < (10, 0, 10586):
-        INSTALL_REQUIRES.append('ansicon')
-
-if sys.version_info[:2] < (3, 3):
-
-    # Include unittest.mock from 3.3
-    TESTS_REQUIRE.append('mock')
-
-if sys.version_info[:2] < (2, 7):
-
-    # Include unittest from 2.7
-    TESTS_REQUIRE.append('unittest2')
 
 setup(
     name='enlighten',
