@@ -362,7 +362,7 @@ class Manager(object):
                 term.move_to(0, term.height - position)
                 # Include \r and term call to cover most conditions
                 if NEEDS_UNICODE_HELP:  # pragma: no cover (Version dependent 2.6)
-                    encoding = stream.encoding or 'UTF-8'
+                    encoding = getattr(stream, 'encoding', None) or 'UTF-8'
                     stream.write(('\r' + term.clear_eol + output).encode(encoding))
                 else:  # pragma: no cover (Version dependent >= 2.7)
                     stream.write('\r' + term.clear_eol + output)
