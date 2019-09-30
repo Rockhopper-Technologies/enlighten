@@ -36,6 +36,7 @@ setup(
     maintainer='Avram Lubkin',
     maintainer_email='avylove@rockhopper.net',
     url='https://github.com/Rockhopper-Technologies/enlighten',
+    project_urls={'Documentation': 'https://python-enlighten.readthedocs.io'},
     license='MPLv2.0',
     zip_safe=False,
     install_requires=INSTALL_REQUIRES,
