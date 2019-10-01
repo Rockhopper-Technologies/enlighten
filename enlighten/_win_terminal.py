@@ -197,7 +197,7 @@ class Terminal(object):
         if GTS_SUPPORTED:
             try:
                 size = os.get_terminal_size(self.stream_fd)
-            except ValueError:
+            except (ValueError, OSError):
                 pass
 
         else:
