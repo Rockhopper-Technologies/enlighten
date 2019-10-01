@@ -191,12 +191,26 @@ class Terminal(object):
         Returns named tuple (columns, lines)
         """
 
+        size = None
+
         # In Python 3.3+ we can let the standard library handle this
         if GTS_SUPPORTED:
-            return os.get_terminal_size(self.stream_fd)
+            try:
+                size = os.get_terminal_size(self.stream_fd)
+            except ValueError:
+                pass
 
-        window = get_csbi(self.stream_fh).srWindow
-        return TerminalSize(window.Right - window.Left + 1, window.Bottom - window.Top + 1)
+        else:
+            try:
+                window = get_csbi(self.stream_fh).srWindow
+                size = TerminalSize(window.Right - window.Left + 1, window.Bottom - window.Top + 1)
+            except OSError:
+                pass
+
+        if size is None:
+            size = TerminalSize(int(os.getenv('COLUMNS', '80')), int(os.getenv('LINES', '25')))
+
+        return size
 
     @property
     def height(self):
