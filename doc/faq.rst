@@ -30,6 +30,21 @@ Enlighten also works relatively well in Linux-like subsystems for Windows such a
 `Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
 
 
+Is PyCharm supported?
+---------------------
+
+PyCharm uses multiple consoles and the behavior differs depending on how the code is called.
+
+Enlighten works natively in the PyCharm command terminal.
+
+To use Enlighten with Run or Debug, terminal emulation must be enabled.
+Navigate to `Run -> Edit Configurations -> Templates -> Python`
+and select `Emulate terminal in output console`.
+
+The PyCharm Python console is currently not supported because :py:data:`sys.stdout`
+does not reference a valid TTY.
+
+
 .. spelling::
     csr
     eos
