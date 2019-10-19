@@ -8,6 +8,7 @@
 Multiple progress bars example
 """
 
+from contextlib import contextmanager
 import logging
 import platform
 import random
@@ -22,6 +23,24 @@ LOGGER = logging.getLogger('enlighten')
 DATACENTERS = 5
 SYSTEMS = (10, 20)  # Range
 FILES = (10, 100)  # Range
+
+
+@contextmanager
+def win_time_granularity(milliseconds):
+    """
+    time.sleep() on Windows may not have high precision with older versions of Python
+    This will temporarily change the timing resolution
+
+
+    # https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
+    """
+
+    from ctypes import windll
+    try:
+        windll.winmm.timeBeginPeriod(milliseconds)
+        yield
+    finally:
+        windll.winmm.timeEndPeriod(milliseconds)
 
 
 def process_files(manager):
@@ -68,18 +87,14 @@ def main():
     Main function
     """
 
-    manager = enlighten.get_manager()
-    process_files(manager)
-    manager.stop()  # Clears all temporary counters and progress bars
+    with enlighten.get_manager() as manager:
+        process_files(manager)
 
 
 if __name__ == '__main__':
 
-    # https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
     if platform.system() == 'Windows':
-        from ctypes import windll
-        windll.winmm.timeBeginPeriod(1)
-        main()
-        windll.winmm.timeEndPeriod(1)
+        with win_time_granularity(1):
+            main()
     else:
         main()

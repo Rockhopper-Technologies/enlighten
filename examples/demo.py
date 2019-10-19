@@ -15,7 +15,7 @@ import time
 import enlighten
 
 from multicolored import run_tests, load
-from multiple_logging import process_files
+from multiple_logging import process_files, win_time_granularity
 
 
 def initialize(manager, initials=15):
@@ -36,21 +36,17 @@ def main():
     Main function
     """
 
-    manager = enlighten.get_manager()
-    initialize(manager, 15)
-    load(manager, 80)
-    run_tests(manager, 40)
-    process_files(manager)
-    manager.stop()  # Clears all temporary counters and progress bars
+    with enlighten.get_manager() as manager:
+        initialize(manager, 15)
+        load(manager, 80)
+        run_tests(manager, 40)
+        process_files(manager)
 
 
 if __name__ == '__main__':
 
-    # https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
     if platform.system() == 'Windows':
-        from ctypes import windll
-        windll.winmm.timeBeginPeriod(1)
-        main()
-        windll.winmm.timeEndPeriod(1)
+        with win_time_granularity(1):
+            main()
     else:
         main()
