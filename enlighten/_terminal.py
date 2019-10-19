@@ -11,9 +11,6 @@
 Provides Terminal class
 """
 
-import platform
-
-
 from blessed import Terminal as _Terminal
 
 
