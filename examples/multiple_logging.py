@@ -21,7 +21,7 @@ LOGGER = logging.getLogger('enlighten')
 
 DATACENTERS = 5
 SYSTEMS = (10, 20)  # Range
-FILES = (100, 1000)  # Range
+FILES = (10, 100)  # Range
 
 
 def process_files(manager):
@@ -49,7 +49,7 @@ def process_files(manager):
             # Iterate through files
             for fnum in range(files):  # pylint: disable=unused-variable
                 system.update()  # Update count
-                time.sleep(random.uniform(0.0001, 0.0005))  # Random processing time
+                time.sleep(random.uniform(0.001, 0.005))  # Random processing time
 
             system.close()  # Close counter so it gets removed
             # Log status
