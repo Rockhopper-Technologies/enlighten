@@ -35,7 +35,7 @@ def win_time_granularity(milliseconds):
     # https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
     """
 
-    from ctypes import windll
+    from ctypes import windll  # pylint: disable=import-outside-toplevel
     try:
         windll.winmm.timeBeginPeriod(milliseconds)
         yield
