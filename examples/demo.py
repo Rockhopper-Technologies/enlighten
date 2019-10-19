@@ -42,7 +42,6 @@ def main():
     run_tests(manager, 40)
     process_files(manager)
     manager.stop()  # Clears all temporary counters and progress bars
-    time.sleep(3)
 
 
 if __name__ == '__main__':
