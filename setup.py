@@ -17,8 +17,7 @@ from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
-INSTALL_REQUIRES = ['blessed; platform_system != "Windows"',
-                    'ansicon; platform_system == "Windows"']
+INSTALL_REQUIRES = ['blessed>=1.16.0']
 TESTS_REQUIRE = ['mock; python_version < "3.3"',
                  'unittest2; python_version < "2.7"']
 
