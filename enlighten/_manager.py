@@ -26,8 +26,8 @@ from enlighten._counter import Counter
 from enlighten._terminal import Terminal
 
 
-# Flag to support unicode in Python 2
-NEEDS_UNICODE_HELP = sys.version_info[:2] <= (2, 7)
+# Flag to support unicode in Python 2.6
+NEEDS_UNICODE_HELP = sys.version_info[:2] < (2, 7)
 
 RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
 
@@ -242,7 +242,7 @@ class Manager(object):
                 # Add line feeds so we don't overwrite existing output
                 if newOffset - oldOffset > 0:
                     term.move_to(0, max(0, newHeight - oldOffset))
-                    self.stream.write('\n' * (newOffset - oldOffset))
+                    self.stream.write(u'\n' * (newOffset - oldOffset))
 
                 # Reset scroll area
                 self.term.change_scroll(scrollPosition)
@@ -369,7 +369,7 @@ class Manager(object):
                     encoding = getattr(stream, 'encoding', None) or 'UTF-8'
                     stream.write(('\r' + term.clear_eol + output).encode(encoding))
                 else:  # pragma: no cover (Version dependent >= 2.7)
-                    stream.write('\r' + term.clear_eol + output)
+                    stream.write(u'\r' + term.clear_eol + output)
 
             finally:
                 # Reset position and scrolling
