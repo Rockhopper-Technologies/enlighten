@@ -270,6 +270,10 @@ class Manager(object):
 
                 self.term.feed()
 
+                self.stream.flush()
+                if self.companion_stream:
+                    self.companion_stream.flush()
+
             except ValueError:  # Possibly closed file handles
                 pass
 
