@@ -211,7 +211,7 @@ class TestManager(TestCase):
             term = manager.term
             manager.write(msg, position=3)
 
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         # Carriage return is getting converted to newline
         self.assertEqual(self.tty.stdread.readline(),
                          term.move(22, 0) + '\r' + term.clear_eol + msg + 'X\n')
@@ -232,7 +232,7 @@ class TestManager(TestCase):
             term = manager.term
             manager.write(msg, position=3, flush=False)
 
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         # Carriage return is getting converted to newline
         self.assertEqual(self.tty.stdread.readline(),
                          term.move(22, 0) + '\r' + term.clear_eol + msg + 'X\n')
@@ -244,7 +244,7 @@ class TestManager(TestCase):
         manager.counters['dummy'] = 3
 
         manager._set_scroll_area()
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
     def test_set_scroll_area_no_change(self):
@@ -253,7 +253,7 @@ class TestManager(TestCase):
         manager.scroll_offset = 4
 
         manager._set_scroll_area()
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(), manager.term.move(21, 0) + 'X\n')
 
     def test_set_scroll_area_companion(self):
@@ -268,7 +268,7 @@ class TestManager(TestCase):
         term = manager.term
 
         manager._set_scroll_area()
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(),
                          term.move(21, 0) + term.move(21, 0) + 'X\n')
 
@@ -297,7 +297,7 @@ class TestManager(TestCase):
 
             atexit.register.assert_called_with(manager._at_exit)
 
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(stdread.readline(), term.move(21, 0) + 'X\n')
 
         # Run it again and make sure exit handling isn't reset
@@ -324,7 +324,7 @@ class TestManager(TestCase):
             self.assertEqual(manager.height, 25)
             self.assertTrue(manager.process_exit)
 
-            term.stream.write('X\n')
+            term.stream.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), term.move(21, 0) + 'X\n')
             atexit.register.assert_called_with(manager._at_exit)
 
@@ -342,7 +342,7 @@ class TestManager(TestCase):
                 self.assertFalse(reset.called)
                 self.assertFalse(flush.called)
                 # No output
-                tty.stdout.write('X\n')
+                tty.stdout.write(u'X\n')
                 self.assertEqual(tty.stdread.readline(), 'X\n')
 
                 # process_exit is True, set_scroll False
@@ -391,7 +391,7 @@ class TestManager(TestCase):
             self.assertTrue(manager.process_exit)
 
             # Clear stream
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             for num in range(4 + 1):  # pylint: disable=unused-variable
                 self.tty.stdread.readline()
 
@@ -400,7 +400,7 @@ class TestManager(TestCase):
             manager.stop()
 
             # No output, No changes
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
             self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
             self.assertTrue(manager.process_exit)
@@ -411,7 +411,7 @@ class TestManager(TestCase):
             self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
             self.assertEqual(reset.call_count, 1)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eol +
                              term.move(24, 0) + term.clear_eol + 'X\n')
             self.assertFalse(manager.process_exit)
@@ -440,7 +440,7 @@ class TestManager(TestCase):
             self.assertTrue(manager.process_exit)
 
             # Stream empty
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
             manager.stop()
@@ -448,7 +448,7 @@ class TestManager(TestCase):
             self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
             self.assertFalse(reset.called)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eol +
                              term.move(24, 0) + term.clear_eol + term.move(25, 0) + 'X\n')
             self.assertFalse(manager.process_exit)
@@ -470,7 +470,7 @@ class TestManager(TestCase):
             self.assertEqual(reset.call_count, 1)
 
         # No output
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
     def test_stop_companion(self):
@@ -531,7 +531,7 @@ class TestManager(TestCase):
             self.assertEqual(manager.width, 80)
             self.assertTrue(manager.resize_lock)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
             self.assertEqual(counter3.calls, [])
@@ -545,7 +545,7 @@ class TestManager(TestCase):
             self.assertEqual(manager.width, 70)
             self.assertFalse(manager.resize_lock)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), term.move(19, 0) + term.clear_eos + 'X\n')
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
@@ -566,7 +566,7 @@ class TestManager(TestCase):
 
             self.assertEqual(manager.width, 80)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
@@ -588,7 +588,7 @@ class TestManager(TestCase):
             # Height is set in _set_scroll_area which is mocked
             self.assertEqual(manager.height, 25)
 
-            self.tty.stdout.write('X\n')
+            self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
@@ -612,7 +612,7 @@ class TestManager(TestCase):
         mgr.stop()
 
         # No Output
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
     def test_context_manager(self):

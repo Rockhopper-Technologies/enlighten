@@ -11,6 +11,7 @@ Test module for Enlighten
 
 from contextlib import contextmanager
 import fcntl
+import io
 import os
 import pty
 import struct
@@ -116,13 +117,8 @@ class MockTTY(object):
 
         self.master, self.slave = pty.openpty()
 
-        if sys.version_info[0] < 3:
-            self.stdout = os.fdopen(self.slave, 'w', 1)
-            self.stdread = os.fdopen(self.master, 'r')
-        else:
-            self.stdout = os.fdopen(self.slave, 'w', 1, encoding='UTF-8',
-                                    newline='\n')  # line buffering for pypy2
-            self.stdread = os.fdopen(self.master, 'r', encoding='UTF-8', newline='\n')
+        self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
+        self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
 
         # Make sure linefeed behavior is consistent between Python 2 and Python 3
         termattrs = termios.tcgetattr(self.slave)

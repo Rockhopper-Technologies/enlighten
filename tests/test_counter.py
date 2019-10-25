@@ -573,7 +573,7 @@ class TestCounter(TestCase):
         ctr.start = time.time() - 50
         ctr.update(50, force=True)
 
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         value = self.tty.stdread.readline()
         if NEEDS_UNICODE_HELP:
             value = value.decode('utf-8')

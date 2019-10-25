@@ -47,7 +47,7 @@ class TestTerminal(TestCase):
 
     def test_reset(self):
         self.terminal.reset()
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(),
                          self.terminal.normal_cursor + self.terminal.csr(0, 25) +
                          self.terminal.move(25, 0) + 'X\n')
@@ -60,7 +60,7 @@ class TestTerminal(TestCase):
     def test_change_scroll(self):
 
         self.terminal.change_scroll(4)
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(),
                          self.terminal.hide_cursor + self.terminal.csr(0, 4) +
                          self.terminal.move(4, 0) + 'X\n')
@@ -68,6 +68,6 @@ class TestTerminal(TestCase):
     def test_move_to(self):
 
         self.terminal.move_to(5, 10)
-        self.tty.stdout.write('X\n')
+        self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(),
                          self.terminal.move(10, 5) + 'X\n')
