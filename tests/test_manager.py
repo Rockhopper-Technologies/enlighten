@@ -333,31 +333,45 @@ class TestManager(TestCase):
         tty = MockTTY()
 
         with mock.patch('%s.reset' % TERMINAL) as reset:
-            manager = _manager.Manager(stream=tty.stdout, counter_class=MockCounter)
-            term = manager.term
+            with mock.patch.object(tty.stdout, 'flush') as flush:
+                manager = _manager.Manager(stream=tty.stdout, counter_class=MockCounter)
+                term = manager.term
 
-            # process_exit is False
-            manager._at_exit()
-            self.assertFalse(reset.called)
-            # No output
-            tty.stdout.write('X\n')
-            self.assertEqual(tty.stdread.readline(), 'X\n')
+                # process_exit is False
+                manager._at_exit()
+                self.assertFalse(reset.called)
+                self.assertFalse(flush.called)
+                # No output
+                tty.stdout.write('X\n')
+                self.assertEqual(tty.stdread.readline(), 'X\n')
 
-            # process_exit is True, set_scroll False
-            manager.process_exit = True
-            manager.set_scroll = False
-            manager._at_exit()
-            self.assertFalse(reset.called)
-            self.assertEqual(tty.stdread.readline(), term.move(25, 0) + term.cud1)
+                # process_exit is True, set_scroll False
+                manager.process_exit = True
+                manager.set_scroll = False
+                manager._at_exit()
+                self.assertFalse(reset.called)
+                self.assertEqual(flush.call_count, 1)
+                self.assertEqual(tty.stdread.readline(), term.move(25, 0) + term.cud1)
 
-            # process_exit is True, set_scroll True
-            manager.set_scroll = True
-            manager._at_exit()
-            self.assertEqual(reset.call_count, 1)
-            self.assertEqual(tty.stdread.readline(), term.cud1)
+                # process_exit is True, set_scroll True
+                manager.set_scroll = True
+                manager._at_exit()
+                self.assertEqual(reset.call_count, 1)
+                self.assertEqual(flush.call_count, 2)
+                self.assertEqual(tty.stdread.readline(), term.cud1)
 
-            tty.close()
-            manager._at_exit()
+                # Ensure companion stream gets flushed
+                manager.companion_stream = tty.stdout
+                manager._at_exit()
+                self.assertEqual(reset.call_count, 2)
+                self.assertEqual(flush.call_count, 4)
+                self.assertEqual(tty.stdread.readline(), term.cud1)
+
+                term = manager.term
+
+                # Ensure no errors if tty closes before _at_exit is called
+                tty.close()
+                manager._at_exit()
 
     def test_stop(self):
 
