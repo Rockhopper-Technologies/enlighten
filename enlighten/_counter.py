@@ -408,6 +408,8 @@ class Counter(BaseCounter):
         - eta_n (:py:class:`str`) - Estimated time to completion
         - rate_n (:py:class:`float`) - Average increments per second since parent was created
 
+    .. _counter_offset:
+
     **Offset**
 
         When ``offset`` is :py:data:`None`, the width of the bar portion of the progress bar and
