@@ -154,7 +154,7 @@ class Manager(object):
             self.counters[counter] = 1
             self._set_scroll_area()
             for cter in reversed(toRefresh):
-                cter.refresh(flush=False)
+                cter.refresh()
             self.stream.flush()
 
         elif position in self.counters.values():
