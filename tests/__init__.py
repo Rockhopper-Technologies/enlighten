@@ -117,7 +117,7 @@ class MockTTY(object):
 
         self.master, self.slave = pty.openpty()
 
-        if sys.version_info[:2] < (2, 6):
+        if sys.version_info[:2] < (2, 7):
             self.stdout = os.fdopen(self.slave, 'w', 1)
             self.stdread = os.fdopen(self.master, 'r')
         else:
