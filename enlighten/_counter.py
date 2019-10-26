@@ -408,6 +408,16 @@ class Counter(BaseCounter):
         - eta_n (:py:class:`str`) - Estimated time to completion
         - rate_n (:py:class:`float`) - Average increments per second since parent was created
 
+    **Offset**
+
+        When ``offset`` is :py:data:`None`, the width of the bar portion of the progress bar and
+        the fill characters for counter will be automatically determined,
+        taking into account terminal escape sequences that may be included in the string.
+
+        Under special circumstances, and to permit backward compatibility, ``offset`` may be
+        explicitly set to an :py:class:`int` value. When explicitly set, automatic detection of
+        escape sequences is disabled.
+
 
     **Instance Attributes**
 
