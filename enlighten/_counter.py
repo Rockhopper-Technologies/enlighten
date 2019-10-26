@@ -462,7 +462,7 @@ class Counter(BaseCounter):
         self.enabled = kwargs.get('enabled', True)
         self.leave = kwargs.get('leave', True)
         self.min_delta = kwargs.get('min_delta', 0.1)
-        self.offset = kwargs.get('offset', 0)
+        self.offset = kwargs.get('offset', None)
         self.series = kwargs.get('series', SERIES_STD)
         self.total = kwargs.get('total', None)
         self.unit = kwargs.get('unit', None)
@@ -579,7 +579,7 @@ class Counter(BaseCounter):
 
         return subcounters, fields
 
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-branches
     def format(self, width=None, elapsed=None):
         """
         Args:
@@ -653,7 +653,12 @@ class Counter(BaseCounter):
             rtn = self.bar_format.format(**fields)
 
             # Format the bar
-            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+            if self.offset is None:
+                barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
+            else:
+                # Offset was explicitly given
+                barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+
             complete = barWidth * percentage
             barLen = int(complete)
             barText = u''
@@ -676,7 +681,14 @@ class Counter(BaseCounter):
         # Otherwise return a counter
         fields['fill'] = u'{0}'
         rtn = self.counter_format.format(**fields)
-        return rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+
+        if self.offset is None:
+            ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))
+        else:
+            # Offset was explicitly given
+            ret = rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+
+        return ret
 
     def refresh(self, flush=True, elapsed=None):
         """

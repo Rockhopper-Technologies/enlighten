@@ -94,10 +94,8 @@ def run_tests(manager, tests=100):
                  u'E:' + terminal.yellow(u'{count_1:{len_total}d}') + u' ' + \
                  u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-    offset = len(terminal.green('')) + len(terminal.red('')) + len(terminal.yellow(''))
-
-    with manager.counter(total=tests, desc='Testing', unit='tests', offset=offset,
-                         color='green', bar_format=bar_format) as success:
+    with manager.counter(total=tests, desc='Testing', unit='tests', color='green',
+                         bar_format=bar_format) as success:
         errors = success.add_subcounter('yellow')
         failures = success.add_subcounter('red')
 
