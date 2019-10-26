@@ -579,8 +579,7 @@ class Counter(BaseCounter):
 
         return subcounters, fields
 
-    # pylint: disable=too-many-locals
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-locals,too-many-branches
     def format(self, width=None, elapsed=None):
         """
         Args:
@@ -654,11 +653,12 @@ class Counter(BaseCounter):
             rtn = self.bar_format.format(**fields)
 
             # Format the bar
-            if self.offset is not None:
-                # Keeping offset support for backwards compatibility
-                barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
-            else:
+            if self.offset is None:
                 barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
+            else:
+                # Offset was explicitly given
+                barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+
             complete = barWidth * percentage
             barLen = int(complete)
             barText = u''
@@ -681,10 +681,13 @@ class Counter(BaseCounter):
         # Otherwise return a counter
         fields['fill'] = u'{0}'
         rtn = self.counter_format.format(**fields)
-        if self.offset is not None:
-            ret = rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
-        else:
+
+        if self.offset is None:
             ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))
+        else:
+            # Offset was explicitly given
+            ret = rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+
         return ret
 
     def refresh(self, flush=True, elapsed=None):

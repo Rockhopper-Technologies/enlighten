@@ -486,21 +486,21 @@ class TestCounter(TestCase):
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'Test 100%\|' u'█+' + r'\| 0/0 \[00:0\d<00:00, 0.00 ticks/s\]')
 
-    def test_colored(self):
+    def test_auto_offset(self):
         """
-        Color sequences should not be counted as characters when formatting
-        (Only if offset is not set)
+        If offset is not specified, terminal codes should be automatically ignored
+        when calculating bar length
         """
 
         barFormat = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}|{count:{len_total}d}/{total:d} ' + \
                     u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
         blueBarFormat = self.manager.term.blue(barFormat)
+        self.assertNotEqual(len(barFormat), len(blueBarFormat))
 
         ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
                                    unit='ticks', count=10, bar_format=barFormat)
         formatted1 = ctr.format(width=80)
         self.assertEqual(len(formatted1), 80)
-        self.assertEqual(self.manager.term.length(formatted1), 80)
         barLen1 = formatted1.count(u'█')
 
         offset = len(self.manager.term.blue(''))
@@ -508,7 +508,6 @@ class TestCounter(TestCase):
                                    unit='ticks', count=10, bar_format=blueBarFormat)
         formatted2 = ctr.format(width=80)
         self.assertEqual(len(formatted2), 80 + offset)
-        self.assertEqual(self.manager.term.length(formatted2), 80)
         barLen2 = formatted2.count(u'█')
 
         self.assertTrue(barLen2 == barLen1)
