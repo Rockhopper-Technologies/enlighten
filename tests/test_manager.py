@@ -333,14 +333,14 @@ class TestManager(TestCase):
         tty = MockTTY()
 
         with mock.patch('%s.reset' % TERMINAL) as reset:
-            with mock.patch.object(tty.stdout, 'flush') as flush:
+            with mock.patch.object(tty, 'stdout', wraps=tty.stdout) as mockstdout:
                 manager = _manager.Manager(stream=tty.stdout, counter_class=MockCounter)
                 term = manager.term
 
                 # process_exit is False
                 manager._at_exit()
                 self.assertFalse(reset.called)
-                self.assertFalse(flush.called)
+                self.assertFalse(mockstdout.flush.called)
                 # No output
                 tty.stdout.write(u'X\n')
                 self.assertEqual(tty.stdread.readline(), 'X\n')
@@ -350,21 +350,21 @@ class TestManager(TestCase):
                 manager.set_scroll = False
                 manager._at_exit()
                 self.assertFalse(reset.called)
-                self.assertEqual(flush.call_count, 1)
+                self.assertEqual(mockstdout.flush.call_count, 1)
                 self.assertEqual(tty.stdread.readline(), term.move(25, 0) + term.cud1)
 
                 # process_exit is True, set_scroll True
                 manager.set_scroll = True
                 manager._at_exit()
                 self.assertEqual(reset.call_count, 1)
-                self.assertEqual(flush.call_count, 2)
+                self.assertEqual(mockstdout.flush.call_count, 2)
                 self.assertEqual(tty.stdread.readline(), term.cud1)
 
                 # Ensure companion stream gets flushed
                 manager.companion_stream = tty.stdout
                 manager._at_exit()
                 self.assertEqual(reset.call_count, 2)
-                self.assertEqual(flush.call_count, 4)
+                self.assertEqual(mockstdout.flush.call_count, 4)
                 self.assertEqual(tty.stdread.readline(), term.cud1)
 
                 term = manager.term
