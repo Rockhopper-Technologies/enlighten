@@ -117,8 +117,12 @@ class MockTTY(object):
 
         self.master, self.slave = pty.openpty()
 
-        self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
-        self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
+        if sys.version_info[:2] < (2, 6):
+            self.stdout = os.fdopen(self.slave, 'w', 1)
+            self.stdread = os.fdopen(self.master, 'r')
+        else:
+            self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
+            self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
 
         # Make sure linefeed behavior is consistent between Python 2 and Python 3
         termattrs = termios.tcgetattr(self.slave)
