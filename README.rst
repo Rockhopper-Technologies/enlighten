@@ -49,7 +49,7 @@
     :alt: Fedora version support
     :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
 
-.. |EPEL| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22e%22))].name&label=EPEL&colorB=lightgray&style=plastic
+.. |EPEL| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22e%22))].name&label=EPEL&colorB=lightgray&style=plastic&logo=epel
     :alt: EPEL version support
     :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
 
