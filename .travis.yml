@@ -1,4 +1,5 @@
 language: python
+os: linux
 
 addons:
     apt_packages:
@@ -52,7 +53,6 @@ matrix:
     - python: pypy3
       env: TOXENV=pypy3
 
-jobs:
   allow_failures:
     - python: 2.6
     - python: 3.9-dev
