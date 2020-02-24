@@ -413,7 +413,7 @@ class Counter(BaseCounter):
 
             The ``additional_fields`` parameter can be used to pass a dictionary of additional
             user-defined fields. The dictionary values can be updated after initialization to allow
-            for dynamic fields. Any fields that share names with builtin fields are ignored.
+            for dynamic fields. Any fields that share names with built-in fields are ignored.
 
 
     .. _counter_offset:
