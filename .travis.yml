@@ -8,38 +8,41 @@ addons:
 
 matrix:
   include:
-    - python: "3.7"
+    - python: 3.7
       env: TOXENV=lint
 
-    - python: "3.7"
+    - python: 3.7
       env: TOXENV=docs
 
-    - python: "3.7"
+    - python: 3.7
       env: TOXENV=codecov
 
-    - python: "3.8"
+    - python: 3.8
       env: TOXENV=py38
 
-    - python: "3.6"
+    - python: 3.9-dev
+      env: TOXENV=py39
+
+    - python: 3.6
       env: TOXENV=py36
 
-    - python: "3.5"
+    - python: 3.5
       env: TOXENV=py35
 
-    - python: "3.4"
+    - python: 3.4
       env: TOXENV=py34
 
-    - python: "2.7"
+    - python: 2.7
       env: TOXENV=py27
 
-    - python: "2.7"
+    - python: 2.7
       env: TOXENV=el7
 
-    - python: "2.6"
+    - python: 2.6
       env: TOXENV=py26
       dist: trusty
 
-    - python: "2.6"
+    - python: 2.6
       env: TOXENV=el6
       dist: trusty
 
@@ -48,6 +51,11 @@ matrix:
 
     - python: pypy3
       env: TOXENV=pypy3
+
+jobs:
+  allow_failures:
+    - python: 2.6
+    - python: 3.9-dev
 
 install:
   - pip install tox
