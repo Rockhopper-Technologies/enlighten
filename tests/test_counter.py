@@ -719,3 +719,69 @@ class TestCounter(TestCase):
         self.assertIs(self.ctr._subcounters[1], subcounter2)
         self.assertEqual(subcounter2.count, 5)
         self.assertTrue(subcounter2.all_fields)
+
+    def test_additional_fields(self):
+        """
+        Add additional fields to format
+        """
+
+        bar_format = ctr_format = u'{arg1:s} {count:d}'
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
+                      additional_fields={'arg1': 'hello'})
+        self.assertEqual(ctr.format(), 'hello 1')
+
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
+                      additional_fields={'arg1': 'hello'})
+        self.assertEqual(ctr.format(), 'hello 1')
+
+    def test_additional_fields_missing(self):
+        """
+        Raise a ValueError when a keyword is missing
+        """
+
+        bar_format = ctr_format = u'{arg1:s} {count:d}'
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format)
+        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not present"):
+            ctr.format()
+
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format)
+        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not present"):
+            ctr.format()
+
+    def test_additional_fields_changed(self):
+        """
+        Change additional fields
+        """
+
+        bar_format = ctr_format = u'{arg1:s} {count:d}'
+        additional_fields = {'arg1': 'hello'}
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
+                      additional_fields=additional_fields)
+        self.assertEqual(ctr.format(), 'hello 1')
+        additional_fields['arg1'] = 'goodbye'
+        self.assertEqual(ctr.format(), 'goodbye 1')
+
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
+                      additional_fields=additional_fields)
+        self.assertEqual(ctr.format(), 'goodbye 1')
+        additional_fields['arg1'] = 'hello'
+        self.assertEqual(ctr.format(), 'hello 1')
+
+    def test_additional_fields_no_overwrite(self):
+        """
+        Additional fields can not overwrite dynamic fields
+        """
+
+        bar_format = ctr_format = u'{arg1:s} {count:d}'
+        additional_fields = {'arg1': 'hello', 'count': 100000}
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
+                      additional_fields=additional_fields)
+        self.assertEqual(ctr.format(), 'hello 1')
+
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
+                      additional_fields=additional_fields)
+        self.assertEqual(ctr.format(), 'hello 1')

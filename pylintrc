@@ -12,6 +12,9 @@ max-line-length=100
 # prefer mixedcase, starting with a lowercase or underscore
 variable-rgx=[a-z_][A-Za-z0-9_]{1,29}[A-Za-z0-9_]$
 
+# Good variable names which should always be accepted, separated by a comma.
+good-names=e,_
+
 [MESSAGES CONTROL]
 disable=
     too-few-public-methods,

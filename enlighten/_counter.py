@@ -243,6 +243,7 @@ class Counter(BaseCounter):
         len
 
     Args:
+        additional_fields(dict): Additional fields used for :ref:`formating <counter_format>`
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
@@ -408,6 +409,13 @@ class Counter(BaseCounter):
         - eta_n (:py:class:`str`) - Estimated time to completion
         - rate_n (:py:class:`float`) - Average increments per second since parent was created
 
+        User-defined fields:
+
+            The ``additional_fields`` parameter can be used to pass a dictionary of additional
+            user-defined fields. The dictionary values can be updated after initialization to allow
+            for dynamic fields. Any fields that share names with builtin fields are ignored.
+
+
     .. _counter_offset:
 
     **Offset**
@@ -459,15 +467,16 @@ class Counter(BaseCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('bar_format', 'color', 'counter_format', 'desc', 'enabled', 'last_update',
-                 'leave', 'manager', 'min_delta', 'offset', 'series', 'start', 'total', 'unit',
-                 '_subcounters')
+    __slots__ = ('additional_fields', 'bar_format', 'color', 'counter_format', 'desc', 'enabled',
+                 'last_update', 'leave', 'manager', 'min_delta', 'offset', 'series', 'start',
+                 'total', 'unit', '_subcounters')
 
     # pylint: disable=too-many-arguments
     def __init__(self, **kwargs):
 
         super(Counter, self).__init__(**kwargs)
 
+        self.additional_fields = kwargs.get('additional_fields', {})
         self.bar_format = kwargs.get('bar_format', BAR_FMT)
         self.counter_format = kwargs.get('counter_format', COUNTER_FMT)
         self.desc = kwargs.get('desc', None)
@@ -565,7 +574,7 @@ class Counter(BaseCounter):
             else:
                 subPercentage = 0.0
 
-            # Save in tuple: count, percentage, color
+            # Save in tuple: count, percentage
             subcounters.append((subcounter, subPercentage))
 
             # Set fields
@@ -591,7 +600,7 @@ class Counter(BaseCounter):
 
         return subcounters, fields
 
-    # pylint: disable=too-many-locals,too-many-branches
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def format(self, width=None, elapsed=None):
         """
         Args:
@@ -608,13 +617,14 @@ class Counter(BaseCounter):
 
         iterations = abs(self.count - self.start_count)
 
-        fields = {'bar': u'{0}',
-                  'count': self.count,
-                  'desc': self.desc or u'',
-                  'total': self.total,
-                  'unit': self.unit or u'',
-                  'desc_pad': u' ' if self.desc else u'',
-                  'unit_pad': u' ' if self.unit else u''}
+        fields = self.additional_fields.copy()
+        fields.update({'bar': u'{0}',
+                       'count': self.count,
+                       'desc': self.desc or u'',
+                       'total': self.total,
+                       'unit': self.unit or u'',
+                       'desc_pad': u' ' if self.desc else u'',
+                       'unit_pad': u' ' if self.unit else u''})
 
         # Get elapsed time
         if elapsed is None:
@@ -662,7 +672,11 @@ class Counter(BaseCounter):
                 fields['percentage_0'] = (percentage - sum(sub[1] for sub in subcounters)) * 100
 
             # Partially format
-            rtn = self.bar_format.format(**fields)
+            try:
+                rtn = self.bar_format.format(**fields)
+            except KeyError as e:
+                raise ValueError('%r specified in format, but not present in additional_fields' %
+                                 e.args[0])
 
             # Format the bar
             if self.offset is None:
@@ -692,7 +706,11 @@ class Counter(BaseCounter):
 
         # Otherwise return a counter
         fields['fill'] = u'{0}'
-        rtn = self.counter_format.format(**fields)
+        try:
+            rtn = self.counter_format.format(**fields)
+        except KeyError as e:
+            raise ValueError('%r specified in format, but not present in additional_fields' %
+                             e.args[0])
 
         if self.offset is None:
             ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))
