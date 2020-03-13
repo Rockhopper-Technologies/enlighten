@@ -12,6 +12,7 @@ Provides Counter base class
 """
 
 import platform
+import sys
 import time
 
 try:
@@ -30,6 +31,14 @@ if platform.system() == 'Windows':  # pragma: no cover(Windows)
     SERIES_STD = u' ▌█'
 else:
     SERIES_STD = u' ▏▎▍▌▋▊▉█'
+
+# Test for non-unicode terminals
+try:
+    SERIES_STD.encode(sys.__stdout__.encoding)
+except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
+    SERIES_STD = u' |'
+except AttributeError:  # pragma: no cover(Non-standard Terminal)
+    pass
 
 COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
           'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
