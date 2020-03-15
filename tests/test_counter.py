@@ -76,53 +76,60 @@ class TestBaseCounter(TestCase):
         with self.assertRaisesRegex(TypeError, 'manager must be specified'):
             enlighten._counter.BaseCounter()
 
-    def test_color(self):
-        """Color must be a valid string or int 0 - 255"""
+    def test_color_invalid(self):
+        """Color must be a valid string, RGB, or int 0 - 255"""
         # Unsupported type
-        with self.assertRaisesRegex(TypeError, 'color must be a string or integer'):
-            enlighten._counter.BaseCounter(manager=self.manager, color=[])
+        with self.assertRaisesRegex(AttributeError, 'Invalid color specified: 1.0'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=1.0)
 
-        # Color is a string
-        counter = enlighten._counter.BaseCounter(manager=self.manager, color='red')
-        self.assertEqual(counter.color, 'red')
-        with self.assertRaisesRegex(ValueError, 'Unsupported color: banana'):
-            enlighten._counter.BaseCounter(manager=self.manager, color='banana')
+        # Invalid String
+        with self.assertRaisesRegex(AttributeError, 'Invalid color specified: buggersnot'):
+            enlighten._counter.BaseCounter(manager=self.manager, color='buggersnot')
 
-        # Color is an integer
-        counter = enlighten._counter.BaseCounter(manager=self.manager, color=15)
-        self.assertEqual(counter.color, 15)
-        with self.assertRaisesRegex(ValueError, 'Unsupported color: -1'):
+        # Invalid integer
+        with self.assertRaisesRegex(AttributeError, 'Invalid color specified: -1'):
             enlighten._counter.BaseCounter(manager=self.manager, color=-1)
-        with self.assertRaisesRegex(ValueError, 'Unsupported color: 256'):
+        with self.assertRaisesRegex(AttributeError, 'Invalid color specified: 256'):
             enlighten._counter.BaseCounter(manager=self.manager, color=256)
+
+        # Invalid iterable
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \[\]'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=[])
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \[1\]'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=[1])
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \(1, 2\)'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=(1, 2))
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \(1, 2, 3, 4\)'):
+            enlighten._counter.BaseCounter(manager=self.manager, color=(1, 2, 3, 4))
 
     def test_colorize_none(self):
         """If color is None, return content unchanged"""
         counter = enlighten._counter.BaseCounter(manager=self.manager)
         self.assertEqual(counter._colorize('test'), 'test')
 
-    def test_colorize(self):
-        """Return string formatted with color"""
-        # Color is a string
+    def test_colorize_string(self):
+        """Return string formatted with color (string)"""
         counter = enlighten._counter.BaseCounter(manager=self.manager, color='red')
-        self.assertIsNone(counter._color)
+        self.assertEqual(counter.color, 'red')
+        self.assertEqual(counter._color, ('red', self.manager.term.red))
         self.assertNotEqual(counter._colorize('test'), 'test')
-        cache = counter._color
         self.assertEqual(counter._colorize('test'), self.manager.term.red('test'))
-        self.assertEqual(counter._color[0], 'red')
-        self.assertIs(counter._color[1], self.manager.term.red)
-        self.assertIs(counter._color, cache)
 
-        # Color is an integer
+    def test_colorize_int(self):
+        """Return string formatted with color (int)"""
         counter = enlighten._counter.BaseCounter(manager=self.manager, color=40)
-        self.assertIsNone(counter._color)
+        self.assertEqual(counter.color, 40)
+        self.assertEqual(counter._color, (40, self.manager.term.color(40)))
         self.assertNotEqual(counter._colorize('test'), 'test')
-        cache = counter._color
         self.assertEqual(counter._colorize('test'), self.manager.term.color(40)('test'))
-        self.assertEqual(counter._color[0], 40)
-        # New instance is generated each time, so just compare strings
-        self.assertEqual(counter._color[1], self.manager.term.color(40))
-        self.assertIs(counter._color, cache)
+
+    def test_colorize_rgb(self):
+        """Return string formatted with color (RGB)"""
+        counter = enlighten._counter.BaseCounter(manager=self.manager, color=(50, 40, 60))
+        self.assertEqual(counter.color, (50, 40, 60))
+        self.assertEqual(counter._color, ((50, 40, 60), self.manager.term.color_rgb(50, 40, 60)))
+        self.assertNotEqual(counter._colorize('test'), 'test')
+        self.assertEqual(counter._colorize('test'), self.manager.term.color_rgb(50, 40, 60)('test'))
 
     def test_call(self):
         """Returns generator when used as a function"""

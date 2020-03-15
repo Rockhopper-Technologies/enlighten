@@ -20,6 +20,8 @@ try:
 except ImportError:  # pragma: no cover(Python 2)
     from collections import Iterable
 
+from blessed.colorspace import X11_COLORNAMES_TO_RGB
+
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
 
@@ -40,9 +42,9 @@ except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
 except AttributeError:  # pragma: no cover(Non-standard Terminal)
     pass
 
-COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
-          'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
-          'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white')
+COLORS_16 = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+             'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
+             'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white')
 
 try:
     BASESTRING = basestring
@@ -80,35 +82,52 @@ class BaseCounter(object):
     """
     Args:
         manager(:py:class:`Manager`): Manager instance. Required.
-        color(str): Color as a string or number 0 - 255 (Default: None)
+        color(str): Color as a string or RGB tuple (Default: None)
 
     Base class for counters
     """
 
-    __slots__ = ('color', '_color', 'count', 'manager', 'start_count')
+    __slots__ = ('_color', 'count', 'manager', 'start_count')
 
     def __init__(self, **kwargs):
 
         self.count = self.start_count = kwargs.get('count', 0)
-
-        self._color = None
-        self.color = kwargs.get('color', None)
-        if self.color is None:
-            pass
-        elif isinstance(self.color, BASESTRING):
-            if self.color not in COLORS:
-                raise ValueError('Unsupported color: %s' % self.color)
-        elif isinstance(self.color, int):
-            if self.color < 0 or self.color > 255:
-                raise ValueError('Unsupported color: %s' % self.color)
-        else:
-            raise TypeError('color must be a string or integer')
-
         self._color = None
 
         self.manager = kwargs.get('manager', None)
         if self.manager is None:
             raise TypeError('manager must be specified')
+
+        self.color = kwargs.get('color', None)
+
+    @property
+    def color(self):
+        """
+        Color property
+        Preferred to be a string or iterable of three integers for RGB
+        Single integer supported for backwards compatibility
+        """
+
+        color = self._color
+        return color if color is None else color[0]
+
+    @color.setter
+    def color(self, value):
+
+        if value is None:
+            self._color = None
+        elif isinstance(value, int) and 0 <= value <= 255:
+            self._color = (value, self.manager.term.color(value))
+        elif isinstance(value, BASESTRING):
+            if value not in COLORS_16 or value not in X11_COLORNAMES_TO_RGB:
+                raise AttributeError('Invalid color specified: %s' % value)
+            self._color = (value, getattr(self.manager.term, value))
+        elif isinstance(value, Iterable) and \
+                len(value) == 3 and \
+                all(isinstance(_, int) and 0 <= _ <= 255 for _ in value):
+            self._color = (value, self.manager.term.color_rgb(*value))
+        else:
+            raise AttributeError('Invalid color specified: %s' % repr(value))
 
     def _colorize(self, content):
         """
@@ -121,23 +140,14 @@ class BaseCounter(object):
         Format ``content`` with the color specified for this progress bar
 
         If no color is specified for this instance, the content is returned unmodified
-
-        The color discovery within this method is caching to improve performance
         """
 
-        if self.color is None:
+        # No color specified
+        if self._color is None:
             return content
 
-        if self._color and self._color[0] == self.color:
-            return self._color[1](content)
-
-        if self.color in COLORS:
-            spec = getattr(self.manager.term, self.color)
-        else:
-            spec = self.manager.term.color(self.color)
-
-        self._color = (self.color, spec)
-        return spec(content)
+        # Used spec cached by color.setter
+        return self._color[1](content)
 
     def update(self, incr=1, force=False):
         """
@@ -176,12 +186,12 @@ class SubCounter(BaseCounter):
 
     """
 
-    __slots__ = ('all_fields', 'color', 'parent')
+    __slots__ = ('all_fields', 'parent')
 
     def __init__(self, parent, color=None, count=0, all_fields=False):
         """
         Args:
-            color(str): Series color as a string or integer see :ref:`Series Color <series_color>`
+            color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
             count(int): Initial count (Default: 0)
             all_fields(bool): Populate ``rate`` and ``eta`` fields (Default: False)
         """
@@ -256,7 +266,7 @@ class Counter(BaseCounter):
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
-        color(str): Series color as a string or integer see :ref:`Series Color <series_color>` below
+        color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         desc(str): Description
         enabled(bool): Status (Default: :py:data:`True`)
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
@@ -322,9 +332,14 @@ class Counter(BaseCounter):
         The characters specified by ``series`` will be displayed in the terminal's current
         foreground color. This can be overwritten with the ``color`` argument.
 
-        ``color`` can be specified as :py:data:`None`, a string or an integer 0 - 255.
-        While most modern terminals can support 256 colors, the actual number of supported
-        colors will vary.
+        ``color`` can be specified as :py:data:`None`, a :py:mod:`string` or, an :py:term:`iterable`
+        of three integers, 0 - 255, describing an RGB color.
+
+        For backward compatibility, a color can be expressed as an integer 0 - 255, but this
+        is deprecated in favor of named or RGB colors.
+
+        If a terminal is not capable of 24-bit color, and is given a color outside of its
+        range, the color will be downconverted to a supported color.
 
         Valid colors for 8 color terminals:
 
@@ -347,6 +362,12 @@ class Counter(BaseCounter):
             - bright_red
             - bright_white
             - bright_yellow
+
+        See this `chart <https://blessed.readthedocs.io/en/latest/colors.html#id3>`_
+        for a complete list of supported color strings.
+
+        .. note::
+            If an invalid color is specified, an :py:exc:`AttributeError` will be raised
 
     .. _counter_format:
 
@@ -476,7 +497,7 @@ class Counter(BaseCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('additional_fields', 'bar_format', 'color', 'counter_format', 'desc', 'enabled',
+    __slots__ = ('additional_fields', 'bar_format', 'counter_format', 'desc', 'enabled',
                  'last_update', 'leave', 'manager', 'min_delta', 'offset', 'series', 'start',
                  'total', 'unit', '_subcounters')
 
@@ -765,7 +786,7 @@ class Counter(BaseCounter):
     def add_subcounter(self, color, count=0, all_fields=False):
         """
     Args:
-        color(str): Series color as a string or integer see :ref:`Series Color <series_color>`
+        color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         count(int): Initial count (Default: 0)
         all_fields(bool): Populate ``rate`` and ``eta`` formatting fields (Default: False)
 
