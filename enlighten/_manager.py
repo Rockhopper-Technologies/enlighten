@@ -70,7 +70,7 @@ class Manager(object):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, stream=None, counter_class=Counter, **kwargs):
 
-        self.stream = stream or sys.stdout
+        self.stream = sys.stdout if stream is None else stream
         self.counter_class = counter_class
         self.counters = OrderedDict()
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
@@ -249,7 +249,7 @@ class Manager(object):
 
             # Always reset position
             term.move_to(0, scrollPosition)
-            if self.companion_term:
+            if self.companion_term is not None:
                 self.companion_term.move_to(0, scrollPosition)
 
     def _at_exit(self):
@@ -271,7 +271,7 @@ class Manager(object):
                 self.term.feed()
 
                 self.stream.flush()
-                if self.companion_stream:
+                if self.companion_stream is not None:
                     self.companion_stream.flush()
 
             except ValueError:  # Possibly closed file handles
@@ -395,7 +395,7 @@ def get_manager(stream=None, counterclass=Counter, **kwargs):
     If ``stream`` is not attached to a TTY, the :py:class:`Manager` instance is disabled.
     """
 
-    stream = stream or sys.stdout
+    stream = sys.stdout if stream is None else stream
     isatty = hasattr(stream, 'isatty') and stream.isatty()
     kwargs['enabled'] = isatty and kwargs.get('enabled', True)
     return Manager(stream=stream, counterclass=counterclass, **kwargs)
