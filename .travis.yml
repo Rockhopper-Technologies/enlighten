@@ -43,10 +43,6 @@ matrix:
       env: TOXENV=py26
       dist: trusty
 
-    - python: 2.6
-      env: TOXENV=el6
-      dist: trusty
-
     - python: pypy
       env: TOXENV=pypy
 
