@@ -413,6 +413,18 @@ class TestCounter(TestCase):
         self.assertEqual(fields, {'percentage_1': 0.0, 'count_1': 0,
                                   'rate_1': 0.0, 'eta_1': '00:00'})
 
+    def test_get_subcounter_counter_format(self):
+        self.ctr.count = 12
+        subcounter1 = self.ctr.add_subcounter('green')
+        subcounter2 = self.ctr.add_subcounter('red', all_fields=True)
+        subcounter2.count = 6
+        subcounter3 = self.ctr.add_subcounter('white', count=1, all_fields=True)
+
+        subcounters, fields = self.ctr._get_subcounters(8, bar_fields=False)
+        self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.0), (subcounter3, 0.0)])
+        self.assertEqual(fields, {'count_1': 0, 'count_2': 6, 'count_3': 1,
+                                  'rate_2': 0.75, 'rate_3': 0.0})
+
     def test_remove(self):
         self.ctr.leave = False
         self.assertTrue(self.ctr in self.manager.counters)
@@ -676,6 +688,20 @@ class TestCounter(TestCase):
 
         formatted = ctr.format(elapsed=5, width=80)
         self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0')
+
+    def test_subcounter_count_gt_total(self):
+        """
+        When total is exceeded, subcounter fields are still populated
+        """
+        counter_format = u'{count_0} | {count_1} {rate_1} | {count_2}'
+        ctr = Counter(stream=self.tty.stdout, total=100, counter_format=counter_format)
+
+        ctr.count = 500
+        subcounter1 = ctr.add_subcounter('yellow', all_fields=True)
+        subcounter1.count = 50
+        ctr.add_subcounter('blue', count=100)
+        formatted = ctr.format(elapsed=50, width=80)
+        self.assertEqual(formatted, u'350 | 50 1.0 | 100')
 
     def test_close(self):
         manager = mock.Mock()

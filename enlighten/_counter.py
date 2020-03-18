@@ -423,9 +423,9 @@ class Counter(BaseCounter):
 
         - count_n (:py:class:`int`) - Current value of ``count``
         - count_0(:py:class:`int`) - Remaining count after deducting counts for all subcounters
-        - percentage_n (:py:class:`float`) - Percentage complete
+        - percentage_n (:py:class:`float`) - Percentage complete (``bar_format`` only)
         - percentage_0(:py:class:`float`) - Remaining percentage after deducting percentages
-          for all subcounters
+          for all subcounters (``bar_format`` only)
 
         .. note::
 
@@ -436,7 +436,7 @@ class Counter(BaseCounter):
         Additional fields when :py:meth:`add_subcounter` is called with
         ``all_fields`` set to :py:data:`True`:
 
-        - eta_n (:py:class:`str`) - Estimated time to completion
+        - eta_n (:py:class:`str`) - Estimated time to completion (``bar_format`` only)
         - rate_n (:py:class:`float`) - Average increments per second since parent was created
 
         User-defined fields:
@@ -582,16 +582,20 @@ class Counter(BaseCounter):
 
         self.manager.remove(self)
 
-    def _get_subcounters(self, elapsed):
+    def _get_subcounters(self, elapsed, bar_fields=True):
         """
         Args:
             elapsed(float): Time since started.
+            bar_fields(bool): When False, only set fields for basic counter
 
         Returns:
             :py:class:`tuple`: list of subcounters and dictionary of additional fields
 
         Each subcounter in the list will be in a tuple of (subcounter, percentage)
         Fields in the dictionary are addressed in the Format documentation of this class
+
+        When `bar_fields` is False, only subcounter count and rate fields are set.
+        percentage will be set to 0.0
         """
 
         fields = {}
@@ -599,17 +603,18 @@ class Counter(BaseCounter):
 
         for num, subcounter in enumerate(self._subcounters, 1):
 
-            if self.total:
+            fields['count_{0}'.format(num)] = subcounter.count
+
+            if self.total and bar_fields:
                 subPercentage = subcounter.count / float(self.total)
             else:
                 subPercentage = 0.0
 
+            if bar_fields:
+                fields['percentage_{0}'.format(num)] = subPercentage * 100
+
             # Save in tuple: count, percentage
             subcounters.append((subcounter, subPercentage))
-
-            # Set fields
-            fields['percentage_{0}'.format(num)] = subPercentage * 100
-            fields['count_{0}'.format(num)] = subcounter.count
 
             if subcounter.all_fields:
 
@@ -620,6 +625,9 @@ class Counter(BaseCounter):
                     rate = fields['rate_{0}'.format(num)] = interations / float(elapsed)
                 else:
                     rate = fields['rate_{0}'.format(num)] = 0.0
+
+                if not bar_fields:
+                    continue
 
                 if self.total == 0:
                     fields['eta_{0}'.format(num)] = u'00:00'
@@ -735,7 +743,14 @@ class Counter(BaseCounter):
             return rtn.format(self._colorize(barText))
 
         # Otherwise return a counter
+
+        # Update fields from subcounters
         fields['fill'] = u'{0}'
+        subcounters, subFields = self._get_subcounters(elapsed, bar_fields=False)
+        if subcounters:
+            fields.update(subFields)
+            fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
+
         try:
             rtn = self.counter_format.format(**fields)
         except KeyError as e:
