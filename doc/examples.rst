@@ -193,6 +193,7 @@ Additional Examples
 * :download:`multicolored <../examples/multicolored.py>` - Multicolored progress bars
 * :download:`multiple with logging <../examples/multiple_logging.py>` - Nested progress bars and logging
 * :download:`FTP downloader <../examples/ftp_downloader.py>` - Show progress downloading files from FTP
+* :download:`Multiprocessing queues <../examples/multiprocessing_queues.py>` - Progress bars with queues for IPC
 
 Customization
 -------------
