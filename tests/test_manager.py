@@ -111,6 +111,10 @@ class TestManager(TestCase):
         self.assertIsNone(manager.companion_stream)
         self.assertIsNone(manager.companion_term)
 
+    def test_repr(self):
+        manager = _manager.Manager()
+        self.assertEqual(repr(manager), "Manager(stream=%r)" % sys.stdout)
+
     def test_counter_and_remove(self):
         # pylint: disable=no-member,assigning-non-slot
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)

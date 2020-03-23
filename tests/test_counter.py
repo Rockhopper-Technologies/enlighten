@@ -287,6 +287,14 @@ class TestCounter(TestCase):
     def tearDown(self):
         self.tty.close()
 
+    def test_repr(self):
+        self.assertEqual(repr(self.ctr), "Counter(desc='Test', total=10, count=0, unit='ticks')")
+
+    def test_repr_subcounter(self):
+        self.ctr.count = 2
+        subcounter = self.ctr.add_subcounter('green', count=1)
+        self.assertEqual(repr(subcounter), "SubCounter(count=1, color='green', all_fields=False)")
+
     def test_no_manager(self):
         """Raise an error if there is no manager specified"""
         with self.assertRaisesRegex(TypeError, 'manager must be specified'):

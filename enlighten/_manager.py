@@ -110,6 +110,9 @@ class Manager(object):
 
         self.defaults = kwargs  # Counter defaults
 
+    def __repr__(self):
+        return '%s(stream=%r)' % (self.__class__.__name__, self.stream)
+
     def __enter__(self):
         return self
 

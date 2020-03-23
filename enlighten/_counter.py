@@ -88,6 +88,17 @@ class BaseCounter(object):
     """
 
     __slots__ = ('_color', 'count', 'manager', 'start_count')
+    _repr_attrs = ('count', 'color')
+
+    def __repr__(self):
+
+        params = []
+        for attr in self._repr_attrs:
+            value = getattr(self, attr)
+            if value is not None:
+                params.append('%s=%r' % (attr, value))
+
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(params))
 
     def __init__(self, **kwargs):
 
@@ -187,6 +198,7 @@ class SubCounter(BaseCounter):
     """
 
     __slots__ = ('all_fields', 'parent')
+    _repr_attrs = ('count', 'color', 'all_fields')
 
     def __init__(self, parent, color=None, count=0, all_fields=False):
         """
@@ -500,6 +512,7 @@ class Counter(BaseCounter):
     __slots__ = ('additional_fields', 'bar_format', 'counter_format', 'desc', 'enabled',
                  'last_update', 'leave', 'manager', 'min_delta', 'offset', 'series', 'start',
                  'total', 'unit', '_subcounters')
+    _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
     # pylint: disable=too-many-arguments
     def __init__(self, **kwargs):
