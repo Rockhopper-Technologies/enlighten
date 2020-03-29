@@ -28,7 +28,7 @@
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/enlighten.svg?style=plastic&logo=pypi
     :alt: Supported implementations
     :target: https://pypi.python.org/pypi/enlighten
-    
+
 .. |linux| image:: https://img.shields.io/badge/Linux-yes-success?style=plastic&logo=linux
     :alt: Linux supported
     :target: https://pypi.python.org/pypi/enlighten
@@ -36,11 +36,11 @@
 .. |windows| image:: https://img.shields.io/badge/Windows-yes-success?style=plastic&logo=windows
     :alt: Windows supported
     :target: https://pypi.python.org/pypi/enlighten
-    
+
 .. |mac| image:: https://img.shields.io/badge/MacOS-yes-success?style=plastic&logo=apple
     :alt: MacOS supported
     :target: https://pypi.python.org/pypi/enlighten
- 
+
 .. |bsd| image:: https://img.shields.io/badge/BSD-yes-success?style=plastic&logo=freebsd
     :alt: BSD supported
     :target: https://pypi.python.org/pypi/enlighten
@@ -178,10 +178,10 @@ Customization
 Enlighten is highly configurable. For information on modifying the output, see the
 Series_ and Format_ sections of the Counter_ documentation.
 
-.. _Counter: http://python-enlighten.readthedocs.io/en/latest/api.html#enlighten.Counter
-.. _Manager: http://python-enlighten.readthedocs.io/en/latest/api.html#enlighten.Manager
-.. _get_manager: http://python-enlighten.readthedocs.io/en/latest/api.html#enlighten.get_manager
-.. _Format: http://python-enlighten.readthedocs.io/en/latest/api.html#counter-format
-.. _Series: http://python-enlighten.readthedocs.io/en/latest/api.html#series
+.. _Counter: http://python-enlighten.readthedocs.io/en/stable/api.html#enlighten.Counter
+.. _Manager: http://python-enlighten.readthedocs.io/en/stable/api.html#enlighten.Manager
+.. _get_manager: http://python-enlighten.readthedocs.io/en/stable/api.html#enlighten.get_manager
+.. _Format: http://python-enlighten.readthedocs.io/en/stable/api.html#counter-format
+.. _Series: http://python-enlighten.readthedocs.io/en/stable/api.html#series
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F

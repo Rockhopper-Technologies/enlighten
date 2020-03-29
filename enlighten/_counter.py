@@ -375,7 +375,7 @@ class Counter(BaseCounter):
             - bright_white
             - bright_yellow
 
-        See this `chart <https://blessed.readthedocs.io/en/latest/colors.html#id3>`_
+        See this `chart <https://blessed.readthedocs.io/en/stable/colors.html#id3>`_
         for a complete list of supported color strings.
 
         .. note::
