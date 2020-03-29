@@ -20,6 +20,9 @@ from tests import TestCase, mock, MockManager, MockTTY, MockCounter, MockBaseCou
 
 
 # pylint: disable=missing-docstring, protected-access, too-many-public-methods
+SERIES_STD = u' ▏▎▍▌▋▊▉█'
+BLOCK = enlighten._counter.SERIES_STD[-1]
+
 
 class TestFormatTime(TestCase):
     """
@@ -495,7 +498,8 @@ class TestCounter(TestCase):
 
     def test_full_bar(self):
 
-        ctr = Counter(stream=self.tty.stdout, total=10, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=10, desc='Test',
+                      unit='ticks', series=SERIES_STD)
         ctr.count = 10
         ctr.start = time.time() - 10
         formatted = ctr.format(width=80)
@@ -508,7 +512,7 @@ class TestCounter(TestCase):
         If the total is 0, the bar should be full
         """
 
-        ctr = Counter(stream=self.tty.stdout, total=0, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=0, desc='Test', unit='ticks', series=SERIES_STD)
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted, r'Test 100%\|' u'█+' + r'\| 0/0 \[00:0\d<00:00, 0.00 ticks/s\]')
@@ -528,14 +532,14 @@ class TestCounter(TestCase):
                                    unit='ticks', count=10, bar_format=barFormat)
         formatted1 = ctr.format(width=80)
         self.assertEqual(len(formatted1), 80)
-        barLen1 = formatted1.count(u'█')
+        barLen1 = formatted1.count(BLOCK)
 
         offset = len(self.manager.term.blue(''))
         ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
                                    unit='ticks', count=10, bar_format=blueBarFormat)
         formatted2 = ctr.format(width=80)
         self.assertEqual(len(formatted2), 80 + offset)
-        barLen2 = formatted2.count(u'█')
+        barLen2 = formatted2.count(BLOCK)
 
         self.assertTrue(barLen2 == barLen1)
 
@@ -552,14 +556,14 @@ class TestCounter(TestCase):
                                    unit='ticks', count=10, bar_format=barFormat, offset=0)
         formatted1 = ctr.format(width=80)
         self.assertEqual(len(formatted1), 80)
-        barLen1 = formatted1.count(u'█')
+        barLen1 = formatted1.count(BLOCK)
 
         offset = len(self.manager.term.blue(''))
         ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
                                    unit='ticks', count=10, bar_format=barFormat, offset=offset)
         formatted2 = ctr.format(width=80)
         self.assertEqual(len(formatted2), 80 + offset)
-        barLen2 = formatted2.count(u'█')
+        barLen2 = formatted2.count(BLOCK)
 
         self.assertTrue(barLen2 == barLen1 + offset)
 
@@ -574,7 +578,8 @@ class TestCounter(TestCase):
 
     def test_partial_bar(self):
 
-        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test',
+                      unit='ticks', series=SERIES_STD)
         ctr.count = 50
         formatted = ctr.format(elapsed=50, width=80)
         self.assertEqual(len(formatted), 80)
@@ -621,7 +626,8 @@ class TestCounter(TestCase):
                          r'\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
 
     def test_direct(self):
-        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test',
+                      unit='ticks', series=SERIES_STD)
         self.assertIsInstance(ctr.manager, Manager)
         ctr.start = time.time() - 50
         ctr.update(50, force=True)
@@ -648,7 +654,8 @@ class TestCounter(TestCase):
         default format strings
         """
 
-        ctr = Counter(stream=self.tty.stdout, total=100.2, desc='Test', unit='ticks', min_delta=500)
+        ctr = Counter(stream=self.tty.stdout, total=100.2, desc='Test',
+                      unit='ticks', min_delta=500, series=SERIES_STD)
         ctr.update(50.1)
         self.assertEqual(ctr.count, 50.1)
 
@@ -673,7 +680,7 @@ class TestCounter(TestCase):
                       count=50, color='red')
         terminal = ctr.manager.term
         formatted = ctr.format(width=80)
-        self.assertEqual(formatted, '|' + terminal.red(u'█' * 39 + ' ' * 39) + '|')
+        self.assertEqual(formatted, '|' + terminal.red(BLOCK * 39 + ' ' * 39) + '|')
 
     def test_subcounter(self):
         """
@@ -688,7 +695,7 @@ class TestCounter(TestCase):
         ctr.add_subcounter('blue', count=10)
 
         formatted = ctr.format(width=80)
-        bartext = terminal.blue(u'█'*8) + terminal.yellow(u'█'*4) + u'█'*28 + ' ' * 40
+        bartext = terminal.blue(BLOCK*8) + terminal.yellow(BLOCK*4) + BLOCK*28 + ' ' * 40
         self.assertEqual(formatted, bartext)
 
         ctr.bar_format = u'{count_0} {percentage_0} | {count_1} {percentage_1} {rate_1} {eta_1}' + \
