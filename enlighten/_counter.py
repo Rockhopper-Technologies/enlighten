@@ -39,7 +39,7 @@ try:
     SERIES_STD.encode(sys.__stdout__.encoding)
 except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
     SERIES_STD = u' |'
-except AttributeError:  # pragma: no cover(Non-standard Terminal)
+except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
     pass
 
 COLORS_16 = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
