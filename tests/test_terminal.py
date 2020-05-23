@@ -49,7 +49,7 @@ class TestTerminal(TestCase):
         self.terminal.reset()
         self.tty.stdout.write(u'X\n')
         self.assertEqual(self.tty.stdread.readline(),
-                         self.terminal.normal_cursor + self.terminal.csr(0, 25) +
+                         self.terminal.normal_cursor + self.terminal.csr(0, 24) +
                          self.terminal.move(25, 0) + 'X\n')
 
     def test_feed(self):

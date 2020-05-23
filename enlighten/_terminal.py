@@ -32,7 +32,7 @@ class Terminal(_Terminal):
         """
 
         self.stream.write(self.normal_cursor)
-        self.stream.write(self.csr(0, self.height))
+        self.stream.write(self.csr(0, self.height - 1))
         self.stream.write(self.move(self.height, 0))
 
     def feed(self):
