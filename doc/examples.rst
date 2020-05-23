@@ -88,6 +88,60 @@ See :ref:`Series Color <series_color>` for more information about valid colors.
         time.sleep(0.1)  # Simulate work
     counter.update()
 
+Additionally, any part of the progress bar can be colored using counter
+:ref:`formatting <counter_format>` and the
+`color capabilities <https://blessed.readthedocs.io/en/stable/colors.html>`_
+of the underlying `Blessed <https://blessed.readthedocs.io/en/stable>`_
+`Terminal <https://blessed.readthedocs.io/en/stable/terminal.html>`_.
+
+.. code-block:: python
+
+    import enlighten
+
+    manager = enlighten.get_manager()
+
+    # Standard bar format
+    std_bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
+                     u'{count:{len_total}d}/{total:d} ' + \
+                     u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+
+    # Red text
+    bar_format = manager.term.red(std_bar_format)
+
+    # Red on white background
+    bar_format = manager.term.red_on_white(std_bar_format)
+
+    # X11 colors
+    bar_format = manager.term.peru_on_seagreen(std_bar_format)
+
+    # RBG text
+    bar_format = manager.term.color_rgb(2, 5, 128)(std_bar_format)
+
+    # RBG background
+    bar_format = manager.term.on_color_rgb(255, 190, 195)(std_bar_format)
+
+    # RGB text and background
+    bar_format = manager.term.on_color_rgb(255, 190, 195)(std_bar_format)
+    bar_format = manager.term.color_rgb(2, 5, 128)(bar_format)
+
+    # Apply color to select parts
+    bar_format = manager.term.red(u'{desc}') + u'{desc_pad}' + \
+                 manager.term.blue(u'{percentage:3.0f}%') + u'|{bar}|'
+
+    # Change the background of only the bar
+    bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|' + \
+                 manager.term.on_white(u'{bar}') + \
+                 u'| {count:{len_total}d}/{total:d} ' + \
+                 u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+
+    # Apply to counter
+    ticks = manager.counter(total=100, desc='Ticks', unit='ticks', bar_format=bar_format)
+
+If the ``color`` option is applied to a :py:class:`~enlighten.Counter`,
+it will override any foreground color applied.
+
+
+
 Multicolored
 ------------
 
