@@ -176,19 +176,21 @@ class StatusBar(PrintableCounter):
 
         # If static message was given, just return it
         if self._static is not None:
-            return justify(self._static, width=width, fillchar=self.fill)
-        fields = self.fields.copy()
-        fields.update(self._fields)
-        elapsed = elapsed if elapsed is not None else self.elapsed
-        fields['elapsed'] = format_time(elapsed)
+            rtn = self._static
 
-        # Format
-        try:
-            rtn = self.status_format.format(**fields)
-        except KeyError as e:
-            raise ValueError('%r specified in format, but not provided' % e.args[0])
+        else:
+            fields = self.fields.copy()
+            fields.update(self._fields)
+            elapsed = elapsed if elapsed is not None else self.elapsed
+            fields['elapsed'] = format_time(elapsed)
 
-        return justify(rtn, width=width, fillchar=self.fill)
+            # Format
+            try:
+                rtn = self.status_format.format(**fields)
+            except KeyError as e:
+                raise ValueError('%r specified in format, but not provided' % e.args[0])
+
+        return justify(self._colorize(rtn), width=width, fillchar=self.fill)
 
     def update(self, *objects, **fields):  # pylint: disable=arguments-differ
         """
