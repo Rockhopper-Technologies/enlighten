@@ -8,21 +8,15 @@
 """
 **Enlighten counter submodule**
 
-Provides Counter base class
+Provides Counter and SubConter classes
 """
 
 import platform
 import sys
 import time
 
-try:
-    from collections.abc import Iterable
-except ImportError:  # pragma: no cover(Python 2)
-    from collections import Iterable
-
-from blessed.colorspace import X11_COLORNAMES_TO_RGB
-
-from enlighten._util import Justify
+from enlighten._basecounter import BaseCounter, PrintableCounter
+from enlighten._util import format_time
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -45,142 +39,6 @@ except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
     SERIES_STD = u' |'
 except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
     pass
-
-COLORS_16 = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
-             'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
-             'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white')
-
-try:
-    BASESTRING = basestring
-except NameError:
-    BASESTRING = str
-
-
-def _format_time(seconds):
-    """
-    Args:
-        seconds (float): amount of time
-
-    Format time string for eta and elapsed
-    """
-
-    # Always do minutes and seconds in mm:ss format
-    minutes = seconds // 60
-    hours = minutes // 60
-    rtn = u'{0:02.0f}:{1:02.0f}'.format(minutes % 60, seconds % 60)
-
-    #  Add hours if there are any
-    if hours:
-
-        rtn = u'{0:d}h {1}'.format(int(hours % 24), rtn)
-
-        #  Add days if there are any
-        days = int(hours // 24)
-        if days:
-            rtn = u'{0:d}d {1}'.format(days, rtn)
-
-    return rtn
-
-
-class BaseCounter(object):
-    """
-    Args:
-        manager(:py:class:`Manager`): Manager instance. Required.
-        color(str): Color as a string or RGB tuple (Default: None)
-
-    Base class for counters
-    """
-
-    __slots__ = ('_color', 'count', 'manager', 'start_count')
-    _repr_attrs = ('count', 'color')
-
-    def __repr__(self):
-
-        params = []
-        for attr in self._repr_attrs:
-            value = getattr(self, attr)
-            if value is not None:
-                params.append('%s=%r' % (attr, value))
-
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(params))
-
-    def __init__(self, **kwargs):
-
-        self.count = self.start_count = kwargs.get('count', 0)
-        self._color = None
-
-        self.manager = kwargs.get('manager', None)
-        if self.manager is None:
-            raise TypeError('manager must be specified')
-
-        self.color = kwargs.get('color', None)
-
-    @property
-    def color(self):
-        """
-        Color property
-
-        Preferred to be a string or iterable of three integers for RGB.
-        Single integer supported for backwards compatibility
-        """
-
-        color = self._color
-        return color if color is None else color[0]
-
-    @color.setter
-    def color(self, value):
-
-        if value is None:
-            self._color = None
-        elif isinstance(value, int) and 0 <= value <= 255:
-            self._color = (value, self.manager.term.color(value))
-        elif isinstance(value, BASESTRING):
-            if value not in COLORS_16 or value not in X11_COLORNAMES_TO_RGB:
-                raise AttributeError('Invalid color specified: %s' % value)
-            self._color = (value, getattr(self.manager.term, value))
-        elif isinstance(value, Iterable) and \
-                len(value) == 3 and \
-                all(isinstance(_, int) and 0 <= _ <= 255 for _ in value):
-            self._color = (value, self.manager.term.color_rgb(*value))
-        else:
-            raise AttributeError('Invalid color specified: %s' % repr(value))
-
-    def _colorize(self, content):
-        """
-        Args:
-            content(str): Color as a string or number 0 - 255 (Default: None)
-
-        Returns:
-            :py:class:`str`: content formatted with color
-
-        Format ``content`` with the color specified for this progress bar
-
-        If no color is specified for this instance, the content is returned unmodified
-        """
-
-        # No color specified
-        if self._color is None:
-            return content
-
-        # Used spec cached by color.setter
-        return self._color[1](content)
-
-    def update(self, *args, **kwargs):
-        """
-        Placeholder for update method
-        """
-
-        raise NotImplementedError
-
-    def __call__(self, *args):
-
-        for iterable in args:
-            if not isinstance(iterable, Iterable):
-                raise TypeError('Argument type %s is not iterable' % type(iterable).__name__)
-
-            for element in iterable:
-                yield element
-                self.update()
 
 
 class SubCounter(BaseCounter):
@@ -270,285 +128,6 @@ class SubCounter(BaseCounter):
 
         else:
             raise ValueError('source must be parent or peer')
-
-
-class PrintableCounter(BaseCounter):
-    """
-    Base class for printable counters
-    """
-
-    __slots__ = ('enabled', 'last_update', 'leave', 'min_delta', 'start')
-
-    def __init__(self, **kwargs):
-
-        super(PrintableCounter, self).__init__(**kwargs)
-
-        self.enabled = kwargs.get('enabled', True)
-        self.leave = kwargs.get('leave', True)
-        self.min_delta = kwargs.get('min_delta', 0.1)
-        self.last_update = self.start = time.time()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-
-    @property
-    def elapsed(self):
-        """
-        Get elapsed time is seconds (float)
-        """
-
-        return time.time() - self.start
-
-    @property
-    def position(self):
-        """
-        Fetch position from the manager
-        """
-
-        return self.manager.counters.get(self, 0)
-
-    def clear(self, flush=True):
-        """
-        Args:
-            flush(bool): Flush stream after clearing bar (Default:True)
-
-        Clear bar
-        """
-
-        if self.enabled:
-            self.manager.write(flush=flush, position=self.position)
-
-    def close(self, clear=False):
-        """
-        Do final refresh and remove from manager
-
-        If ``leave`` is True, the default, the effect is the same as :py:meth:`refresh`.
-        """
-
-        if clear and not self.leave:
-            self.clear()
-        else:
-            self.refresh()
-
-        self.manager.remove(self)
-
-    def format(self, width=None, elapsed=None):
-        """
-        Format counter for printing
-        """
-
-        raise NotImplementedError
-
-    def refresh(self, flush=True, elapsed=None):
-        """
-        Args:
-            flush(bool): Flush stream after writing bar (Default:True)
-            elapsed(float): Time since started. Automatically determined if :py:data:`None`
-
-        Redraw bar
-        """
-
-        if self.enabled:
-            self.manager.write(output=self.format(elapsed=elapsed),
-                               flush=flush, position=self.position)
-
-
-class StatusBar(PrintableCounter):
-    """
-    Args:
-        enabled(bool): Status (Default: :py:data:`True`)
-        color(str): Color as a string or RGB tuple see :ref:`Status Color <status_color>`
-        fields(dict): Additional fields used for :ref:`formating <status_format>`
-        fill(str): Fill character used when justifying text (Default: ' ')
-        justify(str):
-            One of :py:attr:`Justify.CENTER`, :py:attr:`Justify.LEFT`, :py:attr:`Justify.RIGHT`
-        leave(True): Leave status bar after closing (Default: :py:data:`True`)
-        min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
-        status_format(str): Status bar format, see :ref:`Format <status_format>`
-
-    Status bar class
-
-    A :py:class:`StatusBar` instance should be created with the :py:meth:`Manager.status_bar`
-    method.
-
-    .. _status_color:
-
-    **Status Color**
-
-    Color works similarly to color on :py:class:`Counter`, except it affects the entire status bar.
-    See :ref:`Series Color <series_color>` for more information.
-
-    .. _status_format:
-
-    **Format**
-
-    There are two ways to populate the status bar, direct and formatted. Direct takes
-    precedence over formatted.
-
-    .. _status_format_direct:
-
-    **Direct Status**
-
-    Direct status is used when arguments are passed to :py:meth:`Manager.status_bar` or
-    :py:meth:`StatusBar.update`. Any arguments are coerced to strings and joined with a space.
-    For example:
-
-    .. code-block:: python
-
-
-        status_bar.update('Hello', 'World!')
-        # Example output: Hello World!
-
-        status_bar.update('Hello World!')
-        # Example output: Hello World!
-
-        count = [1, 2, 3, 4]
-        status_bar.update(*count)
-         # Example output: 1 2 3 4
-
-    .. _status_format_formatted:
-
-    **Formatted Status**
-
-        Formatted status uses the format specified in the ``status_format`` parameter to populate
-        the status bar.
-
-        .. code-block:: python
-
-            'Current Stage: {stage}'
-
-            # Example output
-            'Current Stage: Testing'
-
-        Available fields:
-
-            - elapsed(:py:class:`str`) - Time elapsed since instance was created
-
-        .. note::
-
-            The status bar is only updated when :py:meth:`StatusBar.update` or
-            :py:meth:`StatusBar.refresh` is called, so fields like ``elapsed``
-            will need additional calls to appear dynamic.
-
-        User-defined fields:
-
-            Users can define fields in two ways, the ``fields`` parameter and by passing keyword
-            arguments to :py:meth:`Manager.status_bar` or :py:meth:`StatusBar.update`
-
-            The ``fields`` parameter can be used to pass a dictionary of additional
-            user-defined fields. The dictionary values can be updated after initialization to allow
-            for dynamic fields. Any fields that share names with available fields are ignored.
-
-            If fields are passed as keyword arguments to :py:meth:`Manager.status_bar` or
-            :py:meth:`StatusBar.update`, they take precedent over the ``fields`` parameter.
-
-
-    **Instance Attributes**
-
-        .. py:attribute:: elapsed
-
-            :py:class:`float` - Time since start
-
-        .. py:attribute:: enabled
-
-            :py:class:`bool` - Current status
-
-        .. py:attribute:: manager
-
-            :py:class:`Manager` - Manager Instance
-
-        .. py:attribute:: position
-
-            :py:class:`int` - Current position
-
-    """
-
-    __slots__ = ('fields', 'fill', '_justify', 'status_format', '_static', '_fields')
-
-    def __init__(self, *args, **kwargs):
-        super(StatusBar, self).__init__(**kwargs)
-
-        self.fields = kwargs.pop('fields', {})
-        self.fill = kwargs.pop('fill', u' ')
-        self._justify = None
-        self.justify = kwargs.pop('justify', Justify.LEFT)
-        self.status_format = kwargs.pop('status_format', STATUS_FMT)
-        self._fields = kwargs
-        self._static = ' '.join(str(arg) for arg in args) if args else None
-
-    @property
-    def justify(self):
-        """
-        Maps to justify method determined by ``justify`` parameter
-        """
-        return self._justify
-
-    @justify.setter
-    def justify(self, value):
-
-        if value in (Justify.LEFT, Justify.CENTER, Justify.RIGHT):
-            self._justify = getattr(self.manager.term, value)
-
-        else:
-            raise ValueError("justify must be one of Justify.LEFT, Justify.CENTER, ",
-                             "Justify.RIGHT, not: '%r'" % value)
-
-    def format(self, width=None, elapsed=None):
-        """
-        Args:
-            width (int): Width in columns to make progress bar
-            elapsed(float): Time since started. Automatically determined if :py:data:`None`
-
-        Returns:
-            :py:class:`str`: Formatted status bar
-
-        Format status bar
-        """
-
-        width = width or self.manager.width
-        justify = self.justify
-
-        # If static message was given, just return it
-        if self._static is not None:
-            return justify(self._static, width=width, fillchar=self.fill)
-        fields = self.fields.copy()
-        fields.update(self._fields)
-        elapsed = elapsed if elapsed is not None else self.elapsed
-        fields['elapsed'] = _format_time(elapsed)
-
-        # Format
-        try:
-            rtn = self.status_format.format(**fields)
-        except KeyError as e:
-            raise ValueError('%r specified in format, but not provided' % e.args[0])
-
-        return justify(rtn, width=width, fillchar=self.fill)
-
-    def update(self, *objects, **fields):  # pylint: disable=arguments-differ
-        """
-        Args:
-            objects(list): Values for :ref:`Direct Status <status_format_direct>`
-            force(bool): Force refresh even if ``min_delta`` has not been reached
-            fields(dict): Fields for for :ref:`Formatted Status <status_format_formatted>`
-
-        Update status and redraw
-
-        Status bar is only redrawn if ``min_delta`` seconds past since the last update
-        """
-
-        force = fields.pop('force', False)
-
-        self._static = ' '.join(str(obj) for obj in objects) if objects else None
-        self._fields.update(fields)
-
-        if self.enabled:
-            currentTime = time.time()
-            if force or currentTime - self.last_update >= self.min_delta:
-                self.last_update = currentTime
-                self.refresh(elapsed=currentTime - self.start)
 
 
 class Counter(PrintableCounter):
@@ -884,7 +463,7 @@ class Counter(PrintableCounter):
                 if self.total == 0:
                     fields['eta_{0}'.format(num)] = u'00:00'
                 elif rate:
-                    fields['eta_{0}'.format(num)] = _format_time((self.total - interations) / rate)
+                    fields['eta_{0}'.format(num)] = format_time((self.total - interations) / rate)
                 else:
                     fields['eta_{0}'.format(num)] = u'?'
 
@@ -920,7 +499,7 @@ class Counter(PrintableCounter):
         if elapsed is None:
             elapsed = self.elapsed
 
-        fields['elapsed'] = _format_time(elapsed)
+        fields['elapsed'] = format_time(elapsed)
 
         # Get rate. Elapsed could be 0 if counter was not updated and has a zero total.
         if elapsed:
@@ -946,7 +525,7 @@ class Counter(PrintableCounter):
                 # Get eta
                 if fields['rate']:
                     # Use iterations so a counter running backwards is accurate
-                    fields['eta'] = _format_time((self.total - iterations) / fields['rate'])
+                    fields['eta'] = format_time((self.total - iterations) / fields['rate'])
                 else:
                     fields['eta'] = u'?'
 

@@ -22,7 +22,8 @@ except ImportError:  # pragma: no cover (Python 2.6)
     from ordereddict import OrderedDict
 
 
-from enlighten._counter import Counter, StatusBar
+from enlighten._counter import Counter
+from enlighten._statusbar import StatusBar
 from enlighten._terminal import Terminal
 
 

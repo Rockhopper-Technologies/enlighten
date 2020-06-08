@@ -19,7 +19,9 @@ import sys
 import termios
 
 from enlighten import Manager
-from enlighten._counter import Counter, BaseCounter, StatusBar
+from enlighten._basecounter import BaseCounter
+from enlighten._counter import Counter
+from enlighten._statusbar import StatusBar
 
 # pylint: disable=import-error
 
