@@ -19,7 +19,7 @@ import sys
 import termios
 
 from enlighten import Manager
-from enlighten._counter import Counter, BaseCounter
+from enlighten._counter import Counter, BaseCounter, StatusBar
 
 # pylint: disable=import-error
 
@@ -149,7 +149,7 @@ class MockBaseCounter(BaseCounter):
     Mock version of base counter for testing
     """
 
-    def update(self, incr=1, force=False):
+    def update(self, *args, **kwargs):
         """
         Simple update that updates the count. We know it's called based on the count.
         """
@@ -172,6 +172,20 @@ class MockCounter(Counter):
 
     def clear(self, flush=True):
         self.calls.append('clear(flush=%s)' % flush)
+
+
+class MockStatusBar(StatusBar):
+
+    __slots__ = ('called', 'calls')
+
+    def __init__(self, *args, **kwargs):
+        super(MockStatusBar, self).__init__(*args, **kwargs)
+        self.called = 0
+        self.calls = []
+
+    def refresh(self, flush=True, elapsed=None):
+        self.called += 1
+        self.calls.append('refresh(flush=%s, elapsed=%s)' % (flush, elapsed))
 
 
 class MockManager(Manager):

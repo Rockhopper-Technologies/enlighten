@@ -37,9 +37,14 @@ def main():
     """
 
     with enlighten.get_manager() as manager:
+        status = manager.status_bar(status_format=u'Current demo: {demo}', color='red',
+                                    justify=enlighten.Justify.CENTER, demo='Initialize')
         initialize(manager, 15)
+        status.update(demo='Load')
         load(manager, 80)
+        status.update(demo='Testing')
         run_tests(manager, 40)
+        status.update(demo='File Processing')
         process_files(manager)
 
 

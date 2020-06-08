@@ -24,6 +24,11 @@ Classes
     :inherited-members:
     :exclude-members: elapsed, position
 
+.. autoclass:: StatusBar
+    :members:
+    :inherited-members:
+    :exclude-members: elapsed, position
+
 .. autoclass:: SubCounter
     :members:
 
@@ -31,3 +36,9 @@ Functions
 ---------
 
 .. autofunction:: enlighten.get_manager(stream=None, counter_class=Counter, **kwargs)
+
+
+Constants
+---------
+
+.. autoclass:: enlighten.Justify

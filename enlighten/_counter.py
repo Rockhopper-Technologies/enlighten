@@ -22,11 +22,15 @@ except ImportError:  # pragma: no cover(Python 2)
 
 from blessed.colorspace import X11_COLORNAMES_TO_RGB
 
+from enlighten._util import Justify
+
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
 
 BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{total:d} ' + \
           u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+
+STATUS_FMT = u'{message}'
 
 # Even with cp65001, Windows doesn't seem to support all unicode characters
 if platform.system() == 'Windows':  # pragma: no cover(Windows)
@@ -115,7 +119,8 @@ class BaseCounter(object):
     def color(self):
         """
         Color property
-        Preferred to be a string or iterable of three integers for RGB
+
+        Preferred to be a string or iterable of three integers for RGB.
         Single integer supported for backwards compatibility
         """
 
@@ -160,7 +165,7 @@ class BaseCounter(object):
         # Used spec cached by color.setter
         return self._color[1](content)
 
-    def update(self, incr=1, force=False):
+    def update(self, *args, **kwargs):
         """
         Placeholder for update method
         """
@@ -216,7 +221,7 @@ class SubCounter(BaseCounter):
         self.parent = parent
         self.all_fields = all_fields
 
-    def update(self, incr=1, force=False):
+    def update(self, incr=1, force=False):  # pylint: disable=arguments-differ
         """
         Args:
             incr(int): Amount to increment ``count`` (Default: 1)
@@ -267,7 +272,286 @@ class SubCounter(BaseCounter):
             raise ValueError('source must be parent or peer')
 
 
-class Counter(BaseCounter):
+class PrintableCounter(BaseCounter):
+    """
+    Base class for printable counters
+    """
+
+    __slots__ = ('enabled', 'last_update', 'leave', 'min_delta', 'start')
+
+    def __init__(self, **kwargs):
+
+        super(PrintableCounter, self).__init__(**kwargs)
+
+        self.enabled = kwargs.get('enabled', True)
+        self.leave = kwargs.get('leave', True)
+        self.min_delta = kwargs.get('min_delta', 0.1)
+        self.last_update = self.start = time.time()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    @property
+    def elapsed(self):
+        """
+        Get elapsed time is seconds (float)
+        """
+
+        return time.time() - self.start
+
+    @property
+    def position(self):
+        """
+        Fetch position from the manager
+        """
+
+        return self.manager.counters.get(self, 0)
+
+    def clear(self, flush=True):
+        """
+        Args:
+            flush(bool): Flush stream after clearing bar (Default:True)
+
+        Clear bar
+        """
+
+        if self.enabled:
+            self.manager.write(flush=flush, position=self.position)
+
+    def close(self, clear=False):
+        """
+        Do final refresh and remove from manager
+
+        If ``leave`` is True, the default, the effect is the same as :py:meth:`refresh`.
+        """
+
+        if clear and not self.leave:
+            self.clear()
+        else:
+            self.refresh()
+
+        self.manager.remove(self)
+
+    def format(self, width=None, elapsed=None):
+        """
+        Format counter for printing
+        """
+
+        raise NotImplementedError
+
+    def refresh(self, flush=True, elapsed=None):
+        """
+        Args:
+            flush(bool): Flush stream after writing bar (Default:True)
+            elapsed(float): Time since started. Automatically determined if :py:data:`None`
+
+        Redraw bar
+        """
+
+        if self.enabled:
+            self.manager.write(output=self.format(elapsed=elapsed),
+                               flush=flush, position=self.position)
+
+
+class StatusBar(PrintableCounter):
+    """
+    Args:
+        enabled(bool): Status (Default: :py:data:`True`)
+        color(str): Color as a string or RGB tuple see :ref:`Status Color <status_color>`
+        fields(dict): Additional fields used for :ref:`formating <status_format>`
+        fill(str): Fill character used when justifying text (Default: ' ')
+        justify(str):
+            One of :py:attr:`Justify.CENTER`, :py:attr:`Justify.LEFT`, :py:attr:`Justify.RIGHT`
+        leave(True): Leave status bar after closing (Default: :py:data:`True`)
+        min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
+        status_format(str): Status bar format, see :ref:`Format <status_format>`
+
+    Status bar class
+
+    A :py:class:`StatusBar` instance should be created with the :py:meth:`Manager.status_bar`
+    method.
+
+    .. _status_color:
+
+    **Status Color**
+
+    Color works similarly to color on :py:class:`Counter`, except it affects the entire status bar.
+    See :ref:`Series Color <series_color>` for more information.
+
+    .. _status_format:
+
+    **Format**
+
+    There are two ways to populate the status bar, direct and formatted. Direct takes
+    precedence over formatted.
+
+    .. _status_format_direct:
+
+    **Direct Status**
+
+    Direct status is used when arguments are passed to :py:meth:`Manager.status_bar` or
+    :py:meth:`StatusBar.update`. Any arguments are coerced to strings and joined with a space.
+    For example:
+
+    .. code-block:: python
+
+
+        status_bar.update('Hello', 'World!')
+        # Example output: Hello World!
+
+        status_bar.update('Hello World!')
+        # Example output: Hello World!
+
+        count = [1, 2, 3, 4]
+        status_bar.update(*count)
+         # Example output: 1 2 3 4
+
+    .. _status_format_formatted:
+
+    **Formatted Status**
+
+        Formatted status uses the format specified in the ``status_format`` parameter to populate
+        the status bar.
+
+        .. code-block:: python
+
+            'Current Stage: {stage}'
+
+            # Example output
+            'Current Stage: Testing'
+
+        Available fields:
+
+            - elapsed(:py:class:`str`) - Time elapsed since instance was created
+
+        .. note::
+
+            The status bar is only updated when :py:meth:`StatusBar.update` or
+            :py:meth:`StatusBar.refresh` is called, so fields like ``elapsed``
+            will need additional calls to appear dynamic.
+
+        User-defined fields:
+
+            Users can define fields in two ways, the ``fields`` parameter and by passing keyword
+            arguments to :py:meth:`Manager.status_bar` or :py:meth:`StatusBar.update`
+
+            The ``fields`` parameter can be used to pass a dictionary of additional
+            user-defined fields. The dictionary values can be updated after initialization to allow
+            for dynamic fields. Any fields that share names with available fields are ignored.
+
+            If fields are passed as keyword arguments to :py:meth:`Manager.status_bar` or
+            :py:meth:`StatusBar.update`, they take precedent over the ``fields`` parameter.
+
+
+    **Instance Attributes**
+
+        .. py:attribute:: elapsed
+
+            :py:class:`float` - Time since start
+
+        .. py:attribute:: enabled
+
+            :py:class:`bool` - Current status
+
+        .. py:attribute:: manager
+
+            :py:class:`Manager` - Manager Instance
+
+        .. py:attribute:: position
+
+            :py:class:`int` - Current position
+
+    """
+
+    __slots__ = ('fields', 'fill', '_justify', 'status_format', '_static', '_fields')
+
+    def __init__(self, *args, **kwargs):
+        super(StatusBar, self).__init__(**kwargs)
+
+        self.fields = kwargs.pop('fields', {})
+        self.fill = kwargs.pop('fill', u' ')
+        self._justify = None
+        self.justify = kwargs.pop('justify', Justify.LEFT)
+        self.status_format = kwargs.pop('status_format', STATUS_FMT)
+        self._fields = kwargs
+        self._static = ' '.join(str(arg) for arg in args) if args else None
+
+    @property
+    def justify(self):
+        """
+        Maps to justify method determined by ``justify`` parameter
+        """
+        return self._justify
+
+    @justify.setter
+    def justify(self, value):
+
+        if value in (Justify.LEFT, Justify.CENTER, Justify.RIGHT):
+            self._justify = getattr(self.manager.term, value)
+
+        else:
+            raise ValueError("justify must be one of Justify.LEFT, Justify.CENTER, ",
+                             "Justify.RIGHT, not: '%r'" % value)
+
+    def format(self, width=None, elapsed=None):
+        """
+        Args:
+            width (int): Width in columns to make progress bar
+            elapsed(float): Time since started. Automatically determined if :py:data:`None`
+
+        Returns:
+            :py:class:`str`: Formatted status bar
+
+        Format status bar
+        """
+
+        width = width or self.manager.width
+        justify = self.justify
+
+        # If static message was given, just return it
+        if self._static is not None:
+            return justify(self._static, width=width, fillchar=self.fill)
+        fields = self.fields.copy()
+        fields.update(self._fields)
+        elapsed = elapsed if elapsed is not None else self.elapsed
+        fields['elapsed'] = _format_time(elapsed)
+
+        # Format
+        try:
+            rtn = self.status_format.format(**fields)
+        except KeyError as e:
+            raise ValueError('%r specified in format, but not provided' % e.args[0])
+
+        return justify(rtn, width=width, fillchar=self.fill)
+
+    def update(self, *objects, **fields):  # pylint: disable=arguments-differ
+        """
+        Args:
+            objects(list): Values for :ref:`Direct Status <status_format_direct>`
+            force(bool): Force refresh even if ``min_delta`` has not been reached
+            fields(dict): Fields for for :ref:`Formatted Status <status_format_formatted>`
+
+        Update status and redraw
+
+        Status bar is only redrawn if ``min_delta`` seconds past since the last update
+        """
+
+        force = fields.pop('force', False)
+
+        self._static = ' '.join(str(obj) for obj in objects) if objects else None
+        self._fields.update(fields)
+
+        if self.enabled:
+            currentTime = time.time()
+            if force or currentTime - self.last_update >= self.min_delta:
+                self.last_update = currentTime
+                self.refresh(elapsed=currentTime - self.start)
+
+
+class Counter(PrintableCounter):
     """
     .. spelling::
         desc
@@ -509,9 +793,8 @@ class Counter(BaseCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('additional_fields', 'bar_format', 'counter_format', 'desc', 'enabled',
-                 'last_update', 'leave', 'manager', 'min_delta', 'offset', 'series', 'start',
-                 'total', 'unit', '_subcounters')
+    __slots__ = ('additional_fields', 'bar_format', 'counter_format', 'desc',
+                 'manager', 'offset', 'series', 'total', 'unit', '_subcounters')
     _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
     # pylint: disable=too-many-arguments
@@ -523,30 +806,11 @@ class Counter(BaseCounter):
         self.bar_format = kwargs.get('bar_format', BAR_FMT)
         self.counter_format = kwargs.get('counter_format', COUNTER_FMT)
         self.desc = kwargs.get('desc', None)
-        self.enabled = kwargs.get('enabled', True)
-        self.leave = kwargs.get('leave', True)
-        self.min_delta = kwargs.get('min_delta', 0.1)
         self.offset = kwargs.get('offset', None)
         self.series = kwargs.get('series', SERIES_STD)
         self.total = kwargs.get('total', None)
         self.unit = kwargs.get('unit', None)
         self._subcounters = []
-
-        self.last_update = self.start = time.time()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-
-    @property
-    def position(self):
-        """
-        Fetch position from the manager
-        """
-
-        return self.manager.counters.get(self, 0)
 
     @property
     def elapsed(self):
@@ -569,31 +833,6 @@ class Counter(BaseCounter):
         """
 
         return sum(subcounter.count for subcounter in self._subcounters)
-
-    def clear(self, flush=True):
-        """
-        Args:
-            flush(bool): Flush stream after clearing progress bar (Default:True)
-
-        Clear progress bar
-        """
-
-        if self.enabled:
-            self.manager.write(flush=flush, position=self.position)
-
-    def close(self, clear=False):
-        """
-        Do final refresh and remove from manager
-
-        If ``leave`` is True, the default, the effect is the same as :py:meth:`refresh`.
-        """
-
-        if clear and not self.leave:
-            self.clear()
-        else:
-            self.refresh()
-
-        self.manager.remove(self)
 
     def _get_subcounters(self, elapsed, bar_fields=True):
         """
@@ -778,20 +1017,7 @@ class Counter(BaseCounter):
 
         return ret
 
-    def refresh(self, flush=True, elapsed=None):
-        """
-        Args:
-            flush(bool): Flush stream after writing progress bar (Default:True)
-            elapsed(float): Time since started. Automatically determined if :py:data:`None`
-
-        Redraw progress bar
-        """
-
-        if self.enabled:
-            self.manager.write(output=self.format(elapsed=elapsed),
-                               flush=flush, position=self.position)
-
-    def update(self, incr=1, force=False):
+    def update(self, incr=1, force=False):  # pylint: disable=arguments-differ
         """
         Args:
             incr(int): Amount to increment ``count`` (Default: 1)

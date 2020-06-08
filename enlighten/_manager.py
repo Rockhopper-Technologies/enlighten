@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover (Python 2.6)
     from ordereddict import OrderedDict
 
 
-from enlighten._counter import Counter
+from enlighten._counter import Counter, StatusBar
 from enlighten._terminal import Terminal
 
 
@@ -72,9 +72,10 @@ class Manager(object):
 
         self.stream = sys.stdout if stream is None else stream
         self.counter_class = counter_class
+        self.status_bar_class = StatusBar
         self.counters = OrderedDict()
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
-        self.no_resize = kwargs.get('no_resize', False)
+        self.no_resize = kwargs.pop('no_resize', False)
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
@@ -136,12 +137,55 @@ class Manager(object):
 
         """
 
+        return self._add_counter(self.counter_class, position=position, **kwargs)
+
+    def status_bar(self, *args, **kwargs):
+        """
+        Args:
+            position(int): Line number counting from the bottom of the screen
+            kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+                are passed to :py:class:`StatusBar`
+
+        Returns:
+            :py:class:`StatusBar`: Instance of status bar class
+
+        Get a new status bar instance
+
+        If ``position`` is specified, the counter's position can change dynamically if
+        additional counters are called without a ``position`` argument.
+
+        """
+
+        position = kwargs.pop('position', None)
+
+        return self._add_counter(self.status_bar_class, *args, position=position, **kwargs)
+
+    def _add_counter(self, counter_class, *args, **kwargs):
+        """
+        Args:
+            counter_class(:py:class:`PrintableCounter`): Class to instantiate
+            position(int): Line number counting from the bottom of the screen
+            kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+                are passed to :py:class:`Counter`
+
+        Returns:
+            :py:class:`Counter`: Instance of counter class
+
+        Get a new instance of the given class and add it to the manager
+
+        If ``position`` is specified, the counter's position can change dynamically if
+        additional counters are called without a ``position`` argument.
+
+        """
+
+        position = kwargs.pop('position', None)
+
         for key, val in self.defaults.items():
             if key not in kwargs:
                 kwargs[key] = val
         kwargs['manager'] = self
 
-        counter = self.counter_class(**kwargs)
+        counter = counter_class(*args, **kwargs)
 
         if position is None:
             toRefresh = []
