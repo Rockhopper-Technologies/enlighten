@@ -135,6 +135,8 @@ class Counter(PrintableCounter):
     .. spelling::
         desc
         len
+        seagreen
+        peru
 
     Args:
         additional_fields(dict): Additional fields used for :ref:`formating <counter_format>`

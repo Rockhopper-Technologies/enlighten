@@ -42,9 +42,10 @@ spelling-ignore-words=
     len, Lubkin,
     meth, Mozilla, MPL,
     noqa,
-    pragma, py,
+    peru, pragma, py,
     redirector, resize, resizing, RGB,
-    setscroll, sphinxcontrib, ss, StatusBar, stdout, stderr, str, subcounter, subcounters, submodule,
+    seagreen, setscroll, sphinxcontrib, ss, StatusBar, stdout,
+    stderr, str, subcounter, subcounters, submodule,
     subprocesses, sys,
     TestCase, tty, TTY, tuple,
     unicode, unittest
