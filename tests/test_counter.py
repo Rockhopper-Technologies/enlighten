@@ -697,3 +697,40 @@ class TestCounter(TestCase):
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
                       fields=additional_fields)
         self.assertEqual(ctr.format(), 'hello 1')
+
+    def test_kwarg_fields(self):
+        """
+        Additional fields to format via keyword arguments
+        """
+
+        bar_format = ctr_format = u'{arg1:s} {count:d}'
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
+                      arg1='hello')
+        self.assertEqual(ctr.format(), 'hello 1')
+
+        ctr.update(arg1='goodbye')
+        self.assertEqual(ctr.format(), 'goodbye 2')
+
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
+                      arg1='hello')
+        self.assertEqual(ctr.format(), 'hello 1')
+
+        ctr.update(arg1='goodbye')
+        self.assertEqual(ctr.format(), 'goodbye 2')
+
+    def test_kwarg_fields_precedence(self):
+        """
+        Keyword arguments take precedence over fields
+        """
+
+        bar_format = u'{arg1:s} {count:d}'
+        additional_fields = {'arg1': 'hello'}
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
+                      fields=additional_fields)
+
+        self.assertEqual(ctr.format(), 'hello 1')
+
+        ctr.update(arg1='goodbye')
+        self.assertEqual(ctr.format(), 'goodbye 2')

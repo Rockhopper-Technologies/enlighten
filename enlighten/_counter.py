@@ -145,7 +145,7 @@ class Counter(PrintableCounter):
         color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         desc(str): Description
         enabled(bool): Status (Default: :py:data:`True`)
-        fields(dict): Additional fields used for :ref:`formating <counter_format>`
+        fields(dict): Additional fields used for :ref:`formatting <counter_format>`
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
         manager(:py:class:`Manager`): Manager instance. Creates instance if not specified.
         min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
@@ -295,7 +295,7 @@ class Counter(PrintableCounter):
         - percentage(:py:class:`float`) - Percentage complete
         - total(:py:class:`int`) - Value of ``total``
 
-        Addition fields for ``counter_format`` only:
+        Additional fields for ``counter_format`` only:
 
         - fill(:py:class:`str`) - blank spaces, number needed to fill line
 
@@ -321,10 +321,15 @@ class Counter(PrintableCounter):
 
         User-defined fields:
 
+            Users can define fields in two ways, the ``fields`` parameter and by passing keyword
+            arguments to :py:meth:`Manager.counter` or :py:meth:`Counter.update`
+
             The ``fields`` parameter can be used to pass a dictionary of additional
             user-defined fields. The dictionary values can be updated after initialization to allow
             for dynamic fields. Any fields that share names with built-in fields are ignored.
 
+            If fields are passed as keyword arguments to :py:meth:`Manager.counter` or
+            :py:meth:`Counter.update`, they take precedent over the ``fields`` parameter.
 
     .. _counter_offset:
 
@@ -377,8 +382,8 @@ class Counter(PrintableCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('bar_format', 'counter_format', 'desc', 'fields',
-                 'manager', 'offset', 'series', 'total', 'unit', '_subcounters')
+    __slots__ = ('bar_format', 'counter_format', 'desc', 'fields', 'manager',
+                 'offset', 'series', 'total', 'unit', '_fields', '_subcounters')
     _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
     # pylint: disable=too-many-arguments
@@ -387,14 +392,15 @@ class Counter(PrintableCounter):
         super(Counter, self).__init__(**kwargs)
 
         # Accept additional_fields for backwards compatibility
-        self.fields = kwargs.get('fields', kwargs.get('additional_fields', {}))
-        self.bar_format = kwargs.get('bar_format', BAR_FMT)
-        self.counter_format = kwargs.get('counter_format', COUNTER_FMT)
-        self.desc = kwargs.get('desc', None)
-        self.offset = kwargs.get('offset', None)
-        self.series = kwargs.get('series', SERIES_STD)
-        self.total = kwargs.get('total', None)
-        self.unit = kwargs.get('unit', None)
+        self.fields = kwargs.pop('fields', kwargs.pop('additional_fields', {}))
+        self.bar_format = kwargs.pop('bar_format', BAR_FMT)
+        self.counter_format = kwargs.pop('counter_format', COUNTER_FMT)
+        self.desc = kwargs.pop('desc', None)
+        self.offset = kwargs.pop('offset', None)
+        self.series = kwargs.pop('series', SERIES_STD)
+        self.total = kwargs.pop('total', None)
+        self.unit = kwargs.pop('unit', None)
+        self._fields = kwargs
         self._subcounters = []
 
     @property
@@ -493,6 +499,7 @@ class Counter(PrintableCounter):
         iterations = abs(self.count - self.start_count)
 
         fields = self.fields.copy()
+        fields.update(self._fields)
         fields.update({'bar': u'{0}',
                        'count': self.count,
                        'desc': self.desc or u'',
@@ -600,11 +607,12 @@ class Counter(PrintableCounter):
 
         return ret
 
-    def update(self, incr=1, force=False):  # pylint: disable=arguments-differ
+    def update(self, incr=1, force=False, **fields):  # pylint: disable=arguments-differ
         """
         Args:
             incr(int): Amount to increment ``count`` (Default: 1)
             force(bool): Force refresh even if ``min_delta`` has not been reached
+            fields(dict): Fields for for :ref:`formatting <counter_format>`
 
         Increment progress bar and redraw
 
@@ -612,6 +620,7 @@ class Counter(PrintableCounter):
         """
 
         self.count += incr
+        self._fields.update(fields)
         if self.enabled:
             currentTime = time.time()
             # Update if force, 100%, or minimum delta has been reached
