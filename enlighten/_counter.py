@@ -213,6 +213,9 @@ class Counter(PrintableCounter):
         For backward compatibility, a color can be expressed as an integer 0 - 255, but this
         is deprecated in favor of named or RGB colors.
 
+        Compound colors, such as 'white_on_seagreen', 'bold_red', or 'underlined_on_peru' are
+        also supported.
+
         If a terminal is not capable of 24-bit color, and is given a color outside of its
         range, the color will be downconverted to a supported color.
 

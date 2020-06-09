@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
-INSTALL_REQUIRES = ['blessed>=1.17.2']
+INSTALL_REQUIRES = ['blessed>=1.17.7']
 TESTS_REQUIRE = ['mock; python_version < "3.3"',
                  'unittest2; python_version < "2.7"']
 

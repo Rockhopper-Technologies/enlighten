@@ -190,7 +190,7 @@ class StatusBar(PrintableCounter):
             except KeyError as e:
                 raise ValueError('%r specified in format, but not provided' % e.args[0])
 
-        return justify(self._colorize(rtn), width=width, fillchar=self.fill)
+        return self._colorize(justify(rtn, width=width, fillchar=self.fill))
 
     def update(self, *objects, **fields):  # pylint: disable=arguments-differ
         """

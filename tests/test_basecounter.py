@@ -82,6 +82,14 @@ class TestBaseCounter(TestCase):
         self.assertNotEqual(counter._colorize('test'), 'test')
         self.assertEqual(counter._colorize('test'), self.manager.term.red('test'))
 
+    def test_colorize_string_compound(self):
+        """Return string formatted with compound color (string)"""
+        counter = BaseCounter(manager=self.manager, color='bold_red_on_blue')
+        self.assertEqual(counter.color, 'bold_red_on_blue')
+        self.assertEqual(counter._color, ('bold_red_on_blue', self.manager.term.bold_red_on_blue))
+        self.assertNotEqual(counter._colorize('test'), 'test')
+        self.assertEqual(counter._colorize('test'), self.manager.term.bold_red_on_blue('test'))
+
     def test_colorize_int(self):
         """Return string formatted with color (int)"""
         counter = BaseCounter(manager=self.manager, color=40)

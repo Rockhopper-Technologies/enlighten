@@ -75,8 +75,9 @@ total. If neither of these conditions are met, the counter format is used:
 Color
 -----
 
-The bar component of a progress bar can be colored by setting the ``color`` keyword argument.
-See :ref:`Series Color <series_color>` for more information about valid colors.
+Status bars and the bar component of a progress bar can be colored by setting the
+``color`` keyword argument. See :ref:`Series Color <series_color>` for more information
+about valid colors.
 
 .. code-block:: python
 
@@ -127,12 +128,6 @@ of the underlying `Blessed <https://blessed.readthedocs.io/en/stable>`_
     # Apply color to select parts
     bar_format = manager.term.red(u'{desc}') + u'{desc_pad}' + \
                  manager.term.blue(u'{percentage:3.0f}%') + u'|{bar}|'
-
-    # Change the background of only the bar
-    bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|' + \
-                 manager.term.on_white(u'{bar}') + \
-                 u'| {count:{len_total}d}/{total:d} ' + \
-                 u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
     # Apply to counter
     ticks = manager.counter(total=100, desc='Ticks', unit='ticks', bar_format=bar_format)

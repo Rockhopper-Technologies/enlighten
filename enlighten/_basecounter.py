@@ -13,19 +13,12 @@ Provides BaseCounter and PrintableCounter classes
 
 import time
 
-from blessed.colorspace import X11_COLORNAMES_TO_RGB
-
 from enlighten._util import BASESTRING
 
 try:
     from collections.abc import Iterable
 except ImportError:  # pragma: no cover(Python 2)
     from collections import Iterable
-
-
-COLORS_16 = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
-             'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
-             'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white')
 
 
 class BaseCounter(object):
@@ -81,9 +74,11 @@ class BaseCounter(object):
         elif isinstance(value, int) and 0 <= value <= 255:
             self._color = (value, self.manager.term.color(value))
         elif isinstance(value, BASESTRING):
-            if value not in COLORS_16 or value not in X11_COLORNAMES_TO_RGB:
+            term = self.manager.term
+            color_cap = self.manager.term.formatter(value)
+            if not color_cap and term.does_styling and term.number_of_colors:
                 raise AttributeError('Invalid color specified: %s' % value)
-            self._color = (value, getattr(self.manager.term, value))
+            self._color = (value, color_cap)
         elif isinstance(value, Iterable) and \
                 len(value) == 3 and \
                 all(isinstance(_, int) and 0 <= _ <= 255 for _ in value):

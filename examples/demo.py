@@ -37,7 +37,8 @@ def main():
     """
 
     with enlighten.get_manager() as manager:
-        status = manager.status_bar(status_format=u'Current demo: {demo}', color='red',
+        status = manager.status_bar(status_format=u'Current demo: {demo}',
+                                    color='bold_underline_deepskyblue4_on_lightblue',
                                     justify=enlighten.Justify.CENTER, demo='Initialize')
         initialize(manager, 15)
         status.update(demo='Load')
