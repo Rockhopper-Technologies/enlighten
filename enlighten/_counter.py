@@ -139,13 +139,13 @@ class Counter(PrintableCounter):
         peru
 
     Args:
-        additional_fields(dict): Additional fields used for :ref:`formating <counter_format>`
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
         color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         desc(str): Description
         enabled(bool): Status (Default: :py:data:`True`)
+        fields(dict): Additional fields used for :ref:`formating <counter_format>`
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
         manager(:py:class:`Manager`): Manager instance. Creates instance if not specified.
         min_delta(float): Minimum time, in seconds, between refreshes (Default: 0.1)
@@ -321,7 +321,7 @@ class Counter(PrintableCounter):
 
         User-defined fields:
 
-            The ``additional_fields`` parameter can be used to pass a dictionary of additional
+            The ``fields`` parameter can be used to pass a dictionary of additional
             user-defined fields. The dictionary values can be updated after initialization to allow
             for dynamic fields. Any fields that share names with built-in fields are ignored.
 
@@ -377,7 +377,7 @@ class Counter(PrintableCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('additional_fields', 'bar_format', 'counter_format', 'desc',
+    __slots__ = ('bar_format', 'counter_format', 'desc', 'fields',
                  'manager', 'offset', 'series', 'total', 'unit', '_subcounters')
     _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
@@ -386,7 +386,8 @@ class Counter(PrintableCounter):
 
         super(Counter, self).__init__(**kwargs)
 
-        self.additional_fields = kwargs.get('additional_fields', {})
+        # Accept additional_fields for backwards compatibility
+        self.fields = kwargs.get('fields', kwargs.get('additional_fields', {}))
         self.bar_format = kwargs.get('bar_format', BAR_FMT)
         self.counter_format = kwargs.get('counter_format', COUNTER_FMT)
         self.desc = kwargs.get('desc', None)
@@ -491,7 +492,7 @@ class Counter(PrintableCounter):
 
         iterations = abs(self.count - self.start_count)
 
-        fields = self.additional_fields.copy()
+        fields = self.fields.copy()
         fields.update({'bar': u'{0}',
                        'count': self.count,
                        'desc': self.desc or u'',
@@ -549,8 +550,7 @@ class Counter(PrintableCounter):
             try:
                 rtn = self.bar_format.format(**fields)
             except KeyError as e:
-                raise ValueError('%r specified in format, but not present in additional_fields' %
-                                 e.args[0])
+                raise ValueError('%r specified in format, but not provided' % e.args[0])
 
             # Format the bar
             if self.offset is None:
@@ -590,8 +590,7 @@ class Counter(PrintableCounter):
         try:
             rtn = self.counter_format.format(**fields)
         except KeyError as e:
-            raise ValueError('%r specified in format, but not present in additional_fields' %
-                             e.args[0])
+            raise ValueError('%r specified in format, but not provided' % e.args[0])
 
         if self.offset is None:
             ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))

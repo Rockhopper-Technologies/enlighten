@@ -640,11 +640,11 @@ class TestCounter(TestCase):
         bar_format = ctr_format = u'{arg1:s} {count:d}'
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
-                      additional_fields={'arg1': 'hello'})
+                      fields={'arg1': 'hello'})
         self.assertEqual(ctr.format(), 'hello 1')
 
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
-                      additional_fields={'arg1': 'hello'})
+                      fields={'arg1': 'hello'})
         self.assertEqual(ctr.format(), 'hello 1')
 
     def test_additional_fields_missing(self):
@@ -655,11 +655,11 @@ class TestCounter(TestCase):
         bar_format = ctr_format = u'{arg1:s} {count:d}'
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format)
-        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not present"):
+        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not provided"):
             ctr.format()
 
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format)
-        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not present"):
+        with self.assertRaisesRegex(ValueError, "'arg1' specified in format, but not provided"):
             ctr.format()
 
     def test_additional_fields_changed(self):
@@ -671,13 +671,13 @@ class TestCounter(TestCase):
         additional_fields = {'arg1': 'hello'}
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
-                      additional_fields=additional_fields)
+                      fields=additional_fields)
         self.assertEqual(ctr.format(), 'hello 1')
         additional_fields['arg1'] = 'goodbye'
         self.assertEqual(ctr.format(), 'goodbye 1')
 
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
-                      additional_fields=additional_fields)
+                      fields=additional_fields)
         self.assertEqual(ctr.format(), 'goodbye 1')
         additional_fields['arg1'] = 'hello'
         self.assertEqual(ctr.format(), 'hello 1')
@@ -691,9 +691,9 @@ class TestCounter(TestCase):
         additional_fields = {'arg1': 'hello', 'count': 100000}
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
-                      additional_fields=additional_fields)
+                      fields=additional_fields)
         self.assertEqual(ctr.format(), 'hello 1')
 
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format,
-                      additional_fields=additional_fields)
+                      fields=additional_fields)
         self.assertEqual(ctr.format(), 'hello 1')
