@@ -145,6 +145,7 @@ class Counter(PrintableCounter):
         color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         desc(str): Description
         enabled(bool): Status (Default: :py:data:`True`)
+        fill(str): Fill character used for ``counter_format`` (Default: ' ')
         fields(dict): Additional fields used for :ref:`formatting <counter_format>`
         leave(True): Leave progress bar after closing (Default: :py:data:`True`)
         manager(:py:class:`Manager`): Manager instance. Creates instance if not specified.
@@ -297,7 +298,8 @@ class Counter(PrintableCounter):
 
         Additional fields for ``counter_format`` only:
 
-        - fill(:py:class:`str`) - blank spaces, number needed to fill line
+        - fill(:py:class:`str`) - Filled with :py:attr:`fill` until line is width of terminal.
+          May be used multiple times.
 
         Additional fields when subcounters are used:
 
@@ -599,13 +601,16 @@ class Counter(PrintableCounter):
         except KeyError as e:
             raise ValueError('%r specified in format, but not provided' % e.args[0])
 
-        if self.offset is None:
-            ret = rtn.format(u' ' * (width - self.manager.term.length(rtn) + 3))
-        else:
-            # Offset was explicitly given
-            ret = rtn.format(u' ' * (width - len(rtn) + self.offset + 3))
+        fill_count = rtn.count(u'{0}')
+        if not fill_count:
+            return rtn
 
-        return ret
+        if self.offset is None:
+            remaining = width - self.manager.term.length(rtn) + 3 * fill_count
+        else:
+            remaining = width - len(rtn) + self.offset + 3 * fill_count
+
+        return rtn.format(self.fill * (remaining // fill_count))
 
     def update(self, incr=1, force=False, **fields):  # pylint: disable=arguments-differ
         """

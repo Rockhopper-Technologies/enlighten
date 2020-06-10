@@ -128,3 +128,14 @@ class TestStatusBar(TestCase):
         sbar.enabled = True
         sbar.update()
         self.assertEqual(sbar.called, 2)
+
+    def test_fill(self):
+        """
+        Fill uses remaining space
+        """
+
+        sbar = self.manager.status_bar(status_format=u'{fill}HI', fill='-')
+        self.assertEqual(sbar.format(), u'-' * 78 + 'HI')
+
+        sbar = self.manager.status_bar(status_format=u'{fill}HI{fill}', fill='-')
+        self.assertEqual(sbar.format(), u'-' * 39 + 'HI' + u'-' * 39)

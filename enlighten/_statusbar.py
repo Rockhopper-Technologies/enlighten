@@ -25,7 +25,7 @@ class StatusBar(PrintableCounter):
         enabled(bool): Status (Default: :py:data:`True`)
         color(str): Color as a string or RGB tuple see :ref:`Status Color <status_color>`
         fields(dict): Additional fields used for :ref:`formating <status_format>`
-        fill(str): Fill character used when justifying text (Default: ' ')
+        fill(str): Fill character used in formatting and justifying text (Default: ' ')
         justify(str):
             One of :py:attr:`Justify.CENTER`, :py:attr:`Justify.LEFT`, :py:attr:`Justify.RIGHT`
         leave(True): Leave status bar after closing (Default: :py:data:`True`)
@@ -89,6 +89,8 @@ class StatusBar(PrintableCounter):
         Available fields:
 
             - elapsed(:py:class:`str`) - Time elapsed since instance was created
+            - fill(:py:class:`str`) - Filled with :py:attr:`fill` until line is width of terminal.
+              May be used multiple times.
 
         .. note::
 
@@ -129,13 +131,12 @@ class StatusBar(PrintableCounter):
 
     """
 
-    __slots__ = ('fields', 'fill', '_justify', 'status_format', '_static', '_fields')
+    __slots__ = ('fields', '_justify', 'status_format', '_static', '_fields')
 
     def __init__(self, *args, **kwargs):
         super(StatusBar, self).__init__(**kwargs)
 
         self.fields = kwargs.pop('fields', {})
-        self.fill = kwargs.pop('fill', u' ')
         self._justify = None
         self.justify = kwargs.pop('justify', Justify.LEFT)
         self.status_format = kwargs.pop('status_format', STATUS_FMT)
@@ -183,12 +184,18 @@ class StatusBar(PrintableCounter):
             fields.update(self._fields)
             elapsed = elapsed if elapsed is not None else self.elapsed
             fields['elapsed'] = format_time(elapsed)
+            fields['fill'] = u'{0}'
 
             # Format
             try:
                 rtn = self.status_format.format(**fields)
             except KeyError as e:
                 raise ValueError('%r specified in format, but not provided' % e.args[0])
+
+        fill_count = rtn.count(u'{0}')
+        if fill_count:
+            remaining = width - self.manager.term.length(rtn) + 3 * fill_count
+            rtn = rtn.format(self.fill * (remaining // fill_count))
 
         return self._colorize(justify(rtn, width=width, fillchar=self.fill))
 

@@ -196,6 +196,11 @@ class MockManager(Manager):
         super(MockManager, self).__init__(counter_class=counter_class, **kwargs)
         self.width = 80
         self.output = []
+        self.remove_calls = 0
 
     def write(self, output='', flush=True, position=0):
         self.output.append('write(output=%s, flush=%s, position=%s)' % (output, flush, position))
+
+    def remove(self, counter):
+        self.remove_calls += 1
+        super(MockManager, self).remove(counter)

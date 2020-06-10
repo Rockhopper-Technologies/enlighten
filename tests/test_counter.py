@@ -583,25 +583,25 @@ class TestCounter(TestCase):
         self.assertEqual(formatted, u'350 | 50 1.0 | 100')
 
     def test_close(self):
-        manager = mock.Mock()
+        manager = MockManager()
 
         # Clear is False
         ctr = MockCounter(manager=manager)
         ctr.close()
         self.assertEqual(ctr.calls, ['refresh(flush=True, elapsed=None)'])
-        self.assertEqual(manager.remove.call_count, 1)
+        self.assertEqual(manager.remove_calls, 1)
 
         # Clear is True, leave is True
         ctr = MockCounter(manager=manager, leave=True)
         ctr.close(clear=True)
         self.assertEqual(ctr.calls, ['refresh(flush=True, elapsed=None)'])
-        self.assertEqual(manager.remove.call_count, 2)
+        self.assertEqual(manager.remove_calls, 2)
 
         # Clear is True, leave is False
         ctr = MockCounter(manager=manager, leave=False)
         ctr.close(clear=True)
         self.assertEqual(ctr.calls, ['clear(flush=True)'])
-        self.assertEqual(manager.remove.call_count, 3)
+        self.assertEqual(manager.remove_calls, 3)
 
     def test_context_manager(self):
         mgr = Manager(stream=self.tty.stdout, enabled=False)
@@ -734,3 +734,27 @@ class TestCounter(TestCase):
 
         ctr.update(arg1='goodbye')
         self.assertEqual(ctr.format(), 'goodbye 2')
+
+    def test_fill_setter(self):
+        """Fill must be one printable character"""
+
+        ctr = Counter(stream=self.tty.stdout, fill='a')
+
+        with self.assertRaisesRegex(ValueError, 'fill character must be a length of 1'):
+            ctr.fill = 'hello'
+
+        with self.assertRaisesRegex(ValueError, 'fill character must be a length of 1'):
+            ctr.fill = ''
+
+    def test_fill(self):
+        """
+        Fill uses remaining space
+        """
+
+        ctr_format = u'{fill}HI'
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format, fill=u'-')
+        self.assertEqual(ctr.format(), u'-' * 78 + 'HI')
+
+        ctr_format = u'{fill}HI{fill}'
+        ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format, fill=u'-')
+        self.assertEqual(ctr.format(), u'-' * 39 + 'HI' + u'-' * 39)

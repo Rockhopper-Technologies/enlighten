@@ -129,13 +129,15 @@ class PrintableCounter(BaseCounter):
     Base class for printable counters
     """
 
-    __slots__ = ('enabled', 'last_update', 'leave', 'min_delta', 'start')
+    __slots__ = ('enabled', '_fill', 'last_update', 'leave', 'min_delta', 'start')
 
     def __init__(self, **kwargs):
 
         super(PrintableCounter, self).__init__(**kwargs)
 
         self.enabled = kwargs.get('enabled', True)
+        self._fill = u' '
+        self.fill = kwargs.get('fill', u' ')
         self.leave = kwargs.get('leave', True)
         self.min_delta = kwargs.get('min_delta', 0.1)
         self.last_update = self.start = time.time()
@@ -153,6 +155,23 @@ class PrintableCounter(BaseCounter):
         """
 
         return time.time() - self.start
+
+    @property
+    def fill(self):
+        """
+        Fill character used in formatting
+        """
+        return self._fill
+
+    @fill.setter
+    def fill(self, value):
+
+        char_len = self.manager.term.length(value)
+        if char_len != 1:
+            raise ValueError('fill character must be a length of 1 '
+                             'when printed. Length: %d, Value given: %r' % (char_len, value))
+
+        self._fill = value
 
     @property
     def position(self):
