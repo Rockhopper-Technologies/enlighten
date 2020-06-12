@@ -16,8 +16,6 @@ import time
 from enlighten._basecounter import PrintableCounter
 from enlighten._util import format_time, Justify
 
-STATUS_FMT = u'{message}'
-
 
 class StatusBar(PrintableCounter):
     """
@@ -139,7 +137,7 @@ class StatusBar(PrintableCounter):
         self.fields = kwargs.pop('fields', {})
         self._justify = None
         self.justify = kwargs.pop('justify', Justify.LEFT)
-        self.status_format = kwargs.pop('status_format', STATUS_FMT)
+        self.status_format = kwargs.pop('status_format', None)
         self._fields = kwargs
         self._static = ' '.join(str(arg) for arg in args) if args else None
 
@@ -179,6 +177,11 @@ class StatusBar(PrintableCounter):
         if self._static is not None:
             rtn = self._static
 
+        # If there is no format, return empty
+        elif self.status_format is None:
+            rtn = ''
+
+        # Generate from format
         else:
             fields = self.fields.copy()
             fields.update(self._fields)

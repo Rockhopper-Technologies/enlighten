@@ -129,7 +129,7 @@ class PrintableCounter(BaseCounter):
     Base class for printable counters
     """
 
-    __slots__ = ('enabled', '_fill', 'last_update', 'leave', 'min_delta', 'start')
+    __slots__ = ('enabled', '_fill', 'last_update', 'leave', 'min_delta', '_pinned', 'start')
 
     def __init__(self, **kwargs):
 
@@ -140,6 +140,7 @@ class PrintableCounter(BaseCounter):
         self.fill = kwargs.get('fill', u' ')
         self.leave = kwargs.get('leave', True)
         self.min_delta = kwargs.get('min_delta', 0.1)
+        self._pinned = False
         self.last_update = self.start = time.time()
 
     def __enter__(self):

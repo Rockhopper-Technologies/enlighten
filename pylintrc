@@ -6,6 +6,10 @@ output-format=colorized
 # Use max line length of 100
 max-line-length=100
 
+[DESIGN]
+# Maximum number of branch for function / method body.
+max-branches=13
+
 [BASIC]
 # As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
 # a specific naming convention for variables and arguments
@@ -48,4 +52,5 @@ spelling-ignore-words=
     stderr, str, subcounter, subcounters, submodule,
     subprocesses, sys,
     TestCase, tty, TTY, tuple,
-    unicode, unittest
+    unicode, unittest,
+    ValueError

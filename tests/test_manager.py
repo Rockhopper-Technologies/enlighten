@@ -192,6 +192,35 @@ class TestManager(TestCase):
                                     'Counter position 200 is greater than terminal height'):
             manager.counter(position=200)
 
+    def test_counter_position_pinned(self):
+        """If a position is taken, use next available"""
+
+        manager = _manager.Manager(stream=self.tty.stdout, set_scroll=False)
+        counter1 = manager.counter(position=2)
+        self.assertEqual(manager.counters[counter1], 2)
+
+        counter2 = manager.counter()
+        self.assertEqual(manager.counters[counter1], 2)
+        self.assertEqual(manager.counters[counter2], 1)
+
+        counter3 = manager.counter()
+        self.assertEqual(manager.counters[counter1], 2)
+        self.assertEqual(manager.counters[counter2], 3)
+        self.assertEqual(manager.counters[counter3], 1)
+
+        status1 = manager.status_bar(position=3)
+        self.assertEqual(manager.counters[counter1], 2)
+        self.assertEqual(manager.counters[counter2], 4)
+        self.assertEqual(manager.counters[counter3], 1)
+        self.assertEqual(manager.counters[status1], 3)
+
+        status2 = manager.status_bar()
+        self.assertEqual(manager.counters[counter1], 2)
+        self.assertEqual(manager.counters[counter2], 5)
+        self.assertEqual(manager.counters[counter3], 4)
+        self.assertEqual(manager.counters[status1], 3)
+        self.assertEqual(manager.counters[status2], 1)
+
     def test_inherit_kwargs(self):
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                    unit='knights', not_real=True, desc='Default')

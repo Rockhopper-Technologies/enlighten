@@ -111,23 +111,23 @@ class TestStatusBar(TestCase):
         self.manager.status_bar_class = MockStatusBar
         sbar = self.manager.status_bar('Hello', 'World!')
 
-        self.assertEqual(sbar.called, 0)
+        self.assertEqual(sbar.called, 1)
         sbar.last_update = sbar.start - 1.0
         sbar.update()
-        self.assertEqual(sbar.called, 1)
+        self.assertEqual(sbar.called, 2)
 
         sbar.last_update = sbar.start + 5.0
         sbar.update()
-        self.assertEqual(sbar.called, 1)
+        self.assertEqual(sbar.called, 2)
 
         sbar.last_update = sbar.last_update - 10.0
         sbar.enabled = False
         sbar.update()
-        self.assertEqual(sbar.called, 1)
+        self.assertEqual(sbar.called, 2)
 
         sbar.enabled = True
         sbar.update()
-        self.assertEqual(sbar.called, 2)
+        self.assertEqual(sbar.called, 3)
 
     def test_fill(self):
         """

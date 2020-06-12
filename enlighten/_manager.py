@@ -133,8 +133,13 @@ class Manager(object):
 
         Get a new progress bar instance
 
-        If ``position`` is specified, the counter's position can change dynamically if
-        additional counters are called without a ``position`` argument.
+        If ``position`` is specified, the counter's position will be pinned.
+        A :py:exc:`ValueError` will be raised if ``position`` exceeds the screen height or
+        has already been pinned by another counter.
+
+        .. note:: Counters are not automatically drawn when created because fields may be missing
+                  if subcounters are used. To force the counter to draw before updating,
+                  call :py:meth:`~Counter.refresh`.
 
         """
 
@@ -181,38 +186,66 @@ class Manager(object):
 
         position = kwargs.pop('position', None)
 
+        # List of counters to refresh due to new position
+        toRefresh = []
+
+        # Add default values to kwargs
         for key, val in self.defaults.items():
             if key not in kwargs:
                 kwargs[key] = val
         kwargs['manager'] = self
 
-        counter = counter_class(*args, **kwargs)
+        # Create counter
+        new = counter_class(*args, **kwargs)
 
-        if position is None:
-            toRefresh = []
-            if self.counters:
-                pos = 2
-                for cter in reversed(self.counters):
-                    if self.counters[cter] < pos:
-                        toRefresh.append(cter)
-                        cter.clear(flush=False)
-                        self.counters[cter] = pos
-                        pos += 1
+        # Get pinned counters
+        # pylint: disable=protected-access
+        pinned = dict((pos, ctr) for ctr, pos in self.counters.items() if ctr._pinned)
 
-            self.counters[counter] = 1
-            self._set_scroll_area()
-            for cter in reversed(toRefresh):
-                cter.refresh()
-            self.stream.flush()
-
-        elif position in self.counters.values():
-            raise ValueError('Counter position %d is already occupied.' % position)
-        elif position > self.height:
-            raise ValueError('Counter position %d is greater than terminal height.' % position)
+        # Check position
+        if position is not None:
+            if position in pinned:
+                raise ValueError('Counter position %d is already occupied.' % position)
+            if position > self.height:
+                raise ValueError('Counter position %d is greater than terminal height.' % position)
+            new._pinned = True  # pylint: disable=protected-access
+            self.counters[new] = position
+            pinned[position] = new
+            if counter_class is self.status_bar_class:
+                toRefresh.append(new)
         else:
-            self.counters[counter] = position
+            # Set for now, but will change
+            self.counters[new] = 0
 
-        return counter
+        # Iterate through all counters in reverse order
+        pos = 1
+        for ctr in reversed(self.counters):
+
+            if ctr in pinned.values():
+                continue
+
+            old_pos = self.counters[ctr]
+
+            while pos in pinned:
+                pos += 1
+
+            if pos != old_pos:
+
+                # Don't refresh new counter in case it will have subcounters
+                if ctr is not new or counter_class is self.status_bar_class:
+                    ctr.clear(flush=False)
+                    toRefresh.append(ctr)
+
+                self.counters[ctr] = pos
+
+            pos += 1
+
+        self._set_scroll_area()
+        for ctr in reversed(toRefresh):
+            ctr.refresh()
+        self.stream.flush()
+
+        return new
 
     def _resize_handler(self, *args, **kwarg):  # pylint: disable=unused-argument
         """
