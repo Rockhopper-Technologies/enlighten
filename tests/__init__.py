@@ -142,6 +142,9 @@ class MockTTY(object):
         self.stdout.close()
         self.stdread.close()
 
+    def clear(self):
+        termios.tcflush(self.stdread, termios.TCIFLUSH)
+
     def resize(self, height, width):
         fcntl.ioctl(self.slave, termios.TIOCSWINSZ, struct.pack('hhhh', height, width, 0, 0))
 
@@ -198,8 +201,9 @@ class MockManager(Manager):
         self.output = []
         self.remove_calls = 0
 
-    def write(self, output='', flush=True, position=0):
-        self.output.append('write(output=%s, flush=%s, position=%s)' % (output, flush, position))
+    def write(self, output='', flush=True, counter=None):
+        self.output.append('write(output=%s, flush=%s, position=%s)' %
+                           (output, flush, counter.position))
 
     def remove(self, counter):
         self.remove_calls += 1

@@ -8,7 +8,7 @@ max-line-length=100
 
 [DESIGN]
 # Maximum number of branch for function / method body.
-max-branches=13
+max-branches=15
 
 [BASIC]
 # As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
@@ -36,7 +36,7 @@ spelling-dict=en_US
 # List of comma separated words that should not be checked.
 spelling-ignore-words=
     Avram, ansicon, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
-    AttributeError,
+    AttributeError, autorefresh,
     BaseManager, bool,
     desc, downconverted, downloader,
     Enlighten's, exc,

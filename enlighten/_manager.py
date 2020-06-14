@@ -74,9 +74,11 @@ class Manager(object):
         self.stream = sys.stdout if stream is None else stream
         self.counter_class = counter_class
         self.status_bar_class = StatusBar
+
         self.counters = OrderedDict()
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
         self.no_resize = kwargs.pop('no_resize', False)
+        self.set_scroll = kwargs.pop('set_scroll', True)
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
@@ -101,12 +103,14 @@ class Manager(object):
         else:
             self.companion_term = None
 
-        self.scroll_offset = 1
-        self.process_exit = False
+        self.autorefresh = []
         self.height = self.term.height
-        self.width = self.term.width
-        self.set_scroll = kwargs.pop('set_scroll', True)
+        self.process_exit = False
+        self.refresh_lock = False
         self.resize_lock = False
+        self.scroll_offset = 1
+        self.width = self.term.width
+
         if not self.no_resize and RESIZE_SUPPORTED:
             self.sigwinch_orig = signal.getsignal(signal.SIGWINCH)
 
@@ -125,6 +129,7 @@ class Manager(object):
         """
         Args:
             position(int): Line number counting from the bottom of the screen
+            autorefresh(bool): Refresh this counter when other bars are drawn
             kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`Counter`
 
@@ -136,6 +141,9 @@ class Manager(object):
         If ``position`` is specified, the counter's position will be pinned.
         A :py:exc:`ValueError` will be raised if ``position`` exceeds the screen height or
         has already been pinned by another counter.
+
+        If ``autorefresh`` is :py:data:`True`, this bar will be redrawn whenever another bar is
+        drawn assuming it had been ``min_delta`` seconds since the last update.
 
         .. note:: Counters are not automatically drawn when created because fields may be missing
                   if subcounters are used. To force the counter to draw before updating,
@@ -149,6 +157,7 @@ class Manager(object):
         """
         Args:
             position(int): Line number counting from the bottom of the screen
+            autorefresh(bool): Refresh this counter when other bars are drawn
             kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`StatusBar`
 
@@ -159,6 +168,9 @@ class Manager(object):
 
         If ``position`` is specified, the counter's position can change dynamically if
         additional counters are called without a ``position`` argument.
+
+        If ``autorefresh`` is :py:data:`True`, this bar will be redrawn whenever another bar is
+        drawn assuming it had been ``min_delta`` seconds since the last update.
 
         """
 
@@ -197,6 +209,8 @@ class Manager(object):
 
         # Create counter
         new = counter_class(*args, **kwargs)
+        if kwargs.pop('autorefresh', False):
+            self.autorefresh.append(new)
 
         # Get pinned counters
         # pylint: disable=protected-access
@@ -361,20 +375,21 @@ class Manager(object):
     def remove(self, counter):
         """
         Args:
-            counter(:py:class:`Counter`): Progress bar instance
+            counter(:py:class:`Counter`): Progress bar or status bar instance
 
-        Remove progress bar instance from manager
+        Remove bar instance from manager
 
         Does not error if instance is not managed by this manager
 
         Generally this method should not be called directly,
-        instead used :py:meth:`remove`.
+        instead used :py:meth:`Counter.close`.
         """
 
         if not counter.leave:
             try:
                 del self.counters[counter]
-            except KeyError:
+                self.autorefresh.remove(counter)
+            except (KeyError, ValueError):
                 pass
 
     def stop(self):
@@ -428,15 +443,17 @@ class Manager(object):
             if 1 in positions:
                 term.feed()
 
-    def write(self, output='', flush=True, position=0):
+    def write(self, output='', flush=True, counter=None):
         """
         Args:
-            output(str: Output string
+            output(str): Output string
             flush(bool): Flush the output stream after writing
-            position(int): Position relative to the bottom of the screen to write output
+            counter(:py:class:`Counter`): Bar being written (for position and auto-refresh)
 
         Write to stream at a given position
         """
+
+        position = self.counters[counter] if counter else 0
 
         if self.enabled:
 
@@ -454,9 +471,37 @@ class Manager(object):
 
             finally:
                 # Reset position and scrolling
-                self._set_scroll_area()
-                if flush:
-                    stream.flush()
+                if not self.refresh_lock:
+                    if self.autorefresh:
+                        self._autorefresh(exclude=(counter,))
+                    self._set_scroll_area()
+                    if flush:
+                        stream.flush()
+
+    def _autorefresh(self, exclude):
+        """
+        Args:
+            exclude(list): Iterable of bars to ignore when auto-refreshing
+
+        Refresh any bars specified for auto-refresh
+        """
+
+        # Make sure this is only running once
+        try:
+            assert self.refresh_lock
+        except AssertionError:
+
+            self.refresh_lock = True
+            current_time = time.time()
+
+            for counter in self.autorefresh:
+
+                if counter in exclude or counter.min_delta > current_time - counter.last_update:
+                    continue
+
+                counter.refresh()
+
+            self.refresh_lock = False
 
 
 def get_manager(stream=None, counterclass=Counter, **kwargs):

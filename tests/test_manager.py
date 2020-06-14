@@ -11,6 +11,7 @@ Test module for enlighten._manager
 
 import signal
 import sys
+import time
 
 from enlighten import _manager
 
@@ -241,14 +242,15 @@ class TestManager(TestCase):
 
         with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
             manager = _manager.Manager(stream=self.tty.stdout)
+            counter = manager.counter(position=3)
             term = manager.term
-            manager.write(msg, position=3)
+            manager.write(msg, counter=counter)
 
         self.tty.stdout.write(u'X\n')
         # Carriage return is getting converted to newline
         self.assertEqual(self.tty.stdread.readline(),
                          term.move(22, 0) + '\r' + term.clear_eol + msg + 'X\n')
-        self.assertEqual(ssa.call_count, 1)
+        self.assertEqual(ssa.call_count, 2)
 
     def test_write_no_flush(self):
         """
@@ -262,14 +264,43 @@ class TestManager(TestCase):
 
         with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
             manager = _manager.Manager(stream=self.tty.stdout)
+            counter = manager.counter(position=3)
             term = manager.term
-            manager.write(msg, position=3, flush=False)
+            manager.write(msg, counter=counter, flush=False)
 
         self.tty.stdout.write(u'X\n')
         # Carriage return is getting converted to newline
         self.assertEqual(self.tty.stdread.readline(),
                          term.move(22, 0) + '\r' + term.clear_eol + msg + 'X\n')
-        self.assertEqual(ssa.call_count, 1)
+        self.assertEqual(ssa.call_count, 2)
+
+    def test_autorefresh(self):
+        """
+        Ensure auto-refreshed counters are updated when others are
+        """
+
+        manager = _manager.Manager(stream=self.tty.stdout)
+        counter1 = manager.counter(count=1, total=0, counter_format=u'counter1', autorefresh=True)
+        counter2 = manager.counter(count=1, total=0, counter_format=u'counter2')
+        self.tty.clear()
+
+        # Counter 1 in auto-refresh list
+        self.assertIn(counter1, manager.autorefresh)
+
+        # If auto-refreshed counter hasn't been refreshed recently refresh
+        counter1.last_update = 0
+        counter2.refresh()
+        self.tty.stdout.write(u'X\n')
+        output = self.tty.stdread.readline()
+        self.assertRegex(output, 'counter2.+counter1')
+
+        # If auto-refreshed counter has been refreshed recently, skip
+        counter1.last_update = time.time() + 5
+        counter2.refresh()
+        self.tty.stdout.write(u'X\n')
+        output = self.tty.stdread.readline()
+        self.assertRegex(output, 'counter2')
+        self.assertNotRegex(output, 'counter1')
 
     def test_set_scroll_area_disabled(self):
         manager = _manager.Manager(stream=self.tty.stdout,

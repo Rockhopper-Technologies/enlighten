@@ -191,7 +191,7 @@ class PrintableCounter(BaseCounter):
         """
 
         if self.enabled:
-            self.manager.write(flush=flush, position=self.position)
+            self.manager.write(flush=flush, counter=self)
 
     def close(self, clear=False):
         """
@@ -225,4 +225,4 @@ class PrintableCounter(BaseCounter):
 
         if self.enabled:
             self.manager.write(output=self.format(elapsed=elapsed),
-                               flush=flush, position=self.position)
+                               flush=flush, counter=self)
