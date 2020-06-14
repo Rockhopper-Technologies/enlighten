@@ -192,6 +192,7 @@ class PrintableCounter(BaseCounter):
 
         if self.enabled:
             self.manager.write(flush=flush, counter=self)
+            self.last_update = 0
 
     def close(self, clear=False):
         """

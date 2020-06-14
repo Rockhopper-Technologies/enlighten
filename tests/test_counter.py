@@ -249,8 +249,10 @@ class TestCounter(TestCase):
         self.assertEqual(len(self.manager.output), 0)
 
     def test_clear(self):
+        self.ctr.last_update = 100
         self.ctr.clear()
         self.assertRegex(self.manager.output[0], r'write\(output=, flush=True, position=3\)')
+        self.assertEqual(self.ctr.last_update, 0)
 
         self.manager.output = []
         self.ctr.clear(flush=False)
