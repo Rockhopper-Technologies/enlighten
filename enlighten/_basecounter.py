@@ -225,6 +225,7 @@ class PrintableCounter(BaseCounter):
         """
 
         if self.enabled:
+            self.last_update = time.time()
             self.manager.write(output=self.format(elapsed=elapsed),
                                flush=flush, counter=self)
 

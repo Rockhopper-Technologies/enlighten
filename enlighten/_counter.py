@@ -622,7 +622,6 @@ class Counter(PrintableCounter):
             # Update if force, 100%, or minimum delta has been reached
             if force or self.count == self.total or \
                     currentTime - self.last_update >= self.min_delta:
-                self.last_update = currentTime
                 self.refresh(elapsed=currentTime - self.start)
 
     def add_subcounter(self, color, count=0, all_fields=False):

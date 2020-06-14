@@ -219,5 +219,4 @@ class StatusBar(PrintableCounter):
         if self.enabled:
             currentTime = time.time()
             if force or currentTime - self.last_update >= self.min_delta:
-                self.last_update = currentTime
                 self.refresh(elapsed=currentTime - self.start)

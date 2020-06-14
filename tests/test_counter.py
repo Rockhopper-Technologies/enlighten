@@ -234,9 +234,11 @@ class TestCounter(TestCase):
         self.assertEqual(int(ctr.elapsed), 3)
 
     def test_refresh(self):
+        self.ctr.last_update = 0
         self.ctr.refresh()
         self.assertRegex(self.manager.output[0],
                          r'write\(output=%s, flush=True, position=3\)' % self.output)
+        self.assertAlmostEqual(self.ctr.last_update, time.time(), delta=0.3)
 
         self.manager.output = []
         self.ctr.refresh(flush=False)
