@@ -601,16 +601,7 @@ class Counter(PrintableCounter):
         except KeyError as e:
             raise ValueError('%r specified in format, but not provided' % e.args[0])
 
-        fill_count = rtn.count(u'{0}')
-        if not fill_count:
-            return rtn
-
-        if self.offset is None:
-            remaining = width - self.manager.term.length(rtn) + 3 * fill_count
-        else:
-            remaining = width - len(rtn) + self.offset + 3 * fill_count
-
-        return rtn.format(self.fill * (remaining // fill_count))
+        return self._fill_text(rtn, width, offset=self.offset)
 
     def update(self, incr=1, force=False, **fields):  # pylint: disable=arguments-differ
         """

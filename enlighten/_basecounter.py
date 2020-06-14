@@ -226,3 +226,34 @@ class PrintableCounter(BaseCounter):
         if self.enabled:
             self.manager.write(output=self.format(elapsed=elapsed),
                                flush=flush, counter=self)
+
+    def _fill_text(self, text, width, offset=None):
+        """
+        Args:
+            text (str): String to modify
+            width (int): Width in columns to make progress bar
+            offset(int): Number of non-printable characters to account for when formatting
+
+        Returns:
+            :py:class:`str`: String with ``'{0}'`` replaced with fill characters
+
+        Replace ``'{0}'`` in string with appropriate number of fill characters
+        """
+
+        fill_count = text.count(u'{0}')
+        if not fill_count:
+            return text
+
+        if offset is None:
+            remaining = width - self.manager.term.length(text) + 3 * fill_count
+        else:
+            remaining = width - len(text) + offset + 3 * fill_count
+
+        fill_size = remaining // fill_count
+        if fill_count == 1:
+            return text.format(self.fill * fill_size)
+
+        # Add extra fill to the last one
+        text = '{1}'.join(text.rsplit('{0}', 1))
+        return text.format(self.fill * fill_size,
+                           self.fill * (fill_size + remaining - fill_size * fill_count))

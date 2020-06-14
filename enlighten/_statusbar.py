@@ -195,10 +195,7 @@ class StatusBar(PrintableCounter):
             except KeyError as e:
                 raise ValueError('%r specified in format, but not provided' % e.args[0])
 
-        fill_count = rtn.count(u'{0}')
-        if fill_count:
-            remaining = width - self.manager.term.length(rtn) + 3 * fill_count
-            rtn = rtn.format(self.fill * (remaining // fill_count))
+        rtn = self._fill_text(rtn, width)
 
         return self._colorize(justify(rtn, width=width, fillchar=self.fill))
 
