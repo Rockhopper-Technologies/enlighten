@@ -37,11 +37,17 @@ def main():
     """
 
     with enlighten.get_manager() as manager:
-        status = manager.status_bar(status_format=u'Current demo: {demo}',
-                                    color='bold_underline_deepskyblue4_on_lightblue',
-                                    justify=enlighten.Justify.CENTER, demo='Initialize')
+        status = manager.status_bar(status_format=u'Enlighten{fill}Stage: {demo}{fill}{elapsed}',
+                                    color='bold_underline_bright_white_on_lightslategray',
+                                    justify=enlighten.Justify.CENTER, demo='Initializing',
+                                    autorefresh=True, min_delta=0.5)
+        docs = manager.term.link('https://python-enlighten.readthedocs.io/en/stable/examples.html',
+                                 'Read the Docs')
+        manager.status_bar(' More examples on %s! ' % docs, position=1, fill='-',
+                           justify=enlighten.Justify.CENTER)
+
         initialize(manager, 15)
-        status.update(demo='Load')
+        status.update(demo='Loading')
         load(manager, 80)
         status.update(demo='Testing')
         run_tests(manager, 40)

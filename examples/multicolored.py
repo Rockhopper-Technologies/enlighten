@@ -89,15 +89,15 @@ def run_tests(manager, tests=100):
 
     terminal = manager.term
     bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
-                 u'S:' + terminal.green(u'{count_0:{len_total}d}') + u' ' + \
-                 u'F:' + terminal.red(u'{count_2:{len_total}d}') + u' ' + \
-                 u'E:' + terminal.yellow(u'{count_1:{len_total}d}') + u' ' + \
+                 u'S:' + terminal.green3(u'{count_0:{len_total}d}') + u' ' + \
+                 u'F:' + terminal.red2(u'{count_2:{len_total}d}') + u' ' + \
+                 u'E:' + terminal.yellow2(u'{count_1:{len_total}d}') + u' ' + \
                  u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-    with manager.counter(total=tests, desc='Testing', unit='tests', color='green',
+    with manager.counter(total=tests, desc='Testing', unit='tests', color='green3',
                          bar_format=bar_format) as success:
-        errors = success.add_subcounter('yellow')
-        failures = success.add_subcounter('red')
+        errors = success.add_subcounter('yellow2')
+        failures = success.add_subcounter('red2')
 
         for num in range(tests):
             time.sleep(random.uniform(0.1, 0.3))  # Random processing time
@@ -120,9 +120,9 @@ def load(manager, units=80):
     """
 
     pb_connecting = manager.counter(total=units, desc='Loading', unit='services',
-                                    color='red', bar_format=BAR_FMT)
-    pb_loading = pb_connecting.add_subcounter('yellow')
-    pb_loaded = pb_connecting.add_subcounter('green', all_fields=True)
+                                    color='red2', bar_format=BAR_FMT)
+    pb_loading = pb_connecting.add_subcounter('yellow2')
+    pb_loaded = pb_connecting.add_subcounter('green3', all_fields=True)
 
     connecting = []
     loading = []
