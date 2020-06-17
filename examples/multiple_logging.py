@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger('enlighten')
 
 DATACENTERS = 5
-SYSTEMS = (10, 20)  # Range
+SYSTEMS = (5, 10)  # Range
 FILES = (10, 100)  # Range
 
 

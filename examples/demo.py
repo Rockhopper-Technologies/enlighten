@@ -26,7 +26,7 @@ def initialize(manager, initials=15):
     # Simulated preparation
     pbar = manager.counter(total=initials, desc='Initializing:', unit='initials')
     for num in range(initials):  # pylint: disable=unused-variable
-        time.sleep(random.uniform(0.1, 0.5))  # Random processing time
+        time.sleep(random.uniform(0.05, 0.25))  # Random processing time
         pbar.update()
     pbar.close()
 
@@ -48,9 +48,9 @@ def main():
 
         initialize(manager, 15)
         status.update(demo='Loading')
-        load(manager, 80)
+        load(manager, 40)
         status.update(demo='Testing')
-        run_tests(manager, 40)
+        run_tests(manager, 20)
         status.update(demo='File Processing')
         process_files(manager)
 

@@ -25,3 +25,9 @@ The main advantage of Enlighten is it allows writing to stdout and stderr withou
 redirection.
 
 .. image:: _static/demo.gif
+  :target: examples.html
+
+The code for this animation can be found in
+`demo.py <https://github.com/Rockhopper-Technologies/enlighten/blob/master/examples/demo.py>`__
+in
+`examples <https://github.com/Rockhopper-Technologies/enlighten/tree/master/examples>`__.
