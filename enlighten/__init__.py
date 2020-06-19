@@ -16,5 +16,5 @@ from enlighten._manager import Manager, get_manager
 from enlighten._util import Justify
 
 
-__version__ = '1.5.2'
+__version__ = '1.6.0'
 __all__ = ('Counter', 'Justify', 'Manager', 'StatusBar', 'SubCounter', 'get_manager')
