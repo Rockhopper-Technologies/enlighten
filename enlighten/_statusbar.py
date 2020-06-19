@@ -88,7 +88,7 @@ class StatusBar(PrintableCounter):
 
             - elapsed(:py:class:`str`) - Time elapsed since instance was created
             - fill(:py:class:`str`) - Filled with :py:attr:`fill` until line is width of terminal.
-              May be used multiple times.
+              May be used multiple times. Minimum width is 3.
 
         .. note::
 

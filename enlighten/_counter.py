@@ -299,7 +299,7 @@ class Counter(PrintableCounter):
         Additional fields for ``counter_format`` only:
 
         - fill(:py:class:`str`) - Filled with :py:attr:`fill` until line is width of terminal.
-          May be used multiple times.
+          May be used multiple times. Minimum width is 3.
 
         Additional fields when subcounters are used:
 
