@@ -85,3 +85,34 @@ the iterables and then updates the count by 1.
     for sheep in pbar(flock1, flock2):
         time.sleep(0.2)
         print('%s: Baaa' % sheep)
+
+User-defined fields
+-------------------
+
+Both :py:class:`~enlighten.Counter` and Both :py:class:`~enlighten.StatusBar` accept
+user defined fields as keyword arguments at initialization and during an update.
+These fields are persistent and only need to be specified when they change.
+
+In the following example, ``source`` is a user-defined field that is periodically updated.
+
+.. code-block:: python
+
+    import enlighten
+    import random
+    import time
+
+    bar_format = u'{desc}{desc_pad}{source} {percentage:3.0f}%|{bar}| ' + \
+                 u'{count:{len_total}d}/{total:d} ' + \
+                 u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
+    manager = enlighten.get_manager(bar_format=bar_format)
+
+    bar = manager.counter(total=100, desc='Loading', unit='files', source='server.a')
+    for num in range(100):
+        time.sleep(0.1)  # Simulate work
+        if not num % 5:
+            bar.update(source=random.choice(['server.a', 'server.b', 'server.c']))
+        else:
+            bar.update()
+
+For more information, see the :ref:`Counter Format <counter_format>` and
+:ref:`StatusBar Format <status_format>` sections.

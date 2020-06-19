@@ -72,6 +72,49 @@ total. If neither of these conditions are met, the counter format is used:
         time.sleep(0.1)  # Simulate work
         counter.update()
 
+Status Bars
+-----------
+Status bars are bars that work similarly to progress similarly to progress bars and counters,
+but present relatively static information.
+Status bars are created with :py:meth:`Manager.status_bar <enlighten.Manager.status_bar>`.
+
+.. code-block:: python
+
+    import enlighten
+    import time
+
+    manager = enlighten.get_manager()
+    status_bar = manager.status_bar('Static Message',
+                                    color='white_on_red',
+                                    justify=enlighten.Justify.CENTER)
+    time.sleep(1)
+    status_bar.update('Updated static message')
+    time.sleep(1)
+
+Status bars can also use formatting with dynamic variables.
+
+.. code-block:: python
+
+    import enlighten
+    import time
+
+    manager = enlighten.get_manager()
+    status_format = '{program}{fill}Stage: {stage}{fill} Status {status}'
+    status_bar = manager.status_bar(status_format=status_format,
+                                    color='bold_slategray',
+                                    program='Demo',
+                                    stage='Loading',
+                                    status='OKAY')
+    time.sleep(1)
+    status_bar.update(stage='Initializing', status='OKAY')
+    time.sleep(1)
+    status_bar.update(status='FAIL')
+
+Status bars, like other bars can be pinned. To pin a status bar to the top of all other bars,
+initialize it before any other bars. To pin a bar to the bottom of the screen, use
+``position=1`` when initializing.
+
+
 Color
 -----
 
