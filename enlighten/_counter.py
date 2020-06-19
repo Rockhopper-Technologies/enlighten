@@ -338,7 +338,7 @@ class Counter(PrintableCounter):
     **Offset**
 
         When ``offset`` is :py:data:`None`, the width of the bar portion of the progress bar and
-        the fill characters for counter will be automatically determined,
+        the fill size for counter will be automatically determined,
         taking into account terminal escape sequences that may be included in the string.
 
         Under special circumstances, and to permit backward compatibility, ``offset`` may be

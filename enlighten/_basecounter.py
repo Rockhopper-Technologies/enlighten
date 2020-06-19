@@ -251,11 +251,12 @@ class PrintableCounter(BaseCounter):
         else:
             remaining = width - len(text) + offset + 3 * fill_count
 
-        fill_size = remaining // fill_count
         if fill_count == 1:
-            return text.format(self.fill * fill_size)
+            return text.format(self.fill * remaining)
 
-        # Add extra fill to the last one
-        text = '{1}'.join(text.rsplit('{0}', 1))
+        fill_size, extra = divmod(remaining, fill_count)
+
+        # Add extra fill evenly starting from the last one
+        text = '{1}'.join(text.rsplit('{0}', extra))
         return text.format(self.fill * fill_size,
-                           self.fill * (fill_size + remaining - fill_size * fill_count))
+                           self.fill * (fill_size + 1))

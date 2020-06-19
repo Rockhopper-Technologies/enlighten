@@ -139,3 +139,15 @@ class TestStatusBar(TestCase):
 
         sbar = self.manager.status_bar(status_format=u'{fill}HI{fill}', fill='-')
         self.assertEqual(sbar.format(), u'-' * 39 + 'HI' + u'-' * 39)
+
+    def test_fill_uneven(self):
+        """
+        Extra fill should be equal
+        """
+
+        print(self.manager.term.width)
+        sbar = self.manager.status_bar(
+            status_format=u'{fill}Helloooo!{fill}Woooorld!{fill}', fill='-'
+        )
+        self.assertEqual(sbar.format(),
+                         u'-' * 20 + 'Helloooo!' + u'-' * 21 + 'Woooorld!' + u'-' * 21)
