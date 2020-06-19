@@ -114,6 +114,7 @@ Status bars, like other bars can be pinned. To pin a status bar to the top of al
 initialize it before any other bars. To pin a bar to the bottom of the screen, use
 ``position=1`` when initializing.
 
+See :py:class:`~enlighten.StatusBar` for more details.
 
 Color
 -----
