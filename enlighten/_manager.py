@@ -143,7 +143,8 @@ class Manager(object):
         has already been pinned by another counter.
 
         If ``autorefresh`` is :py:data:`True`, this bar will be redrawn whenever another bar is
-        drawn assuming it had been ``min_delta`` seconds since the last update.
+        drawn assuming it had been ``min_delta`` seconds since the last update. This is usually
+        unnecessary.
 
         .. note:: Counters are not automatically drawn when created because fields may be missing
                   if subcounters are used. To force the counter to draw before updating,
@@ -170,7 +171,8 @@ class Manager(object):
         additional counters are called without a ``position`` argument.
 
         If ``autorefresh`` is :py:data:`True`, this bar will be redrawn whenever another bar is
-        drawn assuming it had been ``min_delta`` seconds since the last update.
+        drawn assuming it had been ``min_delta`` seconds since the last update. Generally,
+        only need when ``elapsed`` is used in :ref:`status_format <status_format>`.
 
         """
 
