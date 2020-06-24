@@ -45,7 +45,7 @@ class Manager(object):
             below. (Default: :py:data:`None`)
         enabled(bool): Status (Default: True)
         no_resize(bool): Disable resizing support
-        kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+        kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
     Manager class for outputting progress bars to streams attached to TTYs
@@ -130,7 +130,7 @@ class Manager(object):
         Args:
             position(int): Line number counting from the bottom of the screen
             autorefresh(bool): Refresh this counter when other bars are drawn
-            kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+            kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`Counter`
 
         Returns:
@@ -159,7 +159,7 @@ class Manager(object):
         Args:
             position(int): Line number counting from the bottom of the screen
             autorefresh(bool): Refresh this counter when other bars are drawn
-            kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+            kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`StatusBar`
 
         Returns:
@@ -185,7 +185,7 @@ class Manager(object):
         Args:
             counter_class(:py:class:`PrintableCounter`): Class to instantiate
             position(int): Line number counting from the bottom of the screen
-            kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+            kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`Counter`
 
         Returns:
@@ -512,7 +512,7 @@ def get_manager(stream=None, counterclass=Counter, **kwargs):
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
             defaults to :py:data:`sys.stdout`
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
-        kwargs(dict): Any additional :py:term:`keyword arguments<keyword argument>`
+        kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will passed to the manager class.
 
     Returns:
