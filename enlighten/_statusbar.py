@@ -12,9 +12,13 @@ Provides StatusBar class
 """
 
 import time
+import warnings
 
 from enlighten._basecounter import PrintableCounter
-from enlighten._util import format_time, Justify
+from enlighten._util import EnlightenWarning, format_time, Justify
+
+
+STATUS_FIELDS = {'elapsed', 'fill'}
 
 
 class StatusBar(PrintableCounter):
@@ -132,7 +136,8 @@ class StatusBar(PrintableCounter):
     __slots__ = ('fields', '_justify', 'status_format', '_static', '_fields')
 
     def __init__(self, *args, **kwargs):
-        super(StatusBar, self).__init__(**kwargs)
+
+        super(StatusBar, self).__init__(keywords=kwargs)
 
         self.fields = kwargs.pop('fields', {})
         self._justify = None
@@ -185,6 +190,16 @@ class StatusBar(PrintableCounter):
         else:
             fields = self.fields.copy()
             fields.update(self._fields)
+
+            # Warn on reserved fields
+            reserved_fields = (set(fields) & STATUS_FIELDS)
+            if reserved_fields:
+                warnings.warn(
+                    'Ignoring reserved fields specified as user-defined fields: %s' %
+                    ', '.join(reserved_fields),
+                    EnlightenWarning, stacklevel=2
+                )
+
             elapsed = elapsed if elapsed is not None else self.elapsed
             fields['elapsed'] = format_time(elapsed)
             fields['fill'] = u'{0}'

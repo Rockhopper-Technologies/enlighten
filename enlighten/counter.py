@@ -27,9 +27,10 @@ class Counter(_Counter):  # pylint: disable=missing-docstring
     def __init__(self, **kwargs):
 
         manager = kwargs.get('manager', None)
+        stream = kwargs.pop('stream', sys.stdout)
+
         if manager is None:
-            manager = get_manager(stream=kwargs.get('stream', sys.stdout),
-                                  counter_class=self.__class__, set_scroll=False)
+            manager = get_manager(stream=stream, counter_class=self.__class__, set_scroll=False)
             manager.counters[self] = 1
             kwargs['manager'] = manager
 

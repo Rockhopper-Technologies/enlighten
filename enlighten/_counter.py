@@ -12,11 +12,13 @@ Provides Counter and SubConter classes
 """
 
 import platform
+import re
 import sys
 import time
+import warnings
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
-from enlighten._util import format_time
+from enlighten._util import EnlightenWarning, format_time
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -39,6 +41,11 @@ except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
     SERIES_STD = u' |'
 except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
     pass
+
+# Reserved fields
+COUNTER_FIELDS = {'count', 'desc', 'desc_pad', 'elapsed', 'rate', 'unit', 'unit_pad',
+                  'bar', 'eta', 'len_total', 'percentage', 'total', 'fill'}
+RE_SUBCOUNTER_FIELDS = re.compile(r'(?:count|percentage|eta|rate)_\d+')
 
 
 class SubCounter(BaseCounter):
@@ -391,7 +398,7 @@ class Counter(PrintableCounter):
     # pylint: disable=too-many-arguments
     def __init__(self, **kwargs):
 
-        super(Counter, self).__init__(**kwargs)
+        super(Counter, self).__init__(keywords=kwargs)
 
         # Accept additional_fields for backwards compatibility
         self.fields = kwargs.pop('fields', kwargs.pop('additional_fields', {}))
@@ -502,6 +509,18 @@ class Counter(PrintableCounter):
 
         fields = self.fields.copy()
         fields.update(self._fields)
+
+        # Warn on reserved fields
+        reserved_fields = (set(fields) & COUNTER_FIELDS) | set(
+            match.group() for match in (RE_SUBCOUNTER_FIELDS.match(key) for key in fields) if match
+        )
+        if reserved_fields:
+            warnings.warn(
+                'Ignoring reserved fields specified as user-defined fields: %s' %
+                ', '.join(reserved_fields),
+                EnlightenWarning, stacklevel=2
+            )
+
         fields.update({'bar': u'{0}',
                        'count': self.count,
                        'desc': self.desc or u'',

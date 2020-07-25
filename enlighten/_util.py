@@ -18,6 +18,12 @@ except NameError:
     BASESTRING = str
 
 
+class EnlightenWarning(Warning):
+    """
+    Generic warning class for Enlighten
+    """
+
+
 def format_time(seconds):
     """
     Args:

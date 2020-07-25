@@ -37,8 +37,10 @@ else:
 
 if sys.version_info[0] < 3:
     from StringIO import StringIO
+    PY2 = True
 else:
     from io import StringIO
+    PY2 = False
 
 # pylint: enable=import-error
 

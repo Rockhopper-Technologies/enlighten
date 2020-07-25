@@ -43,16 +43,19 @@ class BaseCounter(object):
 
         return '%s(%s)' % (self.__class__.__name__, ', '.join(params))
 
-    def __init__(self, **kwargs):
+    def __init__(self, keywords=None, **kwargs):
 
-        self.count = self.start_count = kwargs.get('count', 0)
+        if keywords is not None:
+            kwargs = keywords
+
+        self.count = self.start_count = kwargs.pop('count', 0)
         self._color = None
 
-        self.manager = kwargs.get('manager', None)
+        self.manager = kwargs.pop('manager', None)
         if self.manager is None:
             raise TypeError('manager must be specified')
 
-        self.color = kwargs.get('color', None)
+        self.color = kwargs.pop('color', None)
 
     @property
     def color(self):
@@ -131,15 +134,17 @@ class PrintableCounter(BaseCounter):
 
     __slots__ = ('enabled', '_fill', 'last_update', 'leave', 'min_delta', '_pinned', 'start')
 
-    def __init__(self, **kwargs):
+    def __init__(self, keywords=None, **kwargs):
 
-        super(PrintableCounter, self).__init__(**kwargs)
+        if keywords is not None:  # pragma: no branch
+            kwargs = keywords
+        super(PrintableCounter, self).__init__(keywords=kwargs)
 
-        self.enabled = kwargs.get('enabled', True)
+        self.enabled = kwargs.pop('enabled', True)
         self._fill = u' '
-        self.fill = kwargs.get('fill', u' ')
-        self.leave = kwargs.get('leave', True)
-        self.min_delta = kwargs.get('min_delta', 0.1)
+        self.fill = kwargs.pop('fill', u' ')
+        self.leave = kwargs.pop('leave', True)
+        self.min_delta = kwargs.pop('min_delta', 0.1)
         self._pinned = False
         self.last_update = self.start = time.time()
 

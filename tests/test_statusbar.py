@@ -9,9 +9,9 @@
 Test module for enlighten._statusbar
 """
 
-from enlighten import Justify
+from enlighten import EnlightenWarning, Justify
 
-from tests import TestCase, MockManager, MockTTY, MockStatusBar
+from tests import TestCase, MockManager, MockTTY, MockStatusBar, PY2, unittest
 
 
 class TestStatusBar(TestCase):
@@ -145,9 +145,22 @@ class TestStatusBar(TestCase):
         Extra fill should be equal
         """
 
-        print(self.manager.term.width)
         sbar = self.manager.status_bar(
             status_format=u'{fill}Helloooo!{fill}Woooorld!{fill}', fill='-'
         )
         self.assertEqual(sbar.format(),
                          u'-' * 20 + 'Helloooo!' + u'-' * 21 + 'Woooorld!' + u'-' * 21)
+
+    @unittest.skipIf(PY2, 'Skip warnings tests in Python 2')
+    def test_reserve_fields(self):
+        """
+        When reserved fields are used, a warning is raised
+        """
+
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            self.manager.status_bar(status_format=u'Stage: {stage}, Fill: {fill}', stage=1,
+                                    fields={'fill': 'Reserved field'})
+
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            self.manager.status_bar(status_format=u'Stage: {stage}, elapsed: {elapsed}', stage=1,
+                                    elapsed='Reserved field')

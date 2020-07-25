@@ -199,6 +199,7 @@ class Manager(object):
         """
 
         position = kwargs.pop('position', None)
+        autorefresh = kwargs.pop('autorefresh', False)
 
         # List of counters to refresh due to new position
         toRefresh = []
@@ -211,7 +212,7 @@ class Manager(object):
 
         # Create counter
         new = counter_class(*args, **kwargs)
-        if kwargs.pop('autorefresh', False):
+        if autorefresh:
             self.autorefresh.append(new)
 
         # Get pinned counters

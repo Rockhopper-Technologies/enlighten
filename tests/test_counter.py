@@ -11,11 +11,11 @@ Test module for enlighten._counter and enlighten.counter
 
 import time
 
-from enlighten import Counter, Manager
+from enlighten import Counter, EnlightenWarning, Manager
 import enlighten._counter
 from enlighten._manager import NEEDS_UNICODE_HELP
 
-from tests import TestCase, mock, MockManager, MockTTY, MockCounter
+from tests import TestCase, mock, MockManager, MockTTY, MockCounter, PY2, unittest
 
 
 # pylint: disable=missing-docstring, protected-access, too-many-public-methods
@@ -396,15 +396,15 @@ class TestCounter(TestCase):
         blueBarFormat = self.manager.term.blue(barFormat)
         self.assertNotEqual(len(barFormat), len(blueBarFormat))
 
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
-                                   unit='ticks', count=10, bar_format=barFormat)
+        ctr = self.manager.counter(total=10, desc='Test', unit='ticks',
+                                   count=10, bar_format=barFormat)
         formatted1 = ctr.format(width=80)
         self.assertEqual(len(formatted1), 80)
         barLen1 = formatted1.count(BLOCK)
 
         offset = len(self.manager.term.blue(''))
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
-                                   unit='ticks', count=10, bar_format=blueBarFormat)
+        ctr = self.manager.counter(total=10, desc='Test', unit='ticks',
+                                   count=10, bar_format=blueBarFormat)
         formatted2 = ctr.format(width=80)
         self.assertEqual(len(formatted2), 80 + offset)
         barLen2 = formatted2.count(BLOCK)
@@ -420,15 +420,15 @@ class TestCounter(TestCase):
                     u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
         barFormat = self.manager.term.blue(barFormat)
 
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
-                                   unit='ticks', count=10, bar_format=barFormat, offset=0)
+        ctr = self.manager.counter(total=10, desc='Test', unit='ticks',
+                                   count=10, bar_format=barFormat, offset=0)
         formatted1 = ctr.format(width=80)
         self.assertEqual(len(formatted1), 80)
         barLen1 = formatted1.count(BLOCK)
 
         offset = len(self.manager.term.blue(''))
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, desc='Test',
-                                   unit='ticks', count=10, bar_format=barFormat, offset=offset)
+        ctr = self.manager.counter(total=10, desc='Test', unit='ticks',
+                                   count=10, bar_format=barFormat, offset=offset)
         formatted2 = ctr.format(width=80)
         self.assertEqual(len(formatted2), 80 + offset)
         barLen2 = formatted2.count(BLOCK)
@@ -436,11 +436,11 @@ class TestCounter(TestCase):
         self.assertTrue(barLen2 == barLen1 + offset)
 
         # Test in counter format
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, count=50, offset=0)
+        ctr = self.manager.counter(total=10, count=50, offset=0)
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
 
-        ctr = self.manager.counter(stream=self.tty.stdout, total=10, count=50, offset=10)
+        ctr = self.manager.counter(total=10, count=50, offset=10)
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 90)
 
@@ -692,7 +692,7 @@ class TestCounter(TestCase):
         """
 
         bar_format = ctr_format = u'{arg1:s} {count:d}'
-        additional_fields = {'arg1': 'hello', 'count': 100000}
+        additional_fields = {'arg1': 'hello'}
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, bar_format=bar_format,
                       fields=additional_fields)
@@ -762,3 +762,25 @@ class TestCounter(TestCase):
         ctr_format = u'{fill}HI{fill}'
         ctr = Counter(stream=self.tty.stdout, count=1, counter_format=ctr_format, fill=u'-')
         self.assertEqual(ctr.format(), u'-' * 39 + 'HI' + u'-' * 39)
+
+    @unittest.skipIf(PY2, 'Skip warnings tests in Python 2')
+    def test_reserve_fields(self):
+        """
+        When reserved fields are used, a warning is raised
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, fields={'elapsed': 'reserved'})
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            ctr.format()
+
+        ctr = Counter(stream=self.tty.stdout, total=10, fields={'elapsed': 'reserved'})
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            ctr.format()
+
+        ctr = Counter(stream=self.tty.stdout, total=10, count=1, elapsed='reserved')
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            ctr.format()
+
+        ctr = Counter(stream=self.tty.stdout, total=10, elapsed='reserved')
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+            ctr.format()
