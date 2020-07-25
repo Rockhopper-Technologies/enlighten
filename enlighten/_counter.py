@@ -15,10 +15,9 @@ import platform
 import re
 import sys
 import time
-import warnings
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
-from enlighten._util import EnlightenWarning, format_time
+from enlighten._util import EnlightenWarning, format_time, warn_best_level
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -515,11 +514,9 @@ class Counter(PrintableCounter):
             match.group() for match in (RE_SUBCOUNTER_FIELDS.match(key) for key in fields) if match
         )
         if reserved_fields:
-            warnings.warn(
-                'Ignoring reserved fields specified as user-defined fields: %s' %
-                ', '.join(reserved_fields),
-                EnlightenWarning, stacklevel=2
-            )
+            warn_best_level('Ignoring reserved fields specified as user-defined fields: %s' %
+                            ', '.join(reserved_fields),
+                            EnlightenWarning)
 
         fields.update({'bar': u'{0}',
                        'count': self.count,

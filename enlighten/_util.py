@@ -12,16 +12,35 @@
 Provides utility functions and objects
 """
 
+import inspect
+import os
+import warnings
+
 try:
     BASESTRING = basestring
 except NameError:
     BASESTRING = str
+
+BASE_DIR = os.path.basename(os.path.dirname(__file__))
 
 
 class EnlightenWarning(Warning):
     """
     Generic warning class for Enlighten
     """
+
+
+def warn_best_level(message, category):
+    """
+    Helper function to warn at first frame stack outside of library
+    """
+
+    level = 5  # Unused default
+    for level, frame in enumerate(inspect.stack(), 1):  # pragma: no cover
+        if os.path.basename(os.path.dirname(frame[1])) != BASE_DIR:
+            break
+
+    warnings.warn(message, category=category, stacklevel=level)
 
 
 def format_time(seconds):

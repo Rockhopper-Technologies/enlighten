@@ -764,23 +764,27 @@ class TestCounter(TestCase):
         self.assertEqual(ctr.format(), u'-' * 39 + 'HI' + u'-' * 39)
 
     @unittest.skipIf(PY2, 'Skip warnings tests in Python 2')
-    def test_reserve_fields(self):
+    def test_reserved_fields(self):
         """
         When reserved fields are used, a warning is raised
         """
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, fields={'elapsed': 'reserved'})
-        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields') as warn:
             ctr.format()
+        self.assertRegex(__file__, warn.filename)
 
         ctr = Counter(stream=self.tty.stdout, total=10, fields={'elapsed': 'reserved'})
-        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields') as warn:
             ctr.format()
+        self.assertRegex(__file__, warn.filename)
 
         ctr = Counter(stream=self.tty.stdout, total=10, count=1, elapsed='reserved')
-        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields') as warn:
             ctr.format()
+        self.assertRegex(__file__, warn.filename)
 
         ctr = Counter(stream=self.tty.stdout, total=10, elapsed='reserved')
-        with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields'):
+        with self.assertWarns(EnlightenWarning) as warn:
             ctr.format()
+        self.assertRegex(__file__, warn.filename)
