@@ -316,7 +316,9 @@ class Manager(object):
 
         # Save scroll offset for resizing
         oldOffset = self.scroll_offset
-        self.scroll_offset = newOffset = max(self.counters.values()) + 1
+        newOffset = max(self.counters.values()) + 1
+        if newOffset > oldOffset:
+            self.scroll_offset = newOffset
 
         if not self.enabled:
             return
@@ -332,7 +334,7 @@ class Manager(object):
 
             term = self.term
             newHeight = term.height
-            scrollPosition = max(0, newHeight - newOffset)
+            scrollPosition = max(0, newHeight - self.scroll_offset)
 
             if force or newOffset > oldOffset or newHeight != self.height:
                 self.height = newHeight

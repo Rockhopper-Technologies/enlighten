@@ -372,6 +372,13 @@ class TestManager(TestCase):
 
             self.assertFalse(atexit.register.called)
 
+        # Set max counter lower and make sure scroll_offset hasn't changed
+        manager.counters['dummy'] = 1
+        with mock.patch('enlighten._manager.atexit') as atexit:
+            with mock.patch.object(term, 'change_scroll'):
+                manager._set_scroll_area()
+        self.assertEqual(manager.scroll_offset, 4)
+
     def test_set_scroll_area_height(self):
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
