@@ -30,7 +30,7 @@ def process_files(count=None):
     pbar = enlighten.Counter(total=count, desc='Simple', unit='ticks',
                              bar_format=BAR_FMT, counter_format=COUNTER_FMT)
 
-    for num in range(100):  # pylint: disable=unused-variable
+    for _ in range(100):
         time.sleep(0.05)
         pbar.update(1.1)
 

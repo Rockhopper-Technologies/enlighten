@@ -463,7 +463,7 @@ class TestManager(TestCase):
 
             # Clear stream
             self.tty.stdout.write(u'X\n')
-            for num in range(4 + 1):  # pylint: disable=unused-variable
+            for _ in range(4 + 1):
                 self.tty.stdread.readline()
 
             self.assertFalse(reset.called)
@@ -789,7 +789,7 @@ class TestGetManager(TestCase):
             self.assertTrue(manager.defaults['enabled'])
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
-    def test_get_manager_notty(self):
+    def test_get_manager_no_tty(self):
 
         # stdout is not attached to a tty
         with redirect_output('stdout', OUTPUT):

@@ -23,12 +23,12 @@ def process_files():
 
     with enlighten.Manager() as manager:
         with manager.counter(total=SPLINES, desc='Reticulating:', unit='splines') as retic:
-            for num in range(SPLINES):  # pylint: disable=unused-variable
+            for _ in range(SPLINES):
                 time.sleep(random.uniform(0.1, 0.5))  # Random processing time
                 retic.update()
 
         with manager.counter(total=LLAMAS, desc='Herding:', unit='llamas') as herd:
-            for num in range(SPLINES):  # pylint: disable=unused-variable
+            for _ in range(SPLINES):
                 time.sleep(random.uniform(0.1, 0.5))  # Random processing time
                 herd.update()
 

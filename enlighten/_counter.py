@@ -117,23 +117,25 @@ class SubCounter(BaseCounter):
         """
 
         # Make sure source is a parent or peer
-        if source is self.parent or getattr(source, 'parent', None) is self.parent:
+        if source is not self.parent and getattr(source, 'parent', None) is not self.parent:
+            raise ValueError('source must be parent or peer')
 
-            if self.count + incr < 0 or source.count - incr < 0:
+        # Make sure counts won't go negative
+        if self.count + incr < 0 or source.count - incr < 0:
+            raise ValueError('Invalid increment: %s' % incr)
+
+        # Make sure parent count won't go negative
+        if source is self.parent:
+            if self.parent.count - self.parent.subcount - incr < 0:
                 raise ValueError('Invalid increment: %s' % incr)
 
-            if source is self.parent:
-                if self.parent.count - self.parent.subcount - incr < 0:
-                    raise ValueError('Invalid increment: %s' % incr)
-
-            else:
-                source.count -= incr
-
-            self.count += incr
-            self.parent.update(0, force)
-
+        # Deduct from peer count
         else:
-            raise ValueError('source must be parent or peer')
+            source.count -= incr
+
+        # Increment self and update parent
+        self.count += incr
+        self.parent.update(0, force)
 
 
 class Counter(PrintableCounter):

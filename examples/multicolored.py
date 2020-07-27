@@ -148,7 +148,7 @@ def load(manager, units=80):
                 pb_loading.update_from(pb_connecting)
 
         # Connect to up to 5 units at a time
-        for _ in range(0, min(units - count, 5 - len(connecting))):
+        for _ in range(min(units - count, 5 - len(connecting))):
             node = Node(count)
             node.connect()
             connecting.append(node)

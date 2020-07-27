@@ -52,30 +52,30 @@ def process_files(manager):
     enterprise = manager.counter(total=DATACENTERS, desc='Processing:', unit='datacenters')
 
     # Iterate through data centers
-    for dnum in range(1, DATACENTERS + 1):
+    for d_num in range(1, DATACENTERS + 1):
         systems = random.randint(*SYSTEMS)  # Random number of systems
         # Get a child progress bar. leave is False so it can be replaced
-        currCenter = manager.counter(total=systems, desc='  Datacenter %d:' % dnum,
+        datacenter = manager.counter(total=systems, desc='  Datacenter %d:' % d_num,
                                      unit='systems', leave=False)
 
         # Iterate through systems
-        for snum in range(1, systems + 1):
+        for s_num in range(1, systems + 1):
 
             # Has no total, so will act as counter. Leave is False
-            system = manager.counter(desc='    System %d:' % snum, unit='files', leave=False)
+            system = manager.counter(desc='    System %d:' % s_num, unit='files', leave=False)
             files = random.randint(*FILES)  # Random file count
 
             # Iterate through files
-            for fnum in range(files):  # pylint: disable=unused-variable
+            for _ in range(files):
                 system.update()  # Update count
                 time.sleep(random.uniform(0.001, 0.005))  # Random processing time
 
             system.close()  # Close counter so it gets removed
             # Log status
-            LOGGER.info('Updated %d files on System %d in Datacenter %d', files, snum, dnum)
-            currCenter.update()  # Update count
+            LOGGER.info('Updated %d files on System %d in Datacenter %d', files, s_num, d_num)
+            datacenter.update()  # Update count
 
-        currCenter.close()  # Close counter so it gets removed
+        datacenter.close()  # Close counter so it gets removed
 
         enterprise.update()  # Update count
 

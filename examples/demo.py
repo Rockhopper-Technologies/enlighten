@@ -25,7 +25,7 @@ def initialize(manager, initials=15):
 
     # Simulated preparation
     pbar = manager.counter(total=initials, desc='Initializing:', unit='initials')
-    for num in range(initials):  # pylint: disable=unused-variable
+    for _ in range(initials):
         time.sleep(random.uniform(0.05, 0.25))  # Random processing time
         pbar.update()
     pbar.close()

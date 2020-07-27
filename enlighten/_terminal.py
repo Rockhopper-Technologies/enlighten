@@ -54,12 +54,12 @@ class Terminal(_Terminal):
         self.stream.write(self.csr(0, position))
         self.stream.write(self.move(position, 0))
 
-    def move_to(self, xpos, ypos):
+    def move_to(self, x_pos, y_pos):
         """
         Move cursor to specified position
         """
 
-        self.stream.write(self.move(ypos, xpos))
+        self.stream.write(self.move(y_pos, x_pos))
 
     def _height_and_width(self):
         """
@@ -70,8 +70,8 @@ class Terminal(_Terminal):
         try:
             return self._cache['height_and_width']
         except KeyError:
-            handw = self._cache['height_and_width'] = super(Terminal, self)._height_and_width()
-            return handw
+            h_and_w = self._cache['height_and_width'] = super(Terminal, self)._height_and_width()
+            return h_and_w
 
     def clear_cache(self):
         """

@@ -24,7 +24,7 @@ RPM
 
 RPMs are available in the Fedora_ and EPEL_ repositories
 
-EL6 and EL7 (RHEL/CentOS/Scientific)
+EL6, EL7, and EL8 (RHEL/CentOS/Scientific)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_)
@@ -44,5 +44,3 @@ Fedora
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _Fedora: https://fedoraproject.org/
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
-
-

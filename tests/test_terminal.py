@@ -35,12 +35,12 @@ class TestTerminal(TestCase):
         Return values aren't accurate for blessed, but are sufficient for this test
         """
 
-        handw = 'enlighten._terminal._Terminal._height_and_width'
+        h_and_w = 'enlighten._terminal._Terminal._height_and_width'
 
-        with mock.patch(handw, return_value=(1, 2)):
+        with mock.patch(h_and_w, return_value=(1, 2)):
             self.assertEqual(self.terminal._height_and_width(), (1, 2))
 
-        with mock.patch(handw, return_value=(5, 6)):
+        with mock.patch(h_and_w, return_value=(5, 6)):
             self.assertEqual(self.terminal._height_and_width(), (1, 2))
             self.terminal.clear_cache()
             self.assertEqual(self.terminal._height_and_width(), (5, 6))

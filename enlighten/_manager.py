@@ -208,7 +208,7 @@ class Manager(object):
 
         # Get pinned counters
         # pylint: disable=protected-access
-        pinned = dict((pos, ctr) for ctr, pos in self.counters.items() if ctr._pinned)
+        pinned = {pos: ctr for ctr, pos in self.counters.items() if ctr._pinned}
 
         # Check position
         if position is not None:
@@ -291,8 +291,8 @@ class Manager(object):
             self.width = newWidth
             self._set_scroll_area(force=True)
 
-            for cter in self.counters:
-                cter.refresh(flush=False)
+            for counter in self.counters:
+                counter.refresh(flush=False)
             self.stream.flush()
 
             self.resize_lock = False
@@ -310,6 +310,9 @@ class Manager(object):
         newOffset = max(self.counters.values()) + 1
         if newOffset > oldOffset:
             self.scroll_offset = newOffset
+            use_new = True
+        else:
+            use_new = False
 
         if not self.enabled:
             return
@@ -327,11 +330,11 @@ class Manager(object):
             newHeight = term.height
             scrollPosition = max(0, newHeight - self.scroll_offset)
 
-            if force or newOffset > oldOffset or newHeight != self.height:
+            if force or use_new or newHeight != self.height:
                 self.height = newHeight
 
                 # Add line feeds so we don't overwrite existing output
-                if newOffset - oldOffset > 0:
+                if use_new:
                     term.move_to(0, max(0, newHeight - oldOffset))
                     self.stream.write(u'\n' * (newOffset - oldOffset))
 
@@ -348,25 +351,25 @@ class Manager(object):
         Resets terminal to normal configuration
         """
 
-        if self.process_exit:
+        if not self.process_exit:
+            return
 
-            try:
+        try:
+            term = self.term
 
-                term = self.term
+            if self.set_scroll:
+                term.reset()
+            else:
+                term.move_to(0, term.height)
 
-                if self.set_scroll:
-                    term.reset()
-                else:
-                    term.move_to(0, term.height)
+            self.term.feed()
 
-                self.term.feed()
+            self.stream.flush()
+            if self.companion_stream is not None:
+                self.companion_stream.flush()
 
-                self.stream.flush()
-                if self.companion_stream is not None:
-                    self.companion_stream.flush()
-
-            except ValueError:  # Possibly closed file handles
-                pass
+        except ValueError:  # Possibly closed file handles
+            pass
 
     def remove(self, counter):
         """
@@ -401,43 +404,44 @@ class Manager(object):
 
         """
 
-        if self.enabled:
+        if not self.enabled:
+            return
 
-            term = self.term
-            stream = self.stream
-            positions = self.counters.values()
+        term = self.term
+        stream = self.stream
+        positions = self.counters.values()
 
-            if not self.no_resize and RESIZE_SUPPORTED:
-                signal.signal(signal.SIGWINCH, self.sigwinch_orig)
+        if not self.no_resize and RESIZE_SUPPORTED:
+            signal.signal(signal.SIGWINCH, self.sigwinch_orig)
 
-            try:
-                for num in range(self.scroll_offset - 1, 0, -1):
-                    if num not in positions:
-                        term.move_to(0, term.height - num)
-                        stream.write(term.clear_eol)
+        try:
+            for num in range(self.scroll_offset - 1, 0, -1):
+                if num not in positions:
+                    term.move_to(0, term.height - num)
+                    stream.write(term.clear_eol)
 
-                stream.flush()
+            stream.flush()
 
-            finally:
+        finally:
 
-                if self.set_scroll:
+            if self.set_scroll:
 
-                    self.term.reset()
+                self.term.reset()
 
-                    if self.companion_term:
-                        self.companion_term.reset()
+                if self.companion_term:
+                    self.companion_term.reset()
 
-                else:
-                    term.move_to(0, term.height)
+            else:
+                term.move_to(0, term.height)
 
-                self.process_exit = False
-                self.enabled = False
-                for cter in self.counters:
-                    cter.enabled = False
+            self.process_exit = False
+            self.enabled = False
+            for counter in self.counters:
+                counter.enabled = False
 
-            # Feed terminal if lowest position isn't cleared
-            if 1 in positions:
-                term.feed()
+        # Feed terminal if lowest position isn't cleared
+        if 1 in positions:
+            term.feed()
 
     def write(self, output='', flush=True, counter=None):
         """
@@ -449,26 +453,26 @@ class Manager(object):
         Write to stream at a given position
         """
 
+        if not self.enabled:
+            return
+
         position = self.counters[counter] if counter else 0
+        stream = self.stream
+        term = self.term
 
-        if self.enabled:
+        try:
+            term.move_to(0, term.height - position)
+            # Include \r and term call to cover most conditions
+            stream.write(u'\r' + term.clear_eol + output)
 
-            term = self.term
-            stream = self.stream
-
-            try:
-                term.move_to(0, term.height - position)
-                # Include \r and term call to cover most conditions
-                stream.write(u'\r' + term.clear_eol + output)
-
-            finally:
-                # Reset position and scrolling
-                if not self.refresh_lock:
-                    if self.autorefresh:
-                        self._autorefresh(exclude=(counter,))
-                    self._set_scroll_area()
-                    if flush:
-                        stream.flush()
+        finally:
+            # Reset position and scrolling
+            if not self.refresh_lock:
+                if self.autorefresh:
+                    self._autorefresh(exclude=(counter,))
+                self._set_scroll_area()
+                if flush:
+                    stream.flush()
 
     def _autorefresh(self, exclude):
         """
