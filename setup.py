@@ -18,8 +18,7 @@ from setuptools import setup, find_packages
 from setup_helpers import get_version, readme
 
 INSTALL_REQUIRES = ['blessed>=1.17.7']
-TESTS_REQUIRE = ['mock; python_version < "3.3"',
-                 'unittest2; python_version < "2.7"']
+TESTS_REQUIRE = ['mock; python_version < "3.3"']
 
 # Additional requirements
 # html requires sphinx, sphinx_rtd_theme
@@ -51,7 +50,6 @@ setup(
         'Operating System :: POSIX',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',

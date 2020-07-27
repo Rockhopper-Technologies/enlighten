@@ -13,7 +13,6 @@ import time
 
 from enlighten import Counter, EnlightenWarning, Manager
 import enlighten._counter
-from enlighten._manager import NEEDS_UNICODE_HELP
 
 from tests import TestCase, mock, MockManager, MockTTY, MockCounter, PY2, unittest
 
@@ -502,8 +501,6 @@ class TestCounter(TestCase):
 
         self.tty.stdout.write(u'X\n')
         value = self.tty.stdread.readline()
-        if NEEDS_UNICODE_HELP:
-            value = value.decode('utf-8')
 
         self.assertRegex(value, r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
                          r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]X\n')

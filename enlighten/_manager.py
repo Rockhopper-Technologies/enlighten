@@ -12,23 +12,14 @@ Provides Manager class
 """
 
 import atexit
+from collections import OrderedDict
 import signal
 import sys
 import time
 
-try:
-    from collections import OrderedDict
-except ImportError:  # pragma: no cover (Python 2.6)
-    from ordereddict import OrderedDict
-
-
 from enlighten._counter import Counter
 from enlighten._statusbar import StatusBar
 from enlighten._terminal import Terminal
-
-
-# Flag to support unicode in Python 2.6
-NEEDS_UNICODE_HELP = sys.version_info[:2] < (2, 7)
 
 RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
 
@@ -468,11 +459,7 @@ class Manager(object):
             try:
                 term.move_to(0, term.height - position)
                 # Include \r and term call to cover most conditions
-                if NEEDS_UNICODE_HELP:  # pragma: no cover (Version dependent 2.6)
-                    encoding = getattr(stream, 'encoding', None) or 'UTF-8'
-                    stream.write(('\r' + term.clear_eol + output).encode(encoding))
-                else:  # pragma: no cover (Version dependent >= 2.7)
-                    stream.write(u'\r' + term.clear_eol + output)
+                stream.write(u'\r' + term.clear_eol + output)
 
             finally:
                 # Reset position and scrolling

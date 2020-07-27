@@ -17,6 +17,7 @@ import pty
 import struct
 import sys
 import termios
+import unittest
 
 from enlighten import Manager
 from enlighten._basecounter import BaseCounter
@@ -24,12 +25,6 @@ from enlighten._counter import Counter
 from enlighten._statusbar import StatusBar
 
 # pylint: disable=import-error
-
-if sys.version_info[:2] < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest  # pylint: disable=wrong-import-order
-
 if sys.version_info[:2] < (3, 3):
     import mock
 else:
@@ -57,7 +52,7 @@ class TestCase(unittest.TestCase):
     """
 
 
-# Fix deprecated methods for EL6
+# Fix deprecated methods for 2.7
 def assert_regex(self, text, regex, msg=None):
     """
     Wrapper for assertRegexpMatches
@@ -120,13 +115,8 @@ class MockTTY(object):
     def __init__(self, height=25, width=80):
 
         self.master, self.slave = pty.openpty()
-
-        if sys.version_info[:2] < (2, 7):
-            self.stdout = os.fdopen(self.slave, 'w', 1)
-            self.stdread = os.fdopen(self.master, 'r')
-        else:
-            self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
-            self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
+        self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
+        self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
 
         # Make sure linefeed behavior is consistent between Python 2 and Python 3
         termattrs = termios.tcgetattr(self.slave)
