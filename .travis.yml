@@ -24,6 +24,9 @@ matrix:
     - python: 3.9-dev
       env: TOXENV=py39
 
+    - python: 3.10-dev
+      env: TOXENV=py39
+
     - python: 3.6
       env: TOXENV=py36
 
@@ -47,6 +50,7 @@ matrix:
 
   allow_failures:
     - python: 3.9-dev
+    - python: 3.10-dev
 
 install:
   - pip install tox
