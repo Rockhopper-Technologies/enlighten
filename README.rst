@@ -87,7 +87,7 @@ PIP
     $ pip install enlighten
 
 EL6, EL7, and EL8 (RHEL/CentOS/Scientific)
-------------------------------------
+------------------------------------------
 
 (EPEL_ repositories must be configured_)
 
