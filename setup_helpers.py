@@ -1,4 +1,4 @@
-# Copyright 2017 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -44,8 +44,11 @@ def print_spelling_errors(filename, encoding='utf8'):
     """
     Print misspelled words returned by sphinxcontrib-spelling
     """
+    try:
+        filesize = os.stat(filename).st_size
+    except FileNotFoundError:
+        filesize = 0
 
-    filesize = os.stat(filename).st_size
     if filesize:
         sys.stdout.write('Misspelled Words:\n')
         with io.open(filename, encoding=encoding) as wordlist:
@@ -53,6 +56,14 @@ def print_spelling_errors(filename, encoding='utf8'):
                 sys.stdout.write('    ' + line)
 
     return 1 if filesize else 0
+
+
+def print_all_spelling_errors(path):
+    """
+    Print all spelling errors in the path
+    """
+
+    return max(print_spelling_errors(os.path.join(path, filename)) for filename in os.listdir(path))
 
 
 if __name__ == '__main__':
@@ -66,7 +77,7 @@ if __name__ == '__main__':
         if len(sys.argv) > 2:
             sys.exit(print_spelling_errors(sys.argv[2]))
         else:
-            sys.exit(print_spelling_errors('build/doc/spelling/output.txt'))
+            sys.exit(print_all_spelling_errors('build/doc/spelling/'))
 
     # Unknown option
     else:
