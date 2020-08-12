@@ -136,7 +136,7 @@ class TestManager(TestCase):
         self.assertEqual(manager.counters[counter1], 2)
         self.assertEqual(manager.counters[counter2], 1)
         self.assertEqual(counter1.calls,
-                         ['clear(flush=False)', 'refresh(flush=True, elapsed=None)'])
+                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
         self.assertEqual(counter2.calls, [])
         self.assertEqual(ssa.call_count, 1)
         counter1.calls = []
@@ -149,9 +149,9 @@ class TestManager(TestCase):
         self.assertEqual(manager.counters[counter2], 2)
         self.assertEqual(manager.counters[counter3], 1)
         self.assertEqual(counter1.calls,
-                         ['clear(flush=False)', 'refresh(flush=True, elapsed=None)'])
+                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
         self.assertEqual(counter2.calls,
-                         ['clear(flush=False)', 'refresh(flush=True, elapsed=None)'])
+                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
         self.assertEqual(counter3.calls, [])
         self.assertEqual(ssa.call_count, 1)
         counter1.calls = []

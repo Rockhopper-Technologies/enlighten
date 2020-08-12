@@ -250,8 +250,8 @@ class Manager(object):
 
         self._set_scroll_area()
         for ctr in reversed(toRefresh):
-            ctr.refresh()
-        self.stream.flush()
+            ctr.refresh(flush=False)
+        self._flush_streams()
 
         return new
 
@@ -293,7 +293,7 @@ class Manager(object):
 
             for counter in self.counters:
                 counter.refresh(flush=False)
-            self.stream.flush()
+            self._flush_streams()
 
             self.resize_lock = False
 
@@ -346,6 +346,15 @@ class Manager(object):
             if self.companion_term is not None:
                 self.companion_term.move_to(0, scrollPosition)
 
+    def _flush_streams(self):
+        """
+        Convenience method for flushing streams
+        """
+
+        self.stream.flush()
+        if self.companion_stream is not None:
+            self.companion_stream.flush()
+
     def _at_exit(self):
         """
         Resets terminal to normal configuration
@@ -364,9 +373,7 @@ class Manager(object):
 
             self.term.feed()
 
-            self.stream.flush()
-            if self.companion_stream is not None:
-                self.companion_stream.flush()
+            self._flush_streams()
 
         except ValueError:  # Possibly closed file handles
             pass
@@ -420,8 +427,6 @@ class Manager(object):
                     term.move_to(0, term.height - num)
                     stream.write(term.clear_eol)
 
-            stream.flush()
-
         finally:
 
             if self.set_scroll:
@@ -442,6 +447,8 @@ class Manager(object):
         # Feed terminal if lowest position isn't cleared
         if 1 in positions:
             term.feed()
+
+        self._flush_streams()
 
     def write(self, output='', flush=True, counter=None):
         """
@@ -472,7 +479,7 @@ class Manager(object):
                     self._autorefresh(exclude=(counter,))
                 self._set_scroll_area()
                 if flush:
-                    stream.flush()
+                    self._flush_streams()
 
     def _autorefresh(self, exclude):
         """
