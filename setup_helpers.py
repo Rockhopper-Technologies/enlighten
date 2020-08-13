@@ -76,7 +76,8 @@ def spelling_clean_dir(path):
     """
     Remove spelling files from path
     """
-
+    if not os.path.isdir(path):
+        return
     for filename in os.listdir(path):
         os.unlink(os.path.join(path, filename))
 
