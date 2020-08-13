@@ -15,6 +15,7 @@ import sys
 
 
 RE_VERSION = re.compile(r'__version__\s*=\s*[\'\"](.+)[\'\"]$')
+DIR_SPELLING = 'build/doc/spelling/'
 
 
 def get_version(filename, encoding='utf8'):
@@ -63,7 +64,21 @@ def print_all_spelling_errors(path):
     Print all spelling errors in the path
     """
 
-    return max(print_spelling_errors(os.path.join(path, filename)) for filename in os.listdir(path))
+    rtn = 0
+    for filename in os.listdir(path):
+        if print_spelling_errors(os.path.join(path, filename)):
+            rtn = 1
+
+    return rtn
+
+
+def spelling_clean_dir(path):
+    """
+    Remove spelling files from path
+    """
+
+    for filename in os.listdir(path):
+        os.unlink(os.path.join(path, filename))
 
 
 if __name__ == '__main__':
@@ -73,11 +88,16 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Print misspelled word list
+    if sys.argv[1] == 'spelling-clean':
+        spelling_clean_dir(DIR_SPELLING)
+        sys.exit(0)
+
+    # Print misspelled word list
     if sys.argv[1] == 'spelling':
         if len(sys.argv) > 2:
             sys.exit(print_spelling_errors(sys.argv[2]))
         else:
-            sys.exit(print_all_spelling_errors('build/doc/spelling/'))
+            sys.exit(print_all_spelling_errors(DIR_SPELLING))
 
     # Unknown option
     else:
