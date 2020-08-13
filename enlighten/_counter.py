@@ -11,6 +11,7 @@
 Provides Counter and SubConter classes
 """
 
+import os
 import platform
 import re
 import sys
@@ -27,8 +28,8 @@ BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{tota
 
 STATUS_FMT = u'{message}'
 
-# Even with cp65001, Windows doesn't seem to support all unicode characters
-if platform.system() == 'Windows':  # pragma: no cover(Windows)
+# Even with cp65001, Windows doesn't seem to support all unicode characters. Windows Terminal does
+if platform.system() == 'Windows' and not os.environ.get('WT_SESSION', None):  # pragma: no cover
     SERIES_STD = u' ▌█'
 else:
     SERIES_STD = u' ▏▎▍▌▋▊▉█'
