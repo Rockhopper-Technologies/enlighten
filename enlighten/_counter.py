@@ -18,7 +18,7 @@ import sys
 import time
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
-from enlighten._util import EnlightenWarning, format_time, warn_best_level
+from enlighten._util import EnlightenWarning, format_time, raise_from_none, warn_best_level
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -578,7 +578,7 @@ class Counter(PrintableCounter):
             try:
                 rtn = self.bar_format.format(**fields)
             except KeyError as e:
-                raise ValueError('%r specified in format, but not provided' % e.args[0])
+                raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 
             # Format the bar
             if self.offset is None:
@@ -618,7 +618,7 @@ class Counter(PrintableCounter):
         try:
             rtn = self.counter_format.format(**fields)
         except KeyError as e:
-            raise ValueError('%r specified in format, but not provided' % e.args[0])
+            raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 
         return self._fill_text(rtn, width, offset=self.offset)
 

@@ -14,6 +14,7 @@ import time
 
 import enlighten
 
+# pylint: disable=wrong-import-order
 from multicolored import run_tests, load
 from multiple_logging import process_files, win_time_granularity
 

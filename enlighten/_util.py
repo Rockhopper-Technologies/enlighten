@@ -14,6 +14,7 @@ Provides utility functions and objects
 
 import inspect
 import os
+import sys
 import warnings
 
 try:
@@ -67,6 +68,17 @@ def format_time(seconds):
             rtn = u'{0:d}d {1}'.format(days, rtn)
 
     return rtn
+
+
+def raise_from_none(exc):  # pragma: no cover
+    """
+    Convenience function to raise from None in a Python 2/3 compatible manner
+    """
+    raise exc
+
+
+if sys.version_info[0] >= 3:  # pragma: no branch
+    exec('def raise_from_none(exc):\n    raise exc from None')  # pylint: disable=exec-used
 
 
 class Justify(object):

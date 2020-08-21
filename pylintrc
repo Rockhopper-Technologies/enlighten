@@ -21,8 +21,9 @@ good-names=e,_
 
 [MESSAGES CONTROL]
 disable=
+    super-with-arguments,  # Python 2
     too-few-public-methods,
-    useless-object-inheritance
+    useless-object-inheritance,  # Python 2
 
 [SIMILARITIES]
 # Minimum lines number of a similarity.
