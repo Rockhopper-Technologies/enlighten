@@ -31,10 +31,7 @@ class Writer(object):
     def __init__(self, filename, size, directory=None):
         self.filename = filename
         self.size = size
-        if directory:
-            self.dest = os.path.join(directory, filename)
-        else:
-            self.dest = filename
+        self.dest = os.path.join(directory, filename) if directory else filename
         self.status = self.fileobj = None
 
     def __enter__(self):
