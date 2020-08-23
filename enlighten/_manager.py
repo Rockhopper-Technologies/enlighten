@@ -464,7 +464,7 @@ class Manager(object):
 
         Write to the stream.
 
-        The position is determined by the counter or defaults to the bottom of the termina;
+        The position is determined by the counter or defaults to the bottom of the terminal
 
         If ``output`` is callable, it will be called with any additional keyword arguments
         to produce the output string
