@@ -11,6 +11,7 @@ Test module for enlighten._statusbar
 
 from enlighten import EnlightenWarning, Justify
 
+import tests
 from tests import TestCase, MockManager, MockTTY, MockStatusBar, PY2, unittest
 
 
@@ -160,9 +161,9 @@ class TestStatusBar(TestCase):
         with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields') as warn:
             self.manager.status_bar(status_format=u'Stage: {stage}, Fill: {fill}', stage=1,
                                     fields={'fill': 'Reserved field'})
-        self.assertRegex(__file__, warn.filename)
+        self.assertRegex(tests.__file__, warn.filename)
 
         with self.assertWarnsRegex(EnlightenWarning, 'Ignoring reserved fields') as warn:
             self.manager.status_bar(status_format=u'Stage: {stage}, elapsed: {elapsed}', stage=1,
                                     elapsed='Reserved field')
-        self.assertRegex(__file__, warn.filename)
+        self.assertRegex(tests.__file__, warn.filename)

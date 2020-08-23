@@ -193,7 +193,11 @@ class MockManager(Manager):
         self.output = []
         self.remove_calls = 0
 
-    def write(self, output='', flush=True, counter=None):
+    def write(self, output='', flush=True, counter=None, **kwargs):
+
+        if callable(output):
+            output = output(**kwargs)
+
         self.output.append('write(output=%s, flush=%s, position=%s)' %
                            (output, flush, counter.position))
 

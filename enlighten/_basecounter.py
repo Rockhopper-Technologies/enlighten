@@ -231,8 +231,7 @@ class PrintableCounter(BaseCounter):
 
         if self.enabled:
             self.last_update = time.time()
-            self.manager.write(output=self.format(elapsed=elapsed),
-                               flush=flush, counter=self)
+            self.manager.write(output=self.format, flush=flush, counter=self, elapsed=elapsed)
 
     def _fill_text(self, text, width, offset=None):
         """
