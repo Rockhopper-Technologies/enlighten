@@ -24,22 +24,25 @@ RPM
 
 RPMs are available in the Fedora_ and EPEL_ repositories
 
-EL6, EL7, and EL8 (RHEL/CentOS/Scientific)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fedora and EL8 (RHEL/CentOS/Scientific)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(EPEL_ repositories must be configured_ for EL8)
+
+.. code-block:: console
+
+    $ dnf install python3-enlighten
+
+EL7 (RHEL/CentOS/Scientific)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_)
 
 .. code-block:: console
 
-    $ yum install python-enlighten
+    $ yum install python2-enlighten
+    $ yum install python36-enlighten
 
-Fedora
-^^^^^^
-
-.. code-block:: console
-
-    $ dnf install python2-enlighten
-    $ dnf install python3-enlighten
 
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _Fedora: https://fedoraproject.org/
