@@ -34,7 +34,7 @@ Fedora and EL8 (RHEL/CentOS/Scientific)
     $ dnf install python3-enlighten
 
 EL7 (RHEL/CentOS/Scientific)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_)
 

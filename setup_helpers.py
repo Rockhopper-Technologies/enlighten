@@ -82,6 +82,31 @@ def spelling_clean_dir(path):
         os.unlink(os.path.join(path, filename))
 
 
+def check_rst2html(path):
+    """
+    Checks for warnings when doing ReST to HTML conversion
+    """
+
+    # pylint: disable=import-error,import-outside-toplevel
+    from contextlib import redirect_stderr  # Import here because it breaks <= Python 3.4
+    from docutils.core import publish_file  # Import here because only available in doc tests
+
+    stderr = io.StringIO()
+
+    # This will exit with status if there is a bad enough error
+    with redirect_stderr(stderr):
+        output = publish_file(source_path=path, writer_name='html',
+                              enable_exit_status=True, destination_path='/dev/null')
+
+    warning_text = stderr.getvalue()
+
+    if warning_text or not output:
+        print(warning_text)
+        return 1
+
+    return 0
+
+
 if __name__ == '__main__':
 
     # Do nothing if no arguments were given
@@ -99,6 +124,12 @@ if __name__ == '__main__':
             sys.exit(print_spelling_errors(sys.argv[2]))
         else:
             sys.exit(print_all_spelling_errors(DIR_SPELLING))
+
+    # Check file for Rest to HTML conversion
+    if sys.argv[1] == 'rst2html':
+        if len(sys.argv) < 3:
+            sys.exit('Missing filename for ReST to HTML check')
+        sys.exit(check_rst2html(sys.argv[2]))
 
     # Unknown option
     else:
