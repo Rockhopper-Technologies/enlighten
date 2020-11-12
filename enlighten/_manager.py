@@ -283,9 +283,12 @@ class Manager(object):
                 newHeight = term.height
                 newWidth = term.width
 
+            if newHeight < self.height:
+                term.move_to(0, max(0, newHeight - self.scroll_offset))
+                self.stream.write(u'\n' * (2 * max(self.counters.values())))
+
             if newWidth < self.width:
-                offset = (self.scroll_offset - 1) * (1 + self.width // newWidth)
-                term.move_to(0, max(0, newHeight - offset))
+                term.move_to(0, max(0, newHeight - self.scroll_offset))
                 self.stream.write(term.clear_eos)
 
             self.width = newWidth
