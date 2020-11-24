@@ -343,7 +343,7 @@ class TestManager(TestCase):
         stdread = self.tty.stdread
         self.assertEqual(manager.scroll_offset, 1)
         self.assertFalse(manager.process_exit)
-        self.assertNotEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
+        self.assertNotEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
 
         with mock.patch('enlighten._manager.atexit') as atexit:
             with mock.patch.object(term, 'change_scroll'):
@@ -351,7 +351,7 @@ class TestManager(TestCase):
                 self.assertEqual(term.change_scroll.call_count, 1)  # pylint: disable=no-member
 
             self.assertEqual(manager.scroll_offset, 4)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
+            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
 
             self.assertEqual(stdread.readline(), term.move(24, 0) + '\n')
             self.assertEqual(stdread.readline(), '\n')
@@ -458,7 +458,7 @@ class TestManager(TestCase):
                     manager._set_scroll_area()
 
             self.assertEqual(manager.scroll_offset, 5)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
+            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
             self.assertTrue(manager.process_exit)
 
             # Clear stream
@@ -473,7 +473,7 @@ class TestManager(TestCase):
             # No output, No changes
             self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), 'X\n')
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
+            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
             self.assertTrue(manager.process_exit)
 
             manager.enabled = True
@@ -507,7 +507,7 @@ class TestManager(TestCase):
                     manager._set_scroll_area()
 
             self.assertEqual(manager.scroll_offset, 5)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._resize_handler)
+            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
             self.assertTrue(manager.process_exit)
 
             # Stream empty
@@ -584,15 +584,19 @@ class TestManager(TestCase):
             self.assertTrue(termfeed.called)
 
     def test_resize_handler(self):
+        """
+        Resize lock must be False for handler to run
+        Terminal size is cached unless resize handler runs
+        """
+
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        counter3 = MockCounter(manager=manager)
+        manager.counters[counter3] = 3
+        manager.scroll_offset = 4
+        term = manager.term
 
         with mock.patch('%s.width' % TERMINAL, new_callable=mock.PropertyMock) as mockwidth:
-            mockwidth.side_effect = [80, 85, 87, 70, 70]
-
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-            counter3 = MockCounter(manager=manager)
-            manager.counters[counter3] = 3
-            manager.scroll_offset = 4
-            term = manager.term
+            mockwidth.return_value = 70
 
             manager.resize_lock = True
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
@@ -608,7 +612,6 @@ class TestManager(TestCase):
             self.assertEqual(counter3.calls, [])
 
             manager.resize_lock = False
-            mockwidth.side_effect = [80, 85, 87, 70, 70]
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()
                 self.assertEqual(ssa.call_count, 1)
@@ -621,25 +624,38 @@ class TestManager(TestCase):
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
-    def test_resize_handler_no_change(self):
+    def test_resize(self):
+        """
+        Test a resize event
+        """
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        counter3 = MockCounter(manager=manager)
+        counter3.last_update = time.time()
+        manager.counters[counter3] = 3
+        manager.scroll_offset = 4
+        term = manager.term
 
-        with mock.patch('%s.width' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
-            mockheight.side_effect = [80, 85, 87, 80, 80]
+        # simulate resize
+        manager._stage_resize()
+        self.assertTrue(manager._resize)
+        self.assertEqual(counter3.last_update, 0)
 
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-            counter3 = MockCounter(manager=manager)
-            manager.counters[counter3] = 3
-            manager.scroll_offset = 4
+        with mock.patch('%s.width' % TERMINAL, new_callable=mock.PropertyMock) as mockwidth:
+            mockwidth.return_value = 70
 
-            with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
-                manager._resize_handler()
-                self.assertEqual(ssa.call_count, 1)
-
+            # resize doesn't happen until a write is called
             self.assertEqual(manager.width, 80)
 
-            self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), 'X\n')
+            with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
+                manager.write()
+                self.assertEqual(ssa.call_count, 1)
 
+            self.assertEqual(manager.width, 70)
+
+            self.tty.stdout.write(u'X\n')
+            self.assertEqual(self.tty.stdread.readline(), term.move(21, 0) + term.clear_eos + 'X\n')
+            self.assertFalse(manager.resize_lock)
+            self.assertFalse(manager._resize)
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
     def test_resize_handler_height_only(self):
@@ -659,7 +675,7 @@ class TestManager(TestCase):
             # Height is set in _set_scroll_area which is mocked
             self.assertEqual(manager.height, 25)
 
-            self.assertEqual(self.tty.stdread.readline(), manager.term.move(16, 0) + '\n')
+            self.assertEqual(self.tty.stdread.readline(), manager.term.move(19, 0) + '\n')
             for _ in range(5):
                 self.assertEqual(self.tty.stdread.readline(), '\n')
 

@@ -98,6 +98,7 @@ class Manager(object):
         self.height = self.term.height
         self.process_exit = False
         self.refresh_lock = False
+        self._resize = False
         self.resize_lock = False
         self.scroll_offset = 1
         self.width = self.term.width
@@ -255,9 +256,21 @@ class Manager(object):
 
         return new
 
-    def _resize_handler(self, *args, **kwarg):  # pylint: disable=unused-argument
+    def _stage_resize(self, *args, **kwarg):  # pylint: disable=unused-argument
         """
         Called when a window resize signal is detected
+        """
+
+        # Set semaphore to trigger resize on next write
+        self._resize = True
+
+        # Reset update time to avoid any delay in resize
+        for counter in self.counters:
+            counter.last_update = 0
+
+    def _resize_handler(self):
+        """
+        Called when a window resize has been detected
 
         Resets the scroll window
         """
@@ -273,15 +286,6 @@ class Manager(object):
             term.clear_cache()
             newHeight = term.height
             newWidth = term.width
-            lastHeight = lastWidth = 0
-
-            while newHeight != lastHeight or newWidth != lastWidth:
-                lastHeight = newHeight
-                lastWidth = newWidth
-                time.sleep(.2)
-                term.clear_cache()
-                newHeight = term.height
-                newWidth = term.width
 
             if newHeight < self.height:
                 term.move_to(0, max(0, newHeight - self.scroll_offset))
@@ -324,7 +328,7 @@ class Manager(object):
         if not self.process_exit:
             atexit.register(self._at_exit)
             if not self.no_resize and RESIZE_SUPPORTED:
-                signal.signal(signal.SIGWINCH, self._resize_handler)
+                signal.signal(signal.SIGWINCH, self._stage_resize)
             self.process_exit = True
 
         if self.set_scroll:
@@ -470,6 +474,15 @@ class Manager(object):
         """
 
         if not self.enabled:
+            return
+
+        # If resize signal was caught, handle resize
+        if self._resize and not self.resize_lock:
+            try:
+                self._resize_handler()
+            finally:
+                self._resize = False
+
             return
 
         position = self.counters[counter] if counter else 0
