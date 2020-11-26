@@ -583,7 +583,7 @@ class TestManager(TestCase):
             manager.stop()
             self.assertTrue(termfeed.called)
 
-    def test_resize_handler(self):
+    def test_resize(self):
         """
         Resize lock must be False for handler to run
         Terminal size is cached unless resize handler runs
@@ -600,7 +600,7 @@ class TestManager(TestCase):
 
             manager.resize_lock = True
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
-                manager._resize_handler()
+                manager._stage_resize()
                 self.assertFalse(ssa.called)
 
             self.assertEqual(manager.width, 80)
@@ -624,11 +624,11 @@ class TestManager(TestCase):
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
-    def test_resize(self):
+    def test_resize_threaded(self):
         """
-        Test a resize event
+        Test a resize event threading behavior
         """
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter, threaded=True)
         counter3 = MockCounter(manager=manager)
         counter3.last_update = time.time()
         manager.counters[counter3] = 3
@@ -658,10 +658,10 @@ class TestManager(TestCase):
             self.assertFalse(manager._resize)
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
-    def test_resize_handler_height_only(self):
+    def test_resize_handler_height_less(self):
 
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
-            mockheight.side_effect = [25, 23, 28, 20, 20]
+            mockheight.side_effect = [25, 23]
 
             manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
             counter3 = MockCounter(manager=manager)
@@ -678,6 +678,33 @@ class TestManager(TestCase):
             self.assertEqual(self.tty.stdread.readline(), manager.term.move(19, 0) + '\n')
             for _ in range(5):
                 self.assertEqual(self.tty.stdread.readline(), '\n')
+
+            self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
+
+    def test_resize_handler_height_greater_threaded(self):
+
+        with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
+            mockheight.side_effect = [25, 27]
+
+            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                       threaded=True)
+            counter3 = MockCounter(manager=manager)
+            manager.counters[counter3] = 3
+            manager.scroll_offset = 4
+            term = manager.term
+
+            with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
+                manager._resize_handler()
+            self.assertEqual(ssa.call_count, 1)
+
+            # Height is set in _set_scroll_area which is mocked
+            self.assertEqual(manager.height, 25)
+
+            self.tty.stdout.write(u'X\n')
+            self.assertEqual(self.tty.stdread.readline(), term.move(27, 0) + '\n')
+            self.assertEqual(self.tty.stdread.readline(), '\n')
+            self.assertEqual(self.tty.stdread.readline(), '\n')
+            self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eos + 'X\n')
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 

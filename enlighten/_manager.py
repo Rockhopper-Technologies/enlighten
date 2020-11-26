@@ -15,6 +15,7 @@ import atexit
 from collections import OrderedDict
 import signal
 import sys
+import threading
 import time
 
 from enlighten._counter import Counter
@@ -36,6 +37,8 @@ class Manager(object):
             below. (Default: :py:data:`None`)
         enabled(bool): Status (Default: True)
         no_resize(bool): Disable resizing support
+        threaded(bool): When True resize handling is deferred until next write (Default: False
+            unless multiple threads are detected)
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -70,6 +73,7 @@ class Manager(object):
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
         self.no_resize = kwargs.pop('no_resize', False)
         self.set_scroll = kwargs.pop('set_scroll', True)
+        self.threaded = kwargs.pop('threaded', threading.active_count() > 1)
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
@@ -264,9 +268,14 @@ class Manager(object):
         # Set semaphore to trigger resize on next write
         self._resize = True
 
-        # Reset update time to avoid any delay in resize
-        for counter in self.counters:
-            counter.last_update = 0
+        if self.threaded:
+            # Reset update time to avoid any delay in resize
+            for counter in self.counters:
+                counter.last_update = 0
+
+        else:
+            # If not threaded, handle resize now
+            self._resize_handler()
 
     def _resize_handler(self):
         """
@@ -290,10 +299,12 @@ class Manager(object):
             if newHeight < self.height:
                 term.move_to(0, max(0, newHeight - self.scroll_offset))
                 self.stream.write(u'\n' * (2 * max(self.counters.values())))
+            elif newHeight > self.height and self.threaded:
+                term.move_to(0, newHeight)
+                self.stream.write(u'\n' * (self.scroll_offset - 1))
 
-            if newWidth < self.width:
-                term.move_to(0, max(0, newHeight - self.scroll_offset))
-                self.stream.write(term.clear_eos)
+            term.move_to(0, max(0, newHeight - self.scroll_offset))
+            self.stream.write(term.clear_eos)
 
             self.width = newWidth
             self._set_scroll_area(force=True)
