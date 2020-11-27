@@ -43,9 +43,9 @@ except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
     pass
 
 # Reserved fields
-COUNTER_FIELDS = {'count', 'desc', 'desc_pad', 'elapsed', 'rate', 'unit', 'unit_pad',
+COUNTER_FIELDS = {'count', 'desc', 'desc_pad', 'elapsed', 'interval', 'rate', 'unit', 'unit_pad',
                   'bar', 'eta', 'len_total', 'percentage', 'total', 'fill'}
-RE_SUBCOUNTER_FIELDS = re.compile(r'(?:count|percentage|eta|rate)_\d+')
+RE_SUBCOUNTER_FIELDS = re.compile(r'(?:count|percentage|eta|interval|rate)_\d+')
 
 
 class SubCounter(BaseCounter):
@@ -75,7 +75,7 @@ class SubCounter(BaseCounter):
         Args:
             color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
             count(int): Initial count (Default: 0)
-            all_fields(bool): Populate ``rate`` and ``eta`` fields (Default: False)
+            all_fields(bool): Populate ``rate``, ``interval``, and ``eta`` fields (Default: False)
         """
 
         if parent.count - parent.subcount - count < 0:
@@ -293,7 +293,8 @@ class Counter(PrintableCounter):
         - desc(:py:class:`str`) - Value of ``desc``
         - desc_pad(:py:class:`str`) - A single space if ``desc`` is set, otherwise empty
         - elapsed(:py:class:`str`) - Time elapsed since instance was created
-        - rate(:py:class:`float`) - Average increments per second since instance was created
+        - interval(:py:class:`float`) - Average seconds per iteration (inverse of rate)
+        - rate(:py:class:`float`) - Average iterations per second since instance was created
         - unit(:py:class:`str`) - Value of ``unit``
         - unit_pad(:py:class:`str`) - A single space if ``unit`` is set, otherwise empty
 
@@ -328,7 +329,8 @@ class Counter(PrintableCounter):
         ``all_fields`` set to :py:data:`True`:
 
         - eta_n (:py:class:`str`) - Estimated time to completion (``bar_format`` only)
-        - rate_n (:py:class:`float`) - Average increments per second since parent was created
+        - interval_n(:py:class:`float`) - Average seconds per iteration (inverse of rate)
+        - rate_n (:py:class:`float`) - Average iterations per second since parent was created
 
         User-defined fields:
 
@@ -448,7 +450,7 @@ class Counter(PrintableCounter):
         Each subcounter in the list will be in a tuple of (subcounter, percentage)
         Fields in the dictionary are addressed in the Format documentation of this class
 
-        When `bar_fields` is False, only subcounter count and rate fields are set.
+        When `bar_fields` is False, only subcounter count, interval, and rate fields are set.
         percentage will be set to 0.0
         """
 
@@ -472,13 +474,15 @@ class Counter(PrintableCounter):
 
             if subcounter.all_fields:
 
-                interations = abs(subcounter.count - subcounter.start_count)
+                interations = float(abs(subcounter.count - subcounter.start_count))
 
                 if elapsed:
                     # Use float to force to float in Python 2
-                    rate = fields['rate_{0}'.format(num)] = interations / float(elapsed)
+                    rate = fields['rate_{0}'.format(num)] = interations / elapsed
                 else:
                     rate = fields['rate_{0}'.format(num)] = 0.0
+
+                fields['interval_%s' % num] = rate ** -1 if rate else 0.0
 
                 if not bar_fields:
                     continue
@@ -507,7 +511,7 @@ class Counter(PrintableCounter):
 
         width = width or self.manager.width
 
-        iterations = abs(self.count - self.start_count)
+        iterations = float(abs(self.count - self.start_count))
 
         fields = self.fields.copy()
         fields.update(self._fields)
@@ -538,10 +542,11 @@ class Counter(PrintableCounter):
         # Get rate. Elapsed could be 0 if counter was not updated and has a zero total.
         if elapsed:
             # Use iterations so a counter running backwards is accurate
-            fields['rate'] = iterations / elapsed
+            rate = fields['rate'] = iterations / elapsed
         else:
-            fields['rate'] = 0.0
+            rate = fields['rate'] = 0.0
 
+        fields['interval'] = rate ** -1 if rate else 0.0
         # Only process bar if total was given and n doesn't exceed total
         if self.total is not None and self.count <= self.total:
 
@@ -557,9 +562,9 @@ class Counter(PrintableCounter):
                 percentage = self.count / float(self.total)
 
                 # Get eta
-                if fields['rate']:
+                if rate:
                     # Use iterations so a counter running backwards is accurate
-                    fields['eta'] = format_time((self.total - iterations) / fields['rate'])
+                    fields['eta'] = format_time((self.total - iterations) / rate)
                 else:
                     fields['eta'] = u'?'
 
@@ -648,7 +653,8 @@ class Counter(PrintableCounter):
     Args:
         color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         count(int): Initial count (Default: 0)
-        all_fields(bool): Populate ``rate`` and ``eta`` formatting fields (Default: False)
+        all_fields(bool): Populate ``rate``, ``interval``, and ``eta``
+            formatting fields (Default: False)
 
     Returns:
         :py:class:`SubCounter`: Subcounter instance

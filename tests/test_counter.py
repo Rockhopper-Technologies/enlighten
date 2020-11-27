@@ -276,12 +276,14 @@ class TestCounter(TestCase):
         self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.4), (subcounter3, 0.1)])
         self.assertEqual(fields, {'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
                                   'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'interval_2': 2.0, 'interval_3': 0.0,
                                   'rate_2': 0.5, 'eta_2': '00:12', 'rate_3': 0.0, 'eta_3': '?'})
 
         subcounters, fields = self.ctr._get_subcounters(0)
         self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.4), (subcounter3, 0.1)])
         self.assertEqual(fields, {'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
                                   'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'interval_2': 0.0, 'interval_3': 0.0,
                                   'rate_2': 0.0, 'eta_2': '?', 'rate_3': 0.0, 'eta_3': '?'})
 
         self.ctr = Counter(total=0, desc='Test', unit='ticks', manager=self.manager)
@@ -289,7 +291,7 @@ class TestCounter(TestCase):
         subcounters, fields = self.ctr._get_subcounters(8)
         self.assertEqual(subcounters, [(subcounter1, 0.0)])
         self.assertEqual(fields, {'percentage_1': 0.0, 'count_1': 0,
-                                  'rate_1': 0.0, 'eta_1': '00:00'})
+                                  'interval_1': 0.0, 'rate_1': 0.0, 'eta_1': '00:00'})
 
     def test_get_subcounter_counter_format(self):
         self.ctr.count = 12
@@ -301,6 +303,7 @@ class TestCounter(TestCase):
         subcounters, fields = self.ctr._get_subcounters(8, bar_fields=False)
         self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.0), (subcounter3, 0.0)])
         self.assertEqual(fields, {'count_1': 0, 'count_2': 6, 'count_3': 1,
+                                  'interval_2': 0.75 ** -1, 'interval_3': 0.0,
                                   'rate_2': 0.75, 'rate_3': 0.0})
 
     def test_remove(self):
@@ -785,3 +788,20 @@ class TestCounter(TestCase):
         with self.assertWarns(EnlightenWarning) as warn:
             ctr.format()
         self.assertRegex(__file__, warn.filename)
+
+    def test_builtin_bar_fields(self):
+        """
+        Ensure all built-in fields are populated as expected
+        """
+
+        bar_fields = tuple(field for field in enlighten._counter.COUNTER_FIELDS if field != 'fill')
+        bar_format = u', '.join(u'%s: {%s}' % (field, field) for field in sorted(bar_fields))
+
+        ctr = Counter(stream=self.tty.stdout, total=100, bar_format=bar_format,
+                      unit='parsecs', desc='Kessel runs')
+
+        ctr.count = 50
+        fields = 'bar: , count: 50, desc: Kessel runs, desc_pad:  , elapsed: 00:50, eta: 00:50, ' \
+                 'interval: 1.0, len_total: 3, percentage: 50.0, rate: 1.0, total: 100, ' \
+                 'unit: parsecs, unit_pad:  '
+        self.assertEqual(ctr.format(elapsed=50, width=80), fields)
