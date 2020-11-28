@@ -23,6 +23,7 @@ except NameError:
     BASESTRING = str
 
 BASE_DIR = os.path.basename(os.path.dirname(__file__))
+FORMAT_MAP_SUPPORT = sys.version_info[:2] >= (3, 2)
 
 
 class EnlightenWarning(Warning):
@@ -55,17 +56,17 @@ def format_time(seconds):
     # Always do minutes and seconds in mm:ss format
     minutes = seconds // 60
     hours = minutes // 60
-    rtn = u'{0:02.0f}:{1:02.0f}'.format(minutes % 60, seconds % 60)
+    rtn = u'%02.0f:%02.0f' % (minutes % 60, seconds % 60)
 
     #  Add hours if there are any
     if hours:
 
-        rtn = u'{0:d}h {1}'.format(int(hours % 24), rtn)
+        rtn = u'%dh %s' % (int(hours % 24), rtn)
 
         #  Add days if there are any
         days = int(hours // 24)
         if days:
-            rtn = u'{0:d}d {1}'.format(days, rtn)
+            rtn = u'%dd %s' % (days, rtn)
 
     return rtn
 

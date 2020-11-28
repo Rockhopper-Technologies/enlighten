@@ -18,7 +18,8 @@ import sys
 import time
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
-from enlighten._util import EnlightenWarning, format_time, raise_from_none, warn_best_level
+from enlighten._util import (EnlightenWarning, FORMAT_MAP_SUPPORT, format_time,
+                             raise_from_none, warn_best_level)
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -459,7 +460,7 @@ class Counter(PrintableCounter):
 
         for num, subcounter in enumerate(self._subcounters, 1):
 
-            fields['count_{0}'.format(num)] = subcounter.count
+            fields['count_%d' % num] = subcounter.count
 
             if self.total and bar_fields:
                 subPercentage = subcounter.count / float(self.total)
@@ -467,7 +468,7 @@ class Counter(PrintableCounter):
                 subPercentage = 0.0
 
             if bar_fields:
-                fields['percentage_{0}'.format(num)] = subPercentage * 100
+                fields['percentage_%d' % num] = subPercentage * 100
 
             # Save in tuple: count, percentage
             subcounters.append((subcounter, subPercentage))
@@ -478,21 +479,21 @@ class Counter(PrintableCounter):
 
                 if elapsed:
                     # Use float to force to float in Python 2
-                    rate = fields['rate_{0}'.format(num)] = interations / elapsed
+                    rate = fields['rate_%d' % num] = interations / elapsed
                 else:
-                    rate = fields['rate_{0}'.format(num)] = 0.0
+                    rate = fields['rate_%d' % num] = 0.0
 
-                fields['interval_%s' % num] = rate ** -1 if rate else 0.0
+                fields['interval_%d' % num] = rate ** -1 if rate else 0.0
 
                 if not bar_fields:
                     continue
 
                 if self.total == 0:
-                    fields['eta_{0}'.format(num)] = u'00:00'
+                    fields['eta_%d' % num] = u'00:00'
                 elif rate:
-                    fields['eta_{0}'.format(num)] = format_time((self.total - interations) / rate)
+                    fields['eta_%d' % num] = format_time((self.total - interations) / rate)
                 else:
-                    fields['eta_{0}'.format(num)] = u'?'
+                    fields['eta_%d' % num] = u'?'
 
         return subcounters, fields
 
@@ -581,7 +582,10 @@ class Counter(PrintableCounter):
 
             # Partially format
             try:
-                rtn = self.bar_format.format(**fields)
+                if FORMAT_MAP_SUPPORT:
+                    rtn = self.bar_format.format_map(fields)
+                else:  # pragma: no cover
+                    rtn = self.bar_format.format(**fields)
             except KeyError as e:
                 raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 
@@ -621,7 +625,10 @@ class Counter(PrintableCounter):
             fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
 
         try:
-            rtn = self.counter_format.format(**fields)
+            if FORMAT_MAP_SUPPORT:
+                rtn = self.counter_format.format_map(fields)
+            else:  # pragma: no cover
+                rtn = self.counter_format.format(**fields)
         except KeyError as e:
             raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 

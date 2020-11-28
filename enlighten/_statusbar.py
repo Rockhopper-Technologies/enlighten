@@ -14,7 +14,8 @@ Provides StatusBar class
 import time
 
 from enlighten._basecounter import PrintableCounter
-from enlighten._util import EnlightenWarning, format_time, Justify, raise_from_none, warn_best_level
+from enlighten._util import (EnlightenWarning, FORMAT_MAP_SUPPORT, format_time,
+                             Justify, raise_from_none, warn_best_level)
 
 
 STATUS_FIELDS = {'elapsed', 'fill'}
@@ -203,7 +204,10 @@ class StatusBar(PrintableCounter):
 
             # Format
             try:
-                rtn = self.status_format.format(**fields)
+                if FORMAT_MAP_SUPPORT:
+                    rtn = self.status_format.format_map(fields)
+                else:  # pragma: no cover
+                    rtn = self.status_format.format(**fields)
             except KeyError as e:
                 raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 
