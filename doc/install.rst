@@ -22,10 +22,8 @@ PIP
 RPM
 ---
 
-RPMs are available in the Fedora_ and EPEL_ repositories
-
-Fedora and EL8 (RHEL/CentOS/Scientific)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fedora and EL8 (RHEL/CentOS)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_ for EL8)
 
@@ -33,8 +31,8 @@ Fedora and EL8 (RHEL/CentOS/Scientific)
 
     $ dnf install python3-enlighten
 
-EL7 (RHEL/CentOS/Scientific)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EL7 (RHEL/CentOS)
+^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_)
 
@@ -44,6 +42,26 @@ EL7 (RHEL/CentOS/Scientific)
     $ yum install python36-enlighten
 
 
+PKG
+---
+
+Arch Linux
+^^^^^^^^^^
+
+.. code-block:: console
+
+    $ pacman -S python-enlighten
+
+
+DEB
+---
+
+Debian and Ubuntu
+^^^^^^^^^^^^^^^^^
+.. code-block:: console
+
+    $ apt-get install python3-enlighten
+
+
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
-.. _Fedora: https://fedoraproject.org/
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F

@@ -1,9 +1,9 @@
 .. start-badges
 
 | |docs| |travis| |codecov|
-| |pypi| |supported-versions| |supported-implementations|
 | |linux| |windows| |mac| |bsd|
-| |fedora| |EPEL|
+| |pypi| |supported-versions| |supported-implementations|
+| |Fedora| |EPEL| |Arch| |Debian| |Ubuntu|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
     :target: https://python-enlighten.readthedocs.org
@@ -45,13 +45,26 @@
     :alt: BSD supported
     :target: https://pypi.python.org/pypi/enlighten
 
-.. |fedora| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22f%22))].name&label=Fedora&colorB=lightgray&style=plastic&logo=fedora
-    :alt: Fedora version support
-    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
+.. |Fedora| image:: https://img.shields.io/fedora/v/python3-enlighten?color=lightgray&logo=Fedora&style=plastic&label=Fedora
+    :alt: Latest Fedora Version
+    :target: https://src.fedoraproject.org/rpms/python-enlighten
 
-.. |EPEL| image:: https://img.shields.io/badge/dynamic/json.svg?uri=https://pdc.fedoraproject.org/rest_api/v1/component-branches/?global_component=python-enlighten;fields=name;active=true;type=rpm&query=$.results[?(@.name.startsWith(%22e%22))].name&label=EPEL&colorB=lightgray&style=plastic&logo=epel
-    :alt: EPEL version support
-    :target: https://bodhi.fedoraproject.org/updates/?packages=python-enlighten
+.. |EPEL| image:: https://img.shields.io/fedora/v/python3-enlighten/epel8?color=lightgray&label=EPEL&logo=EPEL
+    :alt: Latest EPEL Version
+    :target: https://src.fedoraproject.org/rpms/python-enlighten
+
+.. |Arch| image:: https://img.shields.io/aur/version/python-enlighten?color=lightgray&logo=Arch%20Linux&style=plastic&label=Arch
+    :alt: Latest Arch Linux Version
+    :target: https://aur.archlinux.org/packages/python-enlighten
+
+.. |Debian| image:: https://img.shields.io/debian/v/enlighten/sid?color=lightgray&logo=Debian&style=plastic&label=Debian
+    :alt: Latest Debian Version
+    :target: https://packages.debian.org/source/sid/enlighten
+
+.. |Ubuntu| image:: https://img.shields.io/ubuntu/v/enlighten?color=lightgray&logo=Ubuntu&style=plastic&label=Ubuntu
+    :alt: Latest Ubuntu Version
+    :target: https://launchpad.net/ubuntu/+source/enlighten
+
 
 .. end-badges
 
@@ -86,22 +99,53 @@ PIP
 
     $ pip install enlighten
 
-EL6, EL7, and EL8 (RHEL/CentOS/Scientific)
-------------------------------------------
+
+RPM
+---
+
+Fedora and EL8 (RHEL/CentOS)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(EPEL_ repositories must be configured_ for EL8)
+
+.. code-block:: console
+
+    $ dnf install python3-enlighten
+
+EL7 (RHEL/CentOS)
+^^^^^^^^^^^^^^^^^
 
 (EPEL_ repositories must be configured_)
 
 .. code-block:: console
 
-    $ yum install python-enlighten
+    $ yum install python2-enlighten
+    $ yum install python36-enlighten
 
-Fedora
-------
+
+PKG
+---
+
+Arch Linux
+^^^^^^^^^^
 
 .. code-block:: console
 
-    $ dnf install python2-enlighten
-    $ dnf install python3-enlighten
+    $ pacman -S python-enlighten
+
+
+DEB
+---
+
+Debian and Ubuntu
+^^^^^^^^^^^^^^^^^
+.. code-block:: console
+
+    $ apt-get install python3-enlighten
+
+
+.. _EPEL: https://fedoraproject.org/wiki/EPEL
+.. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
 
 
 Examples
