@@ -254,25 +254,54 @@ class TestManager(TestCase):
 
     def test_write_no_flush(self):
         """
-        No real difference in our tests because stream is flushed on each new line
-        If we don't flush, reading will just hang
-
-        But we added this for coverage and as a framework future tests
+        Output is stored in buffer, but not flushed to stream
         """
 
-        msg = 'test message'
+        msg = u'test message'
 
         with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
-            manager = _manager.Manager(stream=self.tty.stdout)
+            manager = _manager.Manager(stream=self.tty.stdout, companion_stream=OUTPUT)
             counter = manager.counter(position=3)
             term = manager.term
             manager.write(msg, counter=counter, flush=False)
 
+        self.assertEqual(manager._buffer,
+                         [term.move(term.height - 3, 0), '\r', term.clear_eol, msg])
+        self.assertEqual(manager._companion_buffer, [])
+
         self.tty.stdout.write(u'X\n')
-        # Carriage return is getting converted to newline
-        self.assertEqual(self.tty.stdread.readline(),
-                         term.move(22, 0) + '\r' + term.clear_eol + msg + 'X\n')
+
+        # No output
+        self.assertEqual(self.tty.stdread.readline(), 'X\n')
         self.assertEqual(ssa.call_count, 2)
+
+    def test_flush_companion_buffer(self):
+
+        """
+        Output is stored in buffer, but only written in companion stream is defined
+        """
+
+        manager = _manager.Manager(stream=self.tty.stdout)
+        msg = u'test message'
+
+        manager._companion_buffer = [msg]
+
+        manager._flush_streams()
+
+        # Companion buffer flushed, but not outputted
+        self.assertEqual(manager._companion_buffer, [])
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(), 'X\n')
+
+        # set companion stream and test again
+        manager.companion_stream = OUTPUT
+        manager._companion_buffer = [msg]
+        manager._flush_streams()
+
+        self.assertEqual(manager._companion_buffer, [])
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(), 'X\n')
+        self.assertEqual(OUTPUT.getvalue(), msg)
 
     def test_autorefresh(self):
         """
@@ -317,8 +346,7 @@ class TestManager(TestCase):
         manager.scroll_offset = 4
 
         manager._set_scroll_area()
-        self.tty.stdout.write(u'X\n')
-        self.assertEqual(self.tty.stdread.readline(), manager.term.move(21, 0) + 'X\n')
+        self.assertEqual(manager._buffer, [manager.term.move(21, 0)])
 
     def test_set_scroll_area_companion(self):
         """
@@ -332,9 +360,9 @@ class TestManager(TestCase):
         term = manager.term
 
         manager._set_scroll_area()
-        self.tty.stdout.write(u'X\n')
-        self.assertEqual(self.tty.stdread.readline(),
-                         term.move(21, 0) + term.move(21, 0) + 'X\n')
+
+        self.assertEqual(manager._buffer, [term.move(21, 0)])
+        self.assertEqual(manager._companion_buffer, [term.move(21, 0)])
 
     def test_set_scroll_area(self):
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
@@ -344,39 +372,47 @@ class TestManager(TestCase):
         self.assertEqual(manager.scroll_offset, 1)
         self.assertFalse(manager.process_exit)
         self.assertNotEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        old_offset = manager.scroll_offset
 
         with mock.patch('enlighten._manager.atexit') as atexit:
-            with mock.patch.object(term, 'change_scroll'):
-                manager._set_scroll_area()
-                self.assertEqual(term.change_scroll.call_count, 1)  # pylint: disable=no-member
+            manager._set_scroll_area()
 
-            self.assertEqual(manager.scroll_offset, 4)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        self.assertEqual(manager.scroll_offset, 4)
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        self.assertTrue(manager.process_exit)
+        atexit.register.assert_called_with(manager._at_exit)
 
-            self.assertEqual(stdread.readline(), term.move(24, 0) + '\n')
-            self.assertEqual(stdread.readline(), '\n')
-            self.assertEqual(stdread.readline(), '\n')
+        offset = manager.scroll_offset
+        scroll_position = term.height - offset
+        self.assertEqual(manager._buffer,
+                         [term.move(term.height - old_offset, 0),
+                          '\n' * (offset - old_offset),
+                          term.hide_cursor, term.csr(0, scroll_position),
+                          term.move(scroll_position, 0)])
 
-            self.assertTrue(manager.process_exit)
+        # No companion buffer defined
+        self.assertEqual(manager._companion_buffer, [])
 
-            atexit.register.assert_called_with(manager._at_exit)
-
+        # Make sure nothing was flushed
         self.tty.stdout.write(u'X\n')
-        self.assertEqual(stdread.readline(), term.move(21, 0) + 'X\n')
+        self.assertEqual(stdread.readline(), 'X\n')
 
         # Run it again and make sure exit handling isn't reset
+        del manager._buffer[:]
+        del manager._companion_buffer[:]
         with mock.patch('enlighten._manager.atexit') as atexit:
-            with mock.patch.object(term, 'change_scroll'):
-                manager._set_scroll_area(force=True)
-                self.assertEqual(term.change_scroll.call_count, 1)  # pylint: disable=no-member
+            manager._set_scroll_area(force=True)
 
-            self.assertFalse(atexit.register.called)
+        self.assertFalse(atexit.register.called)
+        self.assertEqual(manager._buffer,
+                         [term.hide_cursor, term.csr(0, scroll_position),
+                          term.move(scroll_position, 0)])
 
         # Set max counter lower and make sure scroll_offset hasn't changed
         manager.counters['dummy'] = 1
         with mock.patch('enlighten._manager.atexit') as atexit:
-            with mock.patch.object(term, 'change_scroll'):
-                manager._set_scroll_area()
+            manager._set_scroll_area()
+
         self.assertEqual(manager.scroll_offset, 4)
 
     def test_set_scroll_area_height(self):
@@ -387,30 +423,31 @@ class TestManager(TestCase):
         term = manager.term
 
         with mock.patch('enlighten._manager.atexit') as atexit:
-            with mock.patch.object(term, 'change_scroll'):
-                manager._set_scroll_area()
-                self.assertEqual(term.change_scroll.call_count, 1)  # pylint: disable=no-member
+            manager._set_scroll_area()
 
             self.assertEqual(manager.scroll_offset, 4)
             self.assertEqual(manager.height, 25)
             self.assertTrue(manager.process_exit)
 
-            term.stream.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(21, 0) + 'X\n')
+            self.assertEqual(manager._buffer,
+                             [term.hide_cursor, term.csr(0, 21), term.move(21, 0)])
+            self.assertEqual(manager._companion_buffer, [])
             atexit.register.assert_called_with(manager._at_exit)
 
     def test_at_exit(self):
 
         tty = MockTTY()
 
-        with mock.patch('%s.reset' % TERMINAL) as reset:
+        try:
             with mock.patch.object(tty, 'stdout', wraps=tty.stdout) as mockstdout:
                 manager = _manager.Manager(stream=tty.stdout, counter_class=MockCounter)
                 term = manager.term
+                reset = (term.normal_cursor +
+                         term.csr(0, term.height - 1) +
+                         term.move(term.height, 0))
 
                 # process_exit is False
                 manager._at_exit()
-                self.assertFalse(reset.called)
                 self.assertFalse(mockstdout.flush.called)
                 # No output
                 tty.stdout.write(u'X\n')
@@ -420,129 +457,126 @@ class TestManager(TestCase):
                 manager.process_exit = True
                 manager.set_scroll = False
                 manager._at_exit()
-                self.assertFalse(reset.called)
                 self.assertEqual(mockstdout.flush.call_count, 1)
                 self.assertEqual(tty.stdread.readline(), term.move(25, 0) + term.cud1)
 
                 # process_exit is True, set_scroll True
                 manager.set_scroll = True
                 manager._at_exit()
-                self.assertEqual(reset.call_count, 1)
                 self.assertEqual(mockstdout.flush.call_count, 2)
-                self.assertEqual(tty.stdread.readline(), term.cud1)
+                self.assertEqual(tty.stdread.readline(), reset + term.cud1)
 
                 # Ensure companion stream gets flushed
                 manager.companion_stream = tty.stdout
                 manager._at_exit()
-                self.assertEqual(reset.call_count, 2)
                 self.assertEqual(mockstdout.flush.call_count, 4)
-                self.assertEqual(tty.stdread.readline(), term.cud1)
+                self.assertEqual(tty.stdread.readline(), reset + term.cud1)
 
                 term = manager.term
 
-                # Ensure no errors if tty closes before _at_exit is called
-                tty.close()
-                manager._at_exit()
+        finally:
+            # Ensure no errors if tty closes before _at_exit is called
+            tty.close()
+            manager._at_exit()
 
     def test_stop(self):
 
-        with mock.patch('%s.reset' % TERMINAL) as reset:
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-            manager.counters[MockCounter(manager=manager)] = 3
-            manager.counters[MockCounter(manager=manager)] = 4
-            term = manager.term
-            self.assertIsNone(manager.companion_term)
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager.counters[MockCounter(manager=manager)] = 3
+        manager.counters[MockCounter(manager=manager)] = 4
+        term = manager.term
+        self.assertIsNone(manager.companion_term)
 
-            with mock.patch('enlighten._manager.atexit'):
-                with mock.patch.object(term, 'change_scroll'):
-                    manager._set_scroll_area()
+        with mock.patch('enlighten._manager.atexit'):
+            manager._set_scroll_area()
 
-            self.assertEqual(manager.scroll_offset, 5)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
-            self.assertTrue(manager.process_exit)
+        self.assertEqual(manager.scroll_offset, 5)
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        self.assertTrue(manager.process_exit)
 
-            # Clear stream
-            self.tty.stdout.write(u'X\n')
-            for _ in range(4 + 1):
-                self.tty.stdread.readline()
+        # Clear buffer
+        del manager._buffer[:]
 
-            self.assertFalse(reset.called)
-            manager.enabled = False
-            manager.stop()
+        manager.enabled = False
+        manager.stop()
 
-            # No output, No changes
-            self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), 'X\n')
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
-            self.assertTrue(manager.process_exit)
+        # No output, No changes
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(), 'X\n')
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        self.assertTrue(manager.process_exit)
 
-            manager.enabled = True
-            manager.stop()
+        manager.enabled = True
+        manager.stop()
 
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
-            self.assertEqual(reset.call_count, 1)
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
 
-            self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eol +
-                             term.move(24, 0) + term.clear_eol + 'X\n')
-            self.assertFalse(manager.process_exit)
-            self.assertFalse(manager.enabled)
-            for counter in manager.counters:
-                self.assertFalse(counter.enabled)
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(),
+                         term.move(term.height - 2, 0) + term.clear_eol +
+                         term.move(term.height - 1, 0) + term.clear_eol +
+                         term.normal_cursor + term.csr(0, term.height - 1) +
+                         term.move(term.height, 0) + 'X\n')
+
+        self.assertFalse(manager.process_exit)
+        self.assertFalse(manager.enabled)
+        for counter in manager.counters:
+            self.assertFalse(counter.enabled)
 
     def test_stop_no_set_scroll(self):
         """
         set_scroll is False
         """
 
-        with mock.patch('%s.reset' % TERMINAL) as reset:
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                       set_scroll=False)
-            manager.counters[MockCounter(manager=manager)] = 3
-            manager.counters[MockCounter(manager=manager)] = 4
-            term = manager.term
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                   set_scroll=False)
+        manager.counters[MockCounter(manager=manager)] = 3
+        manager.counters[MockCounter(manager=manager)] = 4
+        term = manager.term
 
-            with mock.patch('enlighten._manager.atexit'):
-                with mock.patch.object(term, 'change_scroll'):
-                    manager._set_scroll_area()
+        with mock.patch('enlighten._manager.atexit'):
+            with mock.patch.object(term, 'change_scroll'):
+                manager._set_scroll_area()
 
-            self.assertEqual(manager.scroll_offset, 5)
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
-            self.assertTrue(manager.process_exit)
+        self.assertEqual(manager.scroll_offset, 5)
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
+        self.assertTrue(manager.process_exit)
 
-            # Stream empty
-            self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), 'X\n')
+        # Stream empty
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
-            manager.stop()
+        manager.stop()
 
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
-            self.assertFalse(reset.called)
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
+        self.assertFalse(manager.process_exit)
 
-            self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eol +
-                             term.move(24, 0) + term.clear_eol + term.move(25, 0) + 'X\n')
-            self.assertFalse(manager.process_exit)
+        self.tty.stdout.write(u'X\n')
+        self.assertEqual(self.tty.stdread.readline(),
+                         term.move(term.height - 2, 0) + term.clear_eol +
+                         term.move(term.height - 1, 0) + term.clear_eol +
+                         term.move(25, 0) + 'X\n')
 
     def test_stop_never_used(self):
         """
         In this case, _set_scroll_area() was never called
         """
 
-        with mock.patch('%s.reset' % TERMINAL) as reset:
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-            manager.counters[MockCounter(manager=manager)] = 3
-            manager.counters[MockCounter(manager=manager)] = 4
-            self.assertFalse(manager.process_exit)
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager.counters[MockCounter(manager=manager)] = 3
+        manager.counters[MockCounter(manager=manager)] = 4
+        term = manager.term
 
-            manager.stop()
+        self.assertFalse(manager.process_exit)
 
-            self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
-            self.assertEqual(reset.call_count, 1)
+        manager.stop()
 
-        # No output
+        self.assertEqual(signal.getsignal(signal.SIGWINCH), manager.sigwinch_orig)
+
+        # Only reset terminal
         self.tty.stdout.write(u'X\n')
-        self.assertEqual(self.tty.stdread.readline(), 'X\n')
+        reset = term.normal_cursor + term.csr(0, term.height - 1) + term.move(term.height, 0)
+        self.assertEqual(self.tty.stdread.readline(), reset + 'X\n')
 
     def test_stop_companion(self):
         """
@@ -557,13 +591,23 @@ class TestManager(TestCase):
         term = manager.term
 
         with mock.patch('enlighten._manager.atexit'):
-            with mock.patch.object(term, 'change_scroll'):
-                manager._set_scroll_area()
+            manager._set_scroll_area()
 
-        with mock.patch.object(manager.companion_term, 'reset') as compReset:
+        del manager._buffer[:]
+        del manager._companion_buffer[:]
+
+        with mock.patch.object(manager, '_flush_streams'):
             manager.stop()
 
-            self.assertEqual(compReset.call_count, 1)
+        self.assertEqual(manager._buffer,
+                         [term.move(term.height - 2, 0), term.clear_eol,
+                          term.move(term.height - 1, 0), term.clear_eol,
+                          term.normal_cursor, term.csr(0, term.height - 1),
+                          term.move(term.height, 0)])
+
+        self.assertEqual(manager._companion_buffer,
+                         [term.normal_cursor, term.csr(0, term.height - 1),
+                          term.move(term.height, 0)])
 
     def test_stop_position_1(self):
         """
@@ -571,17 +615,25 @@ class TestManager(TestCase):
         """
 
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        term = manager.term
 
         manager.counters[MockCounter(manager=manager)] = 3
-        with mock.patch.object(manager.term, 'feed') as termfeed:
+        with mock.patch.object(manager, '_flush_streams'):
             manager.stop()
-            self.assertFalse(termfeed.called)
 
+        self.assertEqual(manager._buffer,
+                         [term.normal_cursor, term.csr(0, term.height - 1),
+                          term.move(term.height, 0)])
+
+        del manager._buffer[:]
         manager.enabled = True
         manager.counters[MockCounter(manager=manager)] = 1
-        with mock.patch.object(manager.term, 'feed') as termfeed:
+        with mock.patch.object(manager, '_flush_streams'):
             manager.stop()
-            self.assertTrue(termfeed.called)
+
+        self.assertEqual(manager._buffer,
+                         [term.normal_cursor, term.csr(0, term.height - 1),
+                          term.move(term.height, 0), term.cud1 or '\n'])
 
     def test_resize(self):
         """
@@ -778,16 +830,14 @@ class TestManager(TestCase):
         with mock.patch.object(_manager.signal, 'signal',
                                wraps=_manager.signal.signal) as mocksignal:
 
-            with mock.patch('%s.reset' % TERMINAL):
+            # Test no resize signal stop
+            with mock.patch.object(_manager, 'RESIZE_SUPPORTED', False):
+                manager.stop()
+            self.assertFalse(mocksignal.called)
 
-                # Test no resize signal stop
-                with mock.patch.object(_manager, 'RESIZE_SUPPORTED', False):
-                    manager.stop()
-                self.assertFalse(mocksignal.called)
-
-                # Test normal case stop
-                stdmgr.stop()
-                self.assertTrue(mocksignal.called)
+            # Test normal case stop
+            stdmgr.stop()
+            self.assertTrue(mocksignal.called)
 
     def test_no_resize(self):
 
@@ -806,8 +856,7 @@ class TestManager(TestCase):
 
             self.assertFalse(mocksignal.called)
 
-            with mock.patch('%s.reset' % TERMINAL):
-                manager.stop()
+            manager.stop()
 
             self.assertFalse(mocksignal.called)
 

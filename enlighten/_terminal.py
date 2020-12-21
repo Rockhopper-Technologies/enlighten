@@ -26,41 +26,6 @@ class Terminal(_Terminal):
         super(Terminal, self).__init__(*args, **kwargs)
         self._cache = {}
 
-    def reset(self):
-        """
-        Reset scroll window and cursor to default
-        """
-
-        self.stream.write(self.normal_cursor)
-        self.stream.write(self.csr(0, self.height - 1))
-        self.stream.write(self.move(self.height, 0))
-
-    def feed(self):
-        """
-        Feed a single line
-        """
-
-        self.stream.write(self.cud1 or '\n')
-
-    def change_scroll(self, position):
-        """
-        Args:
-            position (int): Vertical location to end scroll window
-
-        Change scroll window
-        """
-
-        self.stream.write(self.hide_cursor)
-        self.stream.write(self.csr(0, position))
-        self.stream.write(self.move(position, 0))
-
-    def move_to(self, x_pos, y_pos):
-        """
-        Move cursor to specified position
-        """
-
-        self.stream.write(self.move(y_pos, x_pos))
-
     def _height_and_width(self):
         """
         Override for blessings.Terminal._height_and_width

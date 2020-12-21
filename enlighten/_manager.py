@@ -99,6 +99,8 @@ class Manager(object):
             self.companion_term = None
 
         self.autorefresh = []
+        self._buffer = []
+        self._companion_buffer = []
         self.height = self.term.height
         self.process_exit = False
         self.refresh_lock = False
@@ -290,6 +292,7 @@ class Manager(object):
         except AssertionError:
 
             self.resize_lock = True
+            buffer = self._buffer
             term = self.term
 
             term.clear_cache()
@@ -297,14 +300,14 @@ class Manager(object):
             newWidth = term.width
 
             if newHeight < self.height:
-                term.move_to(0, max(0, newHeight - self.scroll_offset))
-                self.stream.write(u'\n' * (2 * max(self.counters.values())))
+                buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
+                buffer.append(u'\n' * (2 * max(self.counters.values())))
             elif newHeight > self.height and self.threaded:
-                term.move_to(0, newHeight)
-                self.stream.write(u'\n' * (self.scroll_offset - 1))
+                buffer.append(term.move(newHeight, 0))
+                buffer.append(u'\n' * (self.scroll_offset - 1))
 
-            term.move_to(0, max(0, newHeight - self.scroll_offset))
-            self.stream.write(term.clear_eos)
+            buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
+            buffer.append(term.clear_eos)
 
             self.width = newWidth
             self._set_scroll_area(force=True)
@@ -344,6 +347,7 @@ class Manager(object):
 
         if self.set_scroll:
 
+            buffer = self._buffer
             term = self.term
             newHeight = term.height
             scrollPosition = max(0, newHeight - self.scroll_offset)
@@ -353,25 +357,38 @@ class Manager(object):
 
                 # Add line feeds so we don't overwrite existing output
                 if use_new:
-                    term.move_to(0, max(0, newHeight - oldOffset))
-                    self.stream.write(u'\n' * (newOffset - oldOffset))
+                    buffer.append(term.move(max(0, newHeight - oldOffset), 0))
+                    buffer.append(u'\n' * (newOffset - oldOffset))
 
                 # Reset scroll area
-                self.term.change_scroll(scrollPosition)
+                buffer.append(term.hide_cursor)
+                buffer.append(term.csr(0, scrollPosition))
 
             # Always reset position
-            term.move_to(0, scrollPosition)
+            buffer.append(term.move(scrollPosition, 0))
             if self.companion_term is not None:
-                self.companion_term.move_to(0, scrollPosition)
+                self._companion_buffer.append(term.move(scrollPosition, 0))
 
     def _flush_streams(self):
         """
         Convenience method for flushing streams
         """
 
+        buffer = self._buffer
+        companion_buffer = self._companion_buffer
+
+        if buffer:
+            self.stream.write(u''.join(buffer))
+
         self.stream.flush()
+
         if self.companion_stream is not None:
+            if companion_buffer:
+                self.companion_stream.write(u''.join(companion_buffer))
             self.companion_stream.flush()
+
+        del buffer[:]  # Python 2.7 does not support list.clear()
+        del companion_buffer[:]
 
     def _at_exit(self):
         """
@@ -383,13 +400,14 @@ class Manager(object):
 
         try:
             term = self.term
+            buffer = self._buffer
 
             if self.set_scroll:
-                term.reset()
-            else:
-                term.move_to(0, term.height)
+                buffer.append(self.term.normal_cursor)
+                buffer.append(self.term.csr(0, self.height - 1))
 
-            self.term.feed()
+            buffer.append(term.move(term.height, 0))
+            buffer.append(term.cud1 or u'\n')
 
             self._flush_streams()
 
@@ -432,8 +450,8 @@ class Manager(object):
         if not self.enabled:
             return
 
+        buffer = self._buffer
         term = self.term
-        stream = self.stream
         positions = self.counters.values()
 
         if not self.no_resize and RESIZE_SUPPORTED:
@@ -442,20 +460,22 @@ class Manager(object):
         try:
             for num in range(self.scroll_offset - 1, 0, -1):
                 if num not in positions:
-                    term.move_to(0, term.height - num)
-                    stream.write(term.clear_eol)
+                    buffer.append(term.move(term.height - num, 0))
+                    buffer.append(term.clear_eol)
 
         finally:
 
+            # Reset terminal
             if self.set_scroll:
-
-                self.term.reset()
-
+                buffer.append(term.normal_cursor)
+                buffer.append(term.csr(0, self.height - 1))
                 if self.companion_term:
-                    self.companion_term.reset()
+                    self._companion_buffer.extend((term.normal_cursor,
+                                                   term.csr(0, self.height - 1),
+                                                   term.move(term.height, 0)))
 
-            else:
-                term.move_to(0, term.height)
+            # Re-home cursor
+            buffer.append(term.move(term.height, 0))
 
             self.process_exit = False
             self.enabled = False
@@ -464,7 +484,7 @@ class Manager(object):
 
         # Feed terminal if lowest position isn't cleared
         if 1 in positions:
-            term.feed()
+            buffer.append(term.cud1 or '\n')
 
         self._flush_streams()
 
@@ -504,9 +524,10 @@ class Manager(object):
             output = output(**kwargs)
 
         try:
-            term.move_to(0, term.height - position)
-            # Include \r and term call to cover most conditions
-            self.stream.write(u'\r' + term.clear_eol + output)
+            self._buffer.extend((term.move(term.height - position, 0),
+                                 u'\r',
+                                 term.clear_eol,
+                                 output))
 
         finally:
             # Reset position and scrolling
