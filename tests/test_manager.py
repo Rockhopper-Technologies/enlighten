@@ -19,7 +19,7 @@ from tests import (unittest, TestCase, mock, MockTTY, MockCounter,
                    redirect_output, OUTPUT, STDOUT_NO_FD)
 
 
-TERMINAL = 'enlighten._terminal.Terminal'
+TERMINAL = 'blessed.Terminal'
 
 
 # pylint: disable=missing-docstring, protected-access, too-many-statements, too-many-public-methods
@@ -415,22 +415,24 @@ class TestManager(TestCase):
 
         self.assertEqual(manager.scroll_offset, 4)
 
-    def test_set_scroll_area_height(self):
+    def test_set_scroll_area_force(self):
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
         manager.scroll_offset = 4
         manager.height = 20
+        scroll_position = manager.height - manager.scroll_offset
         term = manager.term
 
         with mock.patch('enlighten._manager.atexit') as atexit:
-            manager._set_scroll_area()
+            manager._set_scroll_area(force=True)
 
             self.assertEqual(manager.scroll_offset, 4)
-            self.assertEqual(manager.height, 25)
             self.assertTrue(manager.process_exit)
 
             self.assertEqual(manager._buffer,
-                             [term.hide_cursor, term.csr(0, 21), term.move(21, 0)])
+                             [term.hide_cursor,
+                              term.csr(0, scroll_position),
+                              term.move(scroll_position, 0)])
             self.assertEqual(manager._companion_buffer, [])
             atexit.register.assert_called_with(manager._at_exit)
 
@@ -724,8 +726,7 @@ class TestManager(TestCase):
                 manager._resize_handler()
             self.assertEqual(ssa.call_count, 1)
 
-            # Height is set in _set_scroll_area which is mocked
-            self.assertEqual(manager.height, 25)
+            self.assertEqual(manager.height, 23)
 
             self.assertEqual(self.tty.stdread.readline(), manager.term.move(19, 0) + '\n')
             for _ in range(5):
@@ -749,8 +750,7 @@ class TestManager(TestCase):
                 manager._resize_handler()
             self.assertEqual(ssa.call_count, 1)
 
-            # Height is set in _set_scroll_area which is mocked
-            self.assertEqual(manager.height, 25)
+            self.assertEqual(manager.height, 27)
 
             self.tty.stdout.write(u'X\n')
             self.assertEqual(self.tty.stdread.readline(), term.move(27, 0) + '\n')

@@ -18,9 +18,10 @@ import sys
 import threading
 import time
 
+from blessed import Terminal
+
 from enlighten._counter import Counter
 from enlighten._statusbar import StatusBar
-from enlighten._terminal import Terminal
 
 RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
 
@@ -295,14 +296,14 @@ class Manager(object):
             buffer = self._buffer
             term = self.term
 
-            term.clear_cache()
-            newHeight = term.height
+            oldHeight = self.height
+            newHeight = self.height = term.height
             newWidth = term.width
 
-            if newHeight < self.height:
+            if newHeight < oldHeight:
                 buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
                 buffer.append(u'\n' * (2 * max(self.counters.values())))
-            elif newHeight > self.height and self.threaded:
+            elif newHeight > oldHeight and self.threaded:
                 buffer.append(term.move(newHeight, 0))
                 buffer.append(u'\n' * (self.scroll_offset - 1))
 
@@ -349,15 +350,13 @@ class Manager(object):
 
             buffer = self._buffer
             term = self.term
-            newHeight = term.height
-            scrollPosition = max(0, newHeight - self.scroll_offset)
+            scrollPosition = max(0, self.height - self.scroll_offset)
 
-            if force or use_new or newHeight != self.height:
-                self.height = newHeight
+            if force or use_new:
 
                 # Add line feeds so we don't overwrite existing output
                 if use_new:
-                    buffer.append(term.move(max(0, newHeight - oldOffset), 0))
+                    buffer.append(term.move(max(0, self.height - oldOffset), 0))
                     buffer.append(u'\n' * (newOffset - oldOffset))
 
                 # Reset scroll area
@@ -452,6 +451,7 @@ class Manager(object):
 
         buffer = self._buffer
         term = self.term
+        height = term.height
         positions = self.counters.values()
 
         if not self.no_resize and RESIZE_SUPPORTED:
@@ -460,7 +460,7 @@ class Manager(object):
         try:
             for num in range(self.scroll_offset - 1, 0, -1):
                 if num not in positions:
-                    buffer.append(term.move(term.height - num, 0))
+                    buffer.append(term.move(height - num, 0))
                     buffer.append(term.clear_eol)
 
         finally:
@@ -472,10 +472,10 @@ class Manager(object):
                 if self.companion_term:
                     self._companion_buffer.extend((term.normal_cursor,
                                                    term.csr(0, self.height - 1),
-                                                   term.move(term.height, 0)))
+                                                   term.move(height, 0)))
 
             # Re-home cursor
-            buffer.append(term.move(term.height, 0))
+            buffer.append(term.move(height, 0))
 
             self.process_exit = False
             self.enabled = False
@@ -524,7 +524,7 @@ class Manager(object):
             output = output(**kwargs)
 
         try:
-            self._buffer.extend((term.move(term.height - position, 0),
+            self._buffer.extend((term.move(self.height - position, 0),
                                  u'\r',
                                  term.clear_eol,
                                  output))
