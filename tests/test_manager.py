@@ -331,6 +331,17 @@ class TestManager(TestCase):
         self.assertRegex(output, 'counter2')
         self.assertNotRegex(output, 'counter1')
 
+        # If already auto-refreshing, skip
+        manager.refresh_lock = True
+        counter1.last_update = 0
+        counter2.refresh()
+        # Have to explicitly flush
+        manager._flush_streams()
+        self.tty.stdout.write(u'X\n')
+        output = self.tty.stdread.readline()
+        self.assertRegex(output, 'counter2')
+        self.assertNotRegex(output, 'counter1')
+
     def test_set_scroll_area_disabled(self):
         manager = _manager.Manager(stream=self.tty.stdout,
                                    counter_class=MockCounter, set_scroll=False)

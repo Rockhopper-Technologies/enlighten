@@ -288,36 +288,35 @@ class Manager(object):
         """
 
         # Make sure only one resize handler is running
-        try:
-            assert self.resize_lock
-        except AssertionError:
+        if self.resize_lock:
+            return
 
-            self.resize_lock = True
-            buffer = self._buffer
-            term = self.term
+        self.resize_lock = True
+        buffer = self._buffer
+        term = self.term
 
-            oldHeight = self.height
-            newHeight = self.height = term.height
-            newWidth = term.width
+        oldHeight = self.height
+        newHeight = self.height = term.height
+        newWidth = term.width
 
-            if newHeight < oldHeight:
-                buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
-                buffer.append(u'\n' * (2 * max(self.counters.values())))
-            elif newHeight > oldHeight and self.threaded:
-                buffer.append(term.move(newHeight, 0))
-                buffer.append(u'\n' * (self.scroll_offset - 1))
-
+        if newHeight < oldHeight:
             buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
-            buffer.append(term.clear_eos)
+            buffer.append(u'\n' * (2 * max(self.counters.values())))
+        elif newHeight > oldHeight and self.threaded:
+            buffer.append(term.move(newHeight, 0))
+            buffer.append(u'\n' * (self.scroll_offset - 1))
 
-            self.width = newWidth
-            self._set_scroll_area(force=True)
+        buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
+        buffer.append(term.clear_eos)
 
-            for counter in self.counters:
-                counter.refresh(flush=False)
-            self._flush_streams()
+        self.width = newWidth
+        self._set_scroll_area(force=True)
 
-            self.resize_lock = False
+        for counter in self.counters:
+            counter.refresh(flush=False)
+        self._flush_streams()
+
+        self.resize_lock = False
 
     def _set_scroll_area(self, force=False):
         """
@@ -546,22 +545,17 @@ class Manager(object):
         Refresh any bars specified for auto-refresh
         """
 
-        # Make sure this is only running once
-        try:
-            assert self.refresh_lock
-        except AssertionError:
+        self.refresh_lock = True
+        current_time = time.time()
 
-            self.refresh_lock = True
-            current_time = time.time()
+        for counter in self.autorefresh:
 
-            for counter in self.autorefresh:
+            if counter in exclude or counter.min_delta > current_time - counter.last_update:
+                continue
 
-                if counter in exclude or counter.min_delta > current_time - counter.last_update:
-                    continue
+            counter.refresh()
 
-                counter.refresh()
-
-            self.refresh_lock = False
+        self.refresh_lock = False
 
 
 def get_manager(stream=None, counterclass=Counter, **kwargs):
