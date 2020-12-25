@@ -13,6 +13,7 @@ Provides Manager class
 
 import atexit
 from collections import OrderedDict
+import multiprocessing
 import signal
 import sys
 import threading
@@ -39,7 +40,7 @@ class Manager(object):
         enabled(bool): Status (Default: True)
         no_resize(bool): Disable resizing support
         threaded(bool): When True resize handling is deferred until next write (Default: False
-            unless multiple threads are detected)
+            unless multiple threads or multiple processes are detected)
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -74,7 +75,12 @@ class Manager(object):
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
         self.no_resize = kwargs.pop('no_resize', False)
         self.set_scroll = kwargs.pop('set_scroll', True)
-        self.threaded = kwargs.pop('threaded', threading.active_count() > 1)
+        self.threaded = kwargs.pop(
+            'threaded',
+            (threading.active_count() > 1  # Multiple threads
+             or bool(multiprocessing.active_children())  # Main process with children
+             or multiprocessing.current_process().name != 'MainProcess')  # Child process
+        )
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
