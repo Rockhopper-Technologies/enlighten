@@ -51,7 +51,7 @@ does not reference a valid TTY.
     eol
 
 Can you add support for _______ terminal?
----------------------------------------------------
+-----------------------------------------
 
 We are happy to add support for as many terminals as we can.
 However, not all terminals can be supported. There a few requirements.
@@ -79,3 +79,18 @@ However, not all terminals can be supported. There a few requirements.
   3. Terminal dimensions must be detectable
 
       The height and width of the terminal must be available to the running process.
+
+Why does ``RuntimeError: reentrant call`` get raised sometimes during a resize?
+-------------------------------------------------------------------------------
+
+This is caused when another thread or process is writing to a standard stream (STDOUT, STDERR)
+at the same time the resize signal handler is writing to the stream.
+
+Enlighten tries to detect when a program is threaded or running multiple processes and defer
+resize handling until the next normal write event. However, this condition is evaluated when
+the scroll area is set, typically when the first counter is added. If no threads or processes
+are detected at that time, and the value of threaded was not set explicitly, resize events will not
+be deferred.
+
+In order to guarantee resize handling is deferred, it is best to pass ``threaded=True`` when
+creating a manager instance.
