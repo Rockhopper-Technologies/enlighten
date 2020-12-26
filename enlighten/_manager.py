@@ -75,12 +75,7 @@ class Manager(object):
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
         self.no_resize = kwargs.pop('no_resize', False)
         self.set_scroll = kwargs.pop('set_scroll', True)
-        self.threaded = kwargs.pop(
-            'threaded',
-            (threading.active_count() > 1  # Multiple threads
-             or bool(multiprocessing.active_children())  # Main process with children
-             or multiprocessing.current_process().name != 'MainProcess')  # Child process
-        )
+        self.threaded = kwargs.pop('threaded', None)  # Defer evaluation
         self.term = Terminal(stream=self.stream)
 
         # Set up companion stream
@@ -348,6 +343,12 @@ class Manager(object):
         if not self.process_exit:
             atexit.register(self._at_exit)
             if not self.no_resize and RESIZE_SUPPORTED:
+                if self.threaded is None:
+                    self.threaded = (
+                        threading.active_count() > 1  # Multiple threads
+                        or multiprocessing.active_children()  # Main process with children
+                        or multiprocessing.current_process().name != 'MainProcess'  # Child process
+                    )
                 signal.signal(signal.SIGWINCH, self._stage_resize)
             self.process_exit = True
 

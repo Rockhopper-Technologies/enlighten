@@ -689,6 +689,54 @@ class TestManager(TestCase):
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
+    def test_threaded_eval(self):
+        """
+        Dynamic value for threaded determined when scroll area is first set
+        """
+
+        # Not dynamic if explicitly True
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter, threaded=True)
+        self.assertTrue(manager.threaded)
+        with mock.patch('threading.active_count', return_value=4):
+            manager.counter()
+        self.assertTrue(manager.threaded)
+
+        # Not dynamic if explicitly False
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                   threaded=False)
+        self.assertFalse(manager.threaded)
+        with mock.patch('threading.active_count', return_value=4):
+            manager.counter()
+        self.assertFalse(manager.threaded)
+
+        # False by default
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        self.assertIsNone(manager.threaded)
+        manager.counter()
+        self.assertFalse(manager.threaded)
+
+        # True if threaded
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        self.assertIsNone(manager.threaded)
+        with mock.patch('threading.active_count', return_value=4):
+            manager.counter()
+        self.assertTrue(manager.threaded)
+
+        # True if has child processes
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        self.assertIsNone(manager.threaded)
+        with mock.patch('multiprocessing.active_children', return_value=[1, 2]):
+            manager.counter()
+        self.assertTrue(manager.threaded)
+
+        # True if is child processes
+        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        self.assertIsNone(manager.threaded)
+        with mock.patch('multiprocessing.current_process') as c_process:
+            c_process.name = 'Process1'
+            manager.counter()
+        self.assertTrue(manager.threaded)
+
     def test_resize_threaded(self):
         """
         Test a resize event threading behavior
