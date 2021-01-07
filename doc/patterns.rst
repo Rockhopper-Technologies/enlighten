@@ -62,7 +62,7 @@ can be used as context managers.
 Automatic Updating
 ------------------
 
-Both :py:class:`~enlighten.Counter` and Both :py:class:`~enlighten.SubCounter` instances can be
+Both :py:class:`~enlighten.Counter` and :py:class:`~enlighten.SubCounter` instances can be
 called as functions on one or more iterators. A generator is returned which yields each element of
 the iterables and then updates the count by 1.
 
@@ -89,7 +89,7 @@ the iterables and then updates the count by 1.
 User-defined fields
 -------------------
 
-Both :py:class:`~enlighten.Counter` and Both :py:class:`~enlighten.StatusBar` accept
+Both :py:class:`~enlighten.Counter` and :py:class:`~enlighten.StatusBar` accept
 user defined fields as keyword arguments at initialization and during an update.
 These fields are persistent and only need to be specified when they change.
 
