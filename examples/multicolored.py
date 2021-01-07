@@ -84,7 +84,7 @@ class Node(object):
 def run_tests(manager, tests=100):
     """
     Simulate a test program
-    Tests will error (white), fail (red), or succeed (green)
+    Tests will error (yellow), fail (red), or succeed (green)
     """
 
     terminal = manager.term
@@ -116,7 +116,7 @@ def run_tests(manager, tests=100):
 def load(manager, units=80):
     """
     Simulate loading services from a remote node
-    States are connecting (red), loading(yellow), and loaded (green)
+    States are connecting (red), loading (yellow), and loaded (green)
     """
 
     pb_connecting = manager.counter(total=units, desc='Loading', unit='services',
