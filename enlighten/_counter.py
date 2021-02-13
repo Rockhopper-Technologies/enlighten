@@ -427,11 +427,9 @@ class Counter(PrintableCounter):
 
         # Clock stops running when total is reached
         if self.count == self.total:
-            elapsed = self.last_update - self.start
-        else:
-            elapsed = time.time() - self.start
+            return self.last_update - self.start
 
-        return elapsed
+        return time.time() - self.start
 
     @property
     def subcount(self):
