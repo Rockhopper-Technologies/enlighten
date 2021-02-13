@@ -586,6 +586,22 @@ class TestCounter(TestCase):
         formatted = ctr.format(elapsed=50, width=80)
         self.assertEqual(formatted, u'350 | 50 1.0 | 100 | 150')
 
+    def test_subcounter_count_0(self):
+        """
+        When all of count is covered by subcounters, nothing should print for main counter
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=100, bar_format=u'{bar}')
+        term = ctr.manager.term
+        ctr.count = 50
+        ctr.add_subcounter('yellow', count=44)
+        ctr.add_subcounter('blue', count=4)
+        ctr.add_subcounter('red', count=2)
+
+        formatted = ctr.format(width=80)
+        bartext = term.red(BLOCK*2) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 40
+        self.assertEqual(formatted, bartext)
+
     def test_close(self):
         manager = MockManager()
 
