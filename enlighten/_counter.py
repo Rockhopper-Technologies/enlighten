@@ -548,77 +548,108 @@ class Counter(PrintableCounter):
             rate = fields['rate'] = 0.0
 
         fields['interval'] = rate ** -1 if rate else 0.0
+
         # Only process bar if total was given and n doesn't exceed total
         if self.total is not None and self.count <= self.total:
-
-            fields['len_total'] = len(str(self.total))
-
-            # Get percentage
-            if self.total == 0:
-                # If total is 0, force to 100 percent
-                percentage = 1
-                fields['eta'] = u'00:00'
-            else:
-                # Use float to force to float in Python 2
-                percentage = self.count / float(self.total)
-
-                # Get eta
-                if rate:
-                    # Use iterations so a counter running backwards is accurate
-                    fields['eta'] = format_time((self.total - iterations) / rate)
-                else:
-                    fields['eta'] = u'?'
-
-            fields['percentage'] = percentage * 100
-
-            # Have to go through subcounters here so the fields are available
-            subcounters, subFields = self._get_subcounters(elapsed)
-
-            # Calculate count and percentage for remainder
-            if subcounters:
-                fields.update(subFields)
-                subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
-                fields['count_0'] = self.count - subcount
-                subpercentage = sum(sub[1] for sub in subcounters)
-                fields['percentage_00'] = subpercentage * 100
-                fields['percentage_0'] = (percentage - subpercentage) * 100
-
-            # Partially format
-            try:
-                if FORMAT_MAP_SUPPORT:
-                    rtn = self.bar_format.format_map(fields)
-                else:  # pragma: no cover
-                    rtn = self.bar_format.format(**fields)
-            except KeyError as e:
-                raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
-
-            # Format the bar
-            if self.offset is None:
-                barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
-            else:
-                # Offset was explicitly given
-                barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
-
-            complete = barWidth * percentage
-            barLen = int(complete)
-            barText = u''
-            subOffset = 0
-
-            for subcounter, subPercentage in reversed(subcounters):
-                subLen = int(barWidth * subPercentage)
-                # pylint: disable=protected-access
-                barText += subcounter._colorize(self.series[-1] * subLen)
-                subOffset += subLen
-
-            barText += self.series[-1] * (barLen - subOffset)
-
-            if barLen < barWidth:
-                barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
-                barText += self.series[0] * (barWidth - barLen - 1)
-
-            return rtn.format(self._colorize(barText))
+            return self._format_bar(fields, iterations, width, elapsed)
 
         # Otherwise return a counter
+        return self._format_counter(fields, width, elapsed)
+
+    def _format_bar(self, fields, iterations, width, elapsed):
+        """
+        Args:
+            fields (dict): Initial set of formatting fields
+            iterations (float): Absolute value of count change from start
+            width (int): Width in columns to make progress bar
+            elapsed(float): Time since started
+
+        Returns:
+            :py:class:`str`: Formatted progress bar
+
+        Format progress bar
+        """
+
+        fields['len_total'] = len(str(self.total))
+
+        # Get percentage
+        if self.total == 0:
+            # If total is 0, force to 100 percent
+            percentage = 1
+            fields['eta'] = u'00:00'
+        else:
+            # Use float to force to float in Python 2
+            percentage = self.count / float(self.total)
+            rate = fields['rate']
+
+            # Get eta
+            if rate:
+                # Use iterations so a counter running backwards is accurate
+                fields['eta'] = format_time((self.total - iterations) / rate)
+            else:
+                fields['eta'] = u'?'
+
+        fields['percentage'] = percentage * 100
+
+        # Have to go through subcounters here so the fields are available
+        subcounters, subFields = self._get_subcounters(elapsed)
+
+        # Calculate count and percentage for remainder
+        if subcounters:
+            fields.update(subFields)
+            subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
+            fields['count_0'] = self.count - subcount
+            subpercentage = sum(sub[1] for sub in subcounters)
+            fields['percentage_00'] = subpercentage * 100
+            fields['percentage_0'] = (percentage - subpercentage) * 100
+
+        # Partially format
+        try:
+            if FORMAT_MAP_SUPPORT:
+                rtn = self.bar_format.format_map(fields)
+            else:  # pragma: no cover
+                rtn = self.bar_format.format(**fields)
+        except KeyError as e:
+            raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
+
+        # Format the bar
+        if self.offset is None:
+            barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
+        else:
+            # Offset was explicitly given
+            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+
+        complete = barWidth * percentage
+        barLen = int(complete)
+        barText = u''
+        subOffset = 0
+
+        for subcounter, subPercentage in reversed(subcounters):
+            subLen = int(barWidth * subPercentage)
+            # pylint: disable=protected-access
+            barText += subcounter._colorize(self.series[-1] * subLen)
+            subOffset += subLen
+
+        barText += self.series[-1] * (barLen - subOffset)
+
+        if barLen < barWidth:
+            barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
+            barText += self.series[0] * (barWidth - barLen - 1)
+
+        return rtn.format(self._colorize(barText))
+
+    def _format_counter(self, fields, width, elapsed):
+        """
+        Args:
+            fields (dict): Initial set of formatting fields
+            width (int): Width in columns to make progress bar
+            elapsed(float): Time since started
+
+        Returns:
+            :py:class:`str`: Formatted counter
+
+        Format counter
+        """
 
         # Update fields from subcounters
         fields['fill'] = u'{0}'
