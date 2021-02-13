@@ -576,7 +576,7 @@ class TestCounter(TestCase):
         """
         When total is exceeded, subcounter fields are still populated
         """
-        counter_format = u'{count_0} | {count_1} {rate_1} | {count_2}'
+        counter_format = u'{count_0} | {count_1} {rate_1} | {count_2} | {count_00}'
         ctr = Counter(stream=self.tty.stdout, total=100, counter_format=counter_format)
 
         ctr.count = 500
@@ -584,7 +584,7 @@ class TestCounter(TestCase):
         subcounter1.count = 50
         ctr.add_subcounter('blue', count=100)
         formatted = ctr.format(elapsed=50, width=80)
-        self.assertEqual(formatted, u'350 | 50 1.0 | 100')
+        self.assertEqual(formatted, u'350 | 50 1.0 | 100 | 150')
 
     def test_close(self):
         manager = MockManager()

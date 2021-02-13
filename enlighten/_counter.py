@@ -627,7 +627,8 @@ class Counter(PrintableCounter):
         subcounters, subFields = self._get_subcounters(elapsed, bar_fields=False)
         if subcounters:
             fields.update(subFields)
-            fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
+            subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
+            fields['count_0'] = self.count - subcount
 
         try:
             if FORMAT_MAP_SUPPORT:
