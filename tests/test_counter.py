@@ -567,10 +567,10 @@ class TestCounter(TestCase):
         self.assertEqual(formatted, bartext)
 
         ctr.bar_format = u'{count_0} {percentage_0} | {count_1} {percentage_1} {rate_1} {eta_1}' + \
-                         u' | {count_2} {percentage_2}'
+                         u' | {count_2} {percentage_2} | {count_00} {percentage_00:.1f}'
 
         formatted = ctr.format(elapsed=5, width=80)
-        self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0')
+        self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0 | 15 15.0')
 
     def test_subcounter_count_gt_total(self):
         """

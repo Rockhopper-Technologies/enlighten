@@ -194,9 +194,11 @@ By default, when multicolored progress bars are used, additional fields are avai
 
     - count_n (:py:class:`int`) - Current value of ``count``
     - count_0(:py:class:`int`) - Remaining count after deducting counts for all subcounters
+    - count_00 (:py:class:`int`) - Sum of counts from all subcounters
     - percentage_n (:py:class:`float`) - Percentage complete
     - percentage_0(:py:class:`float`) - Remaining percentage after deducting percentages
       for all subcounters
+    - percentage_00 (:py:class:`float`) - Total of percentages from all subcounters
 
 When :py:meth:`add_subcounter` is called with ``all_fields`` set to :py:data:`True`,
 the subcounter will have the additional fields:

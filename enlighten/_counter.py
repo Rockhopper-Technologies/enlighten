@@ -316,9 +316,11 @@ class Counter(PrintableCounter):
 
         - count_n (:py:class:`int`) - Current value of ``count``
         - count_0(:py:class:`int`) - Remaining count after deducting counts for all subcounters
+        - count_00 (:py:class:`int`) - Sum of counts from all subcounters
         - percentage_n (:py:class:`float`) - Percentage complete (``bar_format`` only)
         - percentage_0(:py:class:`float`) - Remaining percentage after deducting percentages
           for all subcounters (``bar_format`` only)
+        - percentage_00 (:py:class:`float`) - Total of percentages from all subcounters
 
         .. note::
 
@@ -577,8 +579,11 @@ class Counter(PrintableCounter):
             # Calculate count and percentage for remainder
             if subcounters:
                 fields.update(subFields)
-                fields['count_0'] = self.count - sum(sub[0].count for sub in subcounters)
-                fields['percentage_0'] = (percentage - sum(sub[1] for sub in subcounters)) * 100
+                subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
+                fields['count_0'] = self.count - subcount
+                subpercentage = sum(sub[1] for sub in subcounters)
+                fields['percentage_00'] = subpercentage * 100
+                fields['percentage_0'] = (percentage - subpercentage) * 100
 
             # Partially format
             try:
