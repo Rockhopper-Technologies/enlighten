@@ -11,6 +11,7 @@
 Provides Counter and SubConter classes
 """
 
+import math
 import os
 import platform
 import re
@@ -595,13 +596,16 @@ class Counter(PrintableCounter):
         subcounters, subFields = self._get_subcounters(elapsed)
 
         # Calculate count and percentage for remainder
+        count_0 = 0
+        percentage_0 = percentage
         if subcounters:
             fields.update(subFields)
             subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
-            fields['count_0'] = self.count - subcount
+            count_0 = fields['count_0'] = self.count - subcount
             subpercentage = sum(sub[1] for sub in subcounters)
             fields['percentage_00'] = subpercentage * 100
-            fields['percentage_0'] = (percentage - subpercentage) * 100
+            percentage_0 = percentage - subpercentage
+            fields['percentage_0'] = percentage_0 * 100
 
         # Partially format
         try:
@@ -612,7 +616,7 @@ class Counter(PrintableCounter):
         except KeyError as e:
             raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
 
-        # Format the bar
+        # Determine bar width
         if self.offset is None:
             barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
         else:
@@ -622,19 +626,47 @@ class Counter(PrintableCounter):
         complete = barWidth * percentage
         barLen = int(complete)
         barText = u''
-        subOffset = 0
 
-        for subcounter, subPercentage in reversed(subcounters):
-            subLen = int(barWidth * subPercentage)
-            # pylint: disable=protected-access
-            barText += subcounter._colorize(self.series[-1] * subLen)
-            subOffset += subLen
+        if subcounters:
+            block_count = [int(barWidth * percentage_0)]
+            partial_len = barLen - 1 if count_0 else barLen
+            remaining = []
 
-        barText += self.series[-1] * (barLen - subOffset)
+            # Get full blocks for subcounters and preserve larger remainders
+            for idx, entry in enumerate(subcounters, 1):
+                remainder, count = math.modf(barWidth * entry[1])
+                block_count.append(int(count))
+                if remainder > 0.5:
+                    remaining.append((remainder, idx))
 
+            # Until blocks are accounted for, add full blocks for highest remainders
+            remaining.sort()
+            while sum(block_count) < partial_len and remaining:
+                block_count[remaining.pop()[1]] += 1
+
+            # Format partial bars
+            for idx, subLen in reversed(list(enumerate(block_count))):
+                if idx:
+                    subcounter = subcounters[idx - 1][0]
+                    # pylint: disable=protected-access
+                    barText += subcounter._colorize(self.series[-1] * subLen)
+                else:
+                    # Get main partial bar
+                    barText += self.series[-1] * subLen
+
+            partial_len = sum(block_count)
+
+        else:
+            # Get main partial bar
+            barText += self.series[-1] * barLen
+            partial_len = barLen
+
+        # If bar isn't complete, add partial block and fill
         if barLen < barWidth:
-            barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
-            barText += self.series[0] * (barWidth - barLen - 1)
+            if percentage_0:
+                barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
+                partial_len += 1
+            barText += self.series[0] * (barWidth - partial_len)
 
         return rtn.format(self._colorize(barText))
 
