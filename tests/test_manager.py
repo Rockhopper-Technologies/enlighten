@@ -222,6 +222,34 @@ class TestManager(TestCase):
         self.assertEqual(manager.counters[status1], 3)
         self.assertEqual(manager.counters[status2], 1)
 
+    def test_counter_replaced(self):
+        """Counter replaces an existing counter"""
+
+        manager = _manager.Manager(stream=self.tty.stdout, set_scroll=False)
+
+        # Pinned replacement
+        counter1 = manager.counter(position=2)
+        self.assertEqual(manager.counters[counter1], 2)
+
+        counter2 = manager.counter(replace=counter1)
+        self.assertEqual(len(manager.counters), 1)
+        self.assertEqual(manager.counters[counter2], 2)
+        self.assertTrue(counter2._pinned)
+
+        # Unpinned replacement
+        counter3 = manager.counter()
+        self.assertEqual(len(manager.counters), 2)
+        self.assertEqual(manager.counters[counter3], 1)
+
+        counter4 = manager.counter(replace=counter3)
+        self.assertEqual(len(manager.counters), 2)
+        self.assertEqual(manager.counters[counter4], 1)
+        self.assertFalse(counter4._pinned)
+
+        # Unmanaged counter given
+        with self.assertRaisesRegex(ValueError, 'Counter to replace is not currently managed'):
+            manager.counter(replace=counter1)
+
     def test_inherit_kwargs(self):
         manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                    unit='knights', not_real=True, desc='Default')

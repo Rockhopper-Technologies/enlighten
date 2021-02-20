@@ -47,11 +47,11 @@ spelling-ignore-words=
     len, Lubkin,
     meth, Mozilla, MPL,
     noqa,
-    peru, pragma, py,
+    peru, pragma, PrintableCounter, py,
     redirector, resize, resizing, RGB,
     seagreen, setscroll, sphinxcontrib, ss, StatusBar, stdout,
     stderr, str, subcounter, subcounters, submodule,
     subprocesses, sys,
     TestCase, tty, TTY, tuple,
-    unicode, unittest,
+    unicode, unittest, unmanaged,
     ValueError

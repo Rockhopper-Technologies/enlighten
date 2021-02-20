@@ -130,6 +130,7 @@ class Manager(object):
         Args:
             position(int): Line number counting from the bottom of the screen
             autorefresh(bool): Refresh this counter when other bars are drawn
+            replace(:py:class:`PrintableCounter`): Replace given counter with new. Position ignored.
             kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`Counter`
 
@@ -159,6 +160,7 @@ class Manager(object):
         Args:
             position(int): Line number counting from the bottom of the screen
             autorefresh(bool): Refresh this counter when other bars are drawn
+            replace(:py:class:`PrintableCounter`): Replace given counter with new. Position ignored.
             kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`StatusBar`
 
@@ -180,11 +182,13 @@ class Manager(object):
 
         return self._add_counter(self.status_bar_class, *args, position=position, **kwargs)
 
-    def _add_counter(self, counter_class, *args, **kwargs):
+    def _add_counter(self, counter_class, *args, **kwargs):  # pylint: disable=too-many-branches
         """
         Args:
             counter_class(:py:class:`PrintableCounter`): Class to instantiate
             position(int): Line number counting from the bottom of the screen
+            autorefresh(bool): Refresh this counter when other bars are drawn
+            replace(:py:class:`PrintableCounter`): Replace given counter with new. Position ignored.
             kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
                 are passed to :py:class:`Counter`
 
@@ -200,6 +204,7 @@ class Manager(object):
 
         position = kwargs.pop('position', None)
         autorefresh = kwargs.pop('autorefresh', False)
+        replace = kwargs.pop('replace', None)
 
         # List of counters to refresh due to new position
         toRefresh = []
@@ -219,8 +224,24 @@ class Manager(object):
         # pylint: disable=protected-access
         pinned = {pos: ctr for ctr, pos in self.counters.items() if ctr._pinned}
 
+        # Manage replacement
+        if replace is not None:
+            if replace not in self.counters:
+                raise ValueError('Counter to replace is not currently managed: %r' % replace)
+
+            # Remove old counter
+            position = self.counters[replace]
+            replace.leave = False
+            replace.close()
+
+            # Replace old counter with new counter
+            self.counters[new] = position
+            if replace._pinned:
+                new._pinned = True
+                pinned[position] = new
+
         # Check position
-        if position is not None:
+        elif position is not None:
             if position in pinned:
                 raise ValueError('Counter position %d is already occupied.' % position)
             if position > self.height:
@@ -228,11 +249,13 @@ class Manager(object):
             new._pinned = True  # pylint: disable=protected-access
             self.counters[new] = position
             pinned[position] = new
-            if counter_class is self.status_bar_class:
-                toRefresh.append(new)
         else:
             # Set for now, but will change
             self.counters[new] = 0
+
+        # Refresh status bars only, counters may have subcounters
+        if counter_class is self.status_bar_class:
+            toRefresh.append(new)
 
         # Iterate through all counters in reverse order
         pos = 1
@@ -248,8 +271,8 @@ class Manager(object):
 
             if pos != old_pos:
 
-                # Don't refresh new counter in case it will have subcounters
-                if ctr is not new or counter_class is self.status_bar_class:
+                # Don't refresh new counter, already accounted for
+                if ctr is not new:
                     ctr.clear(flush=False)
                     toRefresh.append(ctr)
 
