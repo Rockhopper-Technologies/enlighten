@@ -240,8 +240,10 @@ class Manager(object):
                 new._pinned = True
                 pinned[position] = new
 
-        # Check position
+        # Position specified
         elif position is not None:
+            if position < 1:
+                raise ValueError('Counter position %d is less than 1.' % position)
             if position in pinned:
                 raise ValueError('Counter position %d is already occupied.' % position)
             if position > self.height:
@@ -249,6 +251,8 @@ class Manager(object):
             new._pinned = True  # pylint: disable=protected-access
             self.counters[new] = position
             pinned[position] = new
+
+        # Dynamic placement
         else:
             # Set for now, but will change
             self.counters[new] = 0

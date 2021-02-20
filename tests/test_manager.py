@@ -186,6 +186,9 @@ class TestManager(TestCase):
         counter1 = manager.counter(position=4)
         self.assertEqual(manager.counters[counter1], 4)
 
+        with self.assertRaisesRegex(ValueError, 'Counter position 0 is less than 1'):
+            manager.counter(position=0)
+
         with self.assertRaisesRegex(ValueError, 'Counter position 4 is already occupied'):
             manager.counter(position=4)
 
