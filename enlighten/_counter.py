@@ -596,12 +596,12 @@ class Counter(PrintableCounter):
         subcounters, subFields = self._get_subcounters(elapsed)
 
         # Calculate count and percentage for remainder
-        count_0 = 0
+        count_0 = self.count
         percentage_0 = percentage
         if subcounters:
             fields.update(subFields)
             subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
-            count_0 = fields['count_0'] = self.count - subcount
+            count_0 = fields['count_0'] = count_0 - subcount
             subpercentage = sum(sub[1] for sub in subcounters)
             fields['percentage_00'] = subpercentage * 100
             percentage_0 = percentage - subpercentage
@@ -629,15 +629,14 @@ class Counter(PrintableCounter):
 
         if subcounters:
             block_count = [int(barWidth * percentage_0)]
-            partial_len = barLen - 1 if count_0 else barLen
+            partial_len = (barLen - 1) if count_0 else barLen
             remaining = []
 
-            # Get full blocks for subcounters and preserve larger remainders
+            # Get full blocks for subcounters and preserve remainders
             for idx, entry in enumerate(subcounters, 1):
                 remainder, count = math.modf(barWidth * entry[1])
                 block_count.append(int(count))
-                if remainder > 0.5:
-                    remaining.append((remainder, idx))
+                remaining.append((remainder, idx))
 
             # Until blocks are accounted for, add full blocks for highest remainders
             remaining.sort()
@@ -663,7 +662,7 @@ class Counter(PrintableCounter):
 
         # If bar isn't complete, add partial block and fill
         if barLen < barWidth:
-            if percentage_0:
+            if count_0:
                 barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
                 partial_len += 1
             barText += self.series[0] * (barWidth - partial_len)
