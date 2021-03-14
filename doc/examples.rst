@@ -282,13 +282,15 @@ are all derived from the second subcounter added.
 Additional Examples
 -------------------
 
-* :download:`basic <../examples/basic.py>` - Basic progress bar
-* :download:`context manager <../examples/context_manager.py>` - Managers and counters as context managers
-* :download:`floats <../examples/floats.py>` - Support totals and counts that are :py:class:`floats<float>`
-* :download:`multicolored <../examples/multicolored.py>` - Multicolored progress bars
-* :download:`multiple with logging <../examples/multiple_logging.py>` - Nested progress bars and logging
+* :download:`Basic <../examples/basic.py>` - Basic progress bar
+* :download:`Binary prefixes <../examples/prefixes.py>` - Automatic binary prefixes
+* :download:`Context manager <../examples/context_manager.py>` - Managers and counters as context managers
 * :download:`FTP downloader <../examples/ftp_downloader.py>` - Show progress downloading files from FTP
+* :download:`Floats <../examples/floats.py>` - Support totals and counts that are :py:class:`floats<float>`
+* :download:`Multicolored <../examples/multicolored.py>` - Multicolored progress bars
+* :download:`Multiple with logging <../examples/multiple_logging.py>` - Nested progress bars and logging
 * :download:`Multiprocessing queues <../examples/multiprocessing_queues.py>` - Progress bars with queues for IPC
+
 
 Customization
 -------------
