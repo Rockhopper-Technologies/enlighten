@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,8 @@ import platform
 import re
 import sys
 import time
+
+from prefixed import Float
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
 from enlighten._util import (EnlightenWarning, FORMAT_MAP_SUPPORT, format_time,
@@ -148,6 +150,12 @@ class Counter(PrintableCounter):
         len
         seagreen
         peru
+
+    .. _Prefixed documentation: https://prefixed.readthedocs.io/en/stable/index.html
+    .. _format specifiers: https://prefixed.readthedocs.io/en/stable/format_spec.html
+    .. _SI (metric): https://en.wikipedia.org/wiki/Metric_prefix
+    .. _IEC (binary): https://en.wikipedia.org/wiki/Binary_prefix
+
 
     Args:
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
@@ -288,15 +296,15 @@ class Counter(PrintableCounter):
             # Example output
             'Processing    22%|█████▊                   |  23/101 [00:27<01:32, 0.84 Files/s]'
 
-
         Available fields:
 
         - count(:py:class:`int`) - Current value of ``count``
         - desc(:py:class:`str`) - Value of ``desc``
         - desc_pad(:py:class:`str`) - A single space if ``desc`` is set, otherwise empty
         - elapsed(:py:class:`str`) - Time elapsed since instance was created
-        - interval(:py:class:`float`) - Average seconds per iteration (inverse of rate)
-        - rate(:py:class:`float`) - Average iterations per second since instance was created
+        - interval(:py:class:`prefixed.Float`) - Average seconds per iteration (inverse of rate)
+        - rate(:py:class:`prefixed.Float`) - Average iterations per second
+          since instance was created
         - unit(:py:class:`str`) - Value of ``unit``
         - unit_pad(:py:class:`str`) - A single space if ``unit`` is set, otherwise empty
 
@@ -333,8 +341,22 @@ class Counter(PrintableCounter):
         ``all_fields`` set to :py:data:`True`:
 
         - eta_n (:py:class:`str`) - Estimated time to completion (``bar_format`` only)
-        - interval_n(:py:class:`float`) - Average seconds per iteration (inverse of rate)
-        - rate_n (:py:class:`float`) - Average iterations per second since parent was created
+        - interval_n(:py:class:`prefixed.Float`) - Average seconds per iteration (inverse of rate)
+        - rate_n (:py:class:`prefixed.Float`) - Average iterations per second
+          since parent was created
+
+        .. note::
+
+            ``count`` and ``total`` fields, including ``count_0``, ``count_00``, and ``count_n``,
+            default to :py:class:`int`. If :py:attr:`~Counter.total` or or :py:attr:`~Counter.count`
+            are set to a :py:class:`float`, or a :py:class:`float` is provided to
+            :py:meth:`~Counter.update`, these fields will be :py:class:`prefixed.Float` instead.
+
+            This allows additional `format specifiers`_ using `SI (metric)`_ and `IEC (binary)`_
+            prefixes. See the `Prefixed documentation`_ for more details.
+
+            This will also require a custom format and affect the accuracy of the ``len_total``
+            field.
 
         User-defined fields:
 
@@ -440,7 +462,7 @@ class Counter(PrintableCounter):
 
         return sum(subcounter.count for subcounter in self._subcounters)
 
-    def _get_subcounters(self, elapsed, bar_fields=True):
+    def _get_subcounters(self, elapsed, bar_fields=True, force_float=False):
         """
         Args:
             elapsed(float): Time since started.
@@ -461,7 +483,7 @@ class Counter(PrintableCounter):
 
         for num, subcounter in enumerate(self._subcounters, 1):
 
-            fields['count_%d' % num] = subcounter.count
+            fields['count_%d' % num] = Float(subcounter.count) if force_float else subcounter.count
 
             if self.total and bar_fields:
                 subPercentage = subcounter.count / float(self.total)
@@ -479,12 +501,11 @@ class Counter(PrintableCounter):
                 interations = float(abs(subcounter.count - subcounter.start_count))
 
                 if elapsed:
-                    # Use float to force to float in Python 2
-                    rate = fields['rate_%d' % num] = interations / elapsed
+                    rate = fields['rate_%d' % num] = Float(interations / elapsed)
                 else:
-                    rate = fields['rate_%d' % num] = 0.0
+                    rate = fields['rate_%d' % num] = Float(0.0)
 
-                fields['interval_%d' % num] = rate ** -1 if rate else 0.0
+                fields['interval_%d' % num] = rate ** -1 if rate else rate
 
                 if not bar_fields:
                     continue
@@ -527,10 +548,11 @@ class Counter(PrintableCounter):
                             ', '.join(reserved_fields),
                             EnlightenWarning)
 
+        force_float = isinstance(self.count, float) or isinstance(self.total, float)
         fields.update({'bar': u'{0}',
-                       'count': self.count,
+                       'count': Float(self.count) if force_float else self.count,
                        'desc': self.desc or u'',
-                       'total': self.total,
+                       'total': Float(self.total) if force_float else self.total,
                        'unit': self.unit or u'',
                        'desc_pad': u' ' if self.desc else u'',
                        'unit_pad': u' ' if self.unit else u''})
@@ -544,20 +566,20 @@ class Counter(PrintableCounter):
         # Get rate. Elapsed could be 0 if counter was not updated and has a zero total.
         if elapsed:
             # Use iterations so a counter running backwards is accurate
-            rate = fields['rate'] = iterations / elapsed
+            rate = fields['rate'] = Float(iterations / elapsed)
         else:
-            rate = fields['rate'] = 0.0
+            rate = fields['rate'] = Float(0.0)
 
-        fields['interval'] = rate ** -1 if rate else 0.0
+        fields['interval'] = rate ** -1 if rate else rate
 
         # Only process bar if total was given and n doesn't exceed total
         if self.total is not None and self.count <= self.total:
-            return self._format_bar(fields, iterations, width, elapsed)
+            return self._format_bar(fields, iterations, width, elapsed, force_float)
 
         # Otherwise return a counter
-        return self._format_counter(fields, width, elapsed)
+        return self._format_counter(fields, width, elapsed, force_float)
 
-    def _format_bar(self, fields, iterations, width, elapsed):
+    def _format_bar(self, fields, iterations, width, elapsed, force_float):
         """
         Args:
             fields (dict): Initial set of formatting fields
@@ -593,14 +615,15 @@ class Counter(PrintableCounter):
         fields['percentage'] = percentage * 100
 
         # Have to go through subcounters here so the fields are available
-        subcounters, subFields = self._get_subcounters(elapsed)
+        subcounters, subFields = self._get_subcounters(elapsed, force_float=force_float)
 
         # Calculate count and percentage for remainder
-        count_0 = self.count
+        count_0 = fields['count']
         percentage_0 = percentage
         if subcounters:
             fields.update(subFields)
-            subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
+            subcount = sum(sub[0].count for sub in subcounters)
+            fields['count_00'] = Float(subcount) if force_float else subcount
             count_0 = fields['count_0'] = count_0 - subcount
             subpercentage = sum(sub[1] for sub in subcounters)
             fields['percentage_00'] = subpercentage * 100
@@ -669,7 +692,7 @@ class Counter(PrintableCounter):
 
         return rtn.format(self._colorize(barText))
 
-    def _format_counter(self, fields, width, elapsed):
+    def _format_counter(self, fields, width, elapsed, force_float):
         """
         Args:
             fields (dict): Initial set of formatting fields
@@ -684,7 +707,9 @@ class Counter(PrintableCounter):
 
         # Update fields from subcounters
         fields['fill'] = u'{0}'
-        subcounters, subFields = self._get_subcounters(elapsed, bar_fields=False)
+        subcounters, subFields = self._get_subcounters(
+            elapsed, bar_fields=False, force_float=force_float
+        )
         if subcounters:
             fields.update(subFields)
             subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -539,6 +539,18 @@ class TestCounter(TestCase):
         self.assertRegex(formatted, r'Test  50%\|' + u'█+' +
                          r'[ ]+\| 50.1/100.2 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
 
+    def test_floats_prefixed(self):
+        """
+        Floats should support prefixed formatting
+        """
+        bar_format = u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+
+        ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20, bar_format=bar_format)
+        ctr.count = 2048.0
+
+        formatted = ctr.format(elapsed=2, width=80)
+        self.assertEqual(formatted, '2.00 KiB / 3.20 MiB | 1.00 KiB/s | 0.00 s/B')
+
     def test_color(self):
         """
         Only bar characters should be colorized
@@ -601,6 +613,39 @@ class TestCounter(TestCase):
         formatted = ctr.format(width=80)
         bartext = term.red(BLOCK*2) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 40
         self.assertEqual(formatted, bartext)
+
+    def test_subcounter_prefixed(self):
+        """
+        Subcounter float fields should support prefixed formatting
+        """
+
+        bar_format = (u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+                      u' | {count_0:!.2j}B | {count_00:!.2j}B'
+                      u' | {count_1:!.2j}B | {rate_1:!.2j}B/s | {interval_1:!.2j} s/B'
+                      u' | {count_2:!.2j}B | {rate_2:!.2j}B/s | {interval_2:!.2j} s/B'
+                      u' | {count_3:!.2j}B | {rate_3:!.2j}B/s | {interval_3:!.2j} s/B'
+                      )
+        ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20, bar_format=bar_format)
+
+        ctr.count = 2.0 ** 20
+        subcounter1 = ctr.add_subcounter('yellow', all_fields=True)
+        subcounter2 = ctr.add_subcounter('blue', all_fields=True)
+        subcounter3 = ctr.add_subcounter('red', all_fields=True)
+
+        subcounter1.count = 512.0 * 2 ** 10
+        subcounter2.count = 256.0 * 2 ** 10
+        subcounter3.count = 128.0 * 2 ** 10
+
+        formatted = ctr.format(elapsed=1, width=80)
+        self.assertEqual(
+            formatted, (
+                '1.00 MiB / 3.20 MiB | 1.00 MiB/s | 0.00 s/B'
+                ' | 128.00 KiB | 896.00 KiB'
+                ' | 512.00 KiB | 512.00 KiB/s | 0.00 s/B'
+                ' | 256.00 KiB | 256.00 KiB/s | 0.00 s/B'
+                ' | 128.00 KiB | 128.00 KiB/s | 0.00 s/B'
+            )
+        )
 
     def test_close(self):
         manager = MockManager()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2017 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 from setup_helpers import get_version, readme
 
-INSTALL_REQUIRES = ['blessed>=1.17.7']
+INSTALL_REQUIRES = ['blessed>=1.17.7', 'prefixed>=0.3.2']
 TESTS_REQUIRE = ['mock; python_version < "3.3"']
 
 # Additional requirements
