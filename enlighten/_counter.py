@@ -47,9 +47,11 @@ except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
     pass
 
 # Reserved fields
-COUNTER_FIELDS = {'count', 'desc', 'desc_pad', 'elapsed', 'interval', 'rate', 'unit', 'unit_pad',
-                  'bar', 'eta', 'len_total', 'percentage', 'total', 'fill'}
-RE_SUBCOUNTER_FIELDS = re.compile(r'(?:count|percentage|eta|interval|rate)_\d+')
+BAR_SPECIFIC_FIELDS = {'bar', 'eta', 'len_total', 'percentage'}
+COUNTER_SPECIFIC_FIELDS = {'fill'}
+RESERVED_FIELDS = {'count', 'desc', 'desc_pad', 'elapsed', 'interval', 'rate', 'unit', 'unit_pad',
+                   'total'} | BAR_SPECIFIC_FIELDS | COUNTER_SPECIFIC_FIELDS
+RE_SUBCOUNTER_FIELDS = re.compile(r'(count|percentage|eta|interval|rate)_(\d+)')
 
 
 class SubCounter(BaseCounter):
@@ -305,6 +307,7 @@ class Counter(PrintableCounter):
         - interval(:py:class:`prefixed.Float`) - Average seconds per iteration (inverse of rate)
         - rate(:py:class:`prefixed.Float`) - Average iterations per second
           since instance was created
+        - total(:py:class:`int`) - Value of ``total``
         - unit(:py:class:`str`) - Value of ``unit``
         - unit_pad(:py:class:`str`) - A single space if ``unit`` is set, otherwise empty
 
@@ -314,7 +317,6 @@ class Counter(PrintableCounter):
         - eta(:py:class:`str`) - Estimated time to completion
         - len_total(:py:class:`int`) - Length of ``total`` when converted to a string
         - percentage(:py:class:`float`) - Percentage complete
-        - total(:py:class:`int`) - Value of ``total``
 
         Additional fields for ``counter_format`` only:
 
@@ -540,17 +542,19 @@ class Counter(PrintableCounter):
         fields.update(self._fields)
 
         # Warn on reserved fields
-        reserved_fields = (set(fields) & COUNTER_FIELDS) | set(
-            match.group() for match in (RE_SUBCOUNTER_FIELDS.match(key) for key in fields) if match
-        )
+        reserved_fields = set(fields) & RESERVED_FIELDS | {
+            match.group()
+            for match in (RE_SUBCOUNTER_FIELDS.match(key) for key in fields)
+            if match
+        }
+
         if reserved_fields:
             warn_best_level('Ignoring reserved fields specified as user-defined fields: %s' %
                             ', '.join(reserved_fields),
                             EnlightenWarning)
 
         force_float = isinstance(self.count, float) or isinstance(self.total, float)
-        fields.update({'bar': u'{0}',
-                       'count': Float(self.count) if force_float else self.count,
+        fields.update({'count': Float(self.count) if force_float else self.count,
                        'desc': self.desc or u'',
                        'total': Float(self.total) if force_float else self.total,
                        'unit': self.unit or u'',
@@ -579,6 +583,58 @@ class Counter(PrintableCounter):
         # Otherwise return a counter
         return self._format_counter(fields, width, elapsed, force_float)
 
+    def _get_format_error(self, field, bar_fields=True):
+        """
+        Args:
+            field (str): Field unavailable for formatting
+
+        Returns:
+            :py:class:`str`: Formatted error message
+
+        Creates an appropriate error message for a missing field in order to best inform user
+        """
+
+        match = RE_SUBCOUNTER_FIELDS.match(field)
+        subcounter = 0
+
+        reserve_msg = "Reserve field '%s' specified in format, but " % field
+
+        # Check subcounter fields
+        if match:
+
+            # Get subcounter number
+            subcounter = int(match.group(2))
+
+            # Base counter fields
+            if subcounter == 0:
+                msg = reserve_msg + 'no subcounters are configured'
+
+            # Subcounter not defined
+            elif subcounter > len(self._subcounters):
+                msg = reserve_msg + 'subcounter %d is not defined' % subcounter
+
+            # Bar-specific subcounter fields
+            elif match.group(1) in BAR_SPECIFIC_FIELDS and not bar_fields:
+                msg = reserve_msg + 'unavailable for counter_format'
+
+            # all_fields required for field
+            else:
+                msg = reserve_msg + "'all_fields' not specified for subcounter"
+
+        # Bar field provided to counter_format
+        elif field in BAR_SPECIFIC_FIELDS and not bar_fields:
+            msg = reserve_msg + 'unavailable for counter_format'
+
+        # Counter field provided to bar_format
+        elif field in COUNTER_SPECIFIC_FIELDS and bar_fields:
+            msg = reserve_msg + 'unavailable for bar_format'
+
+        # Not a reserved field
+        else:
+            msg = "'%s' specified in format, but not provided" % field
+
+        return msg % {'field': field, 'subcounter': subcounter}
+
     def _format_bar(self, fields, iterations, width, elapsed, force_float):
         """
         Args:
@@ -593,6 +649,7 @@ class Counter(PrintableCounter):
         Format progress bar
         """
 
+        fields['bar'] = u'{0}'
         fields['len_total'] = len(str(self.total))
 
         # Get percentage
@@ -637,7 +694,7 @@ class Counter(PrintableCounter):
             else:  # pragma: no cover
                 rtn = self.bar_format.format(**fields)
         except KeyError as e:
-            raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
+            raise_from_none(ValueError(self._get_format_error(e.args[0])))
 
         # Determine bar width
         if self.offset is None:
@@ -721,7 +778,7 @@ class Counter(PrintableCounter):
             else:  # pragma: no cover
                 rtn = self.counter_format.format(**fields)
         except KeyError as e:
-            raise_from_none(ValueError('%r specified in format, but not provided' % e.args[0]))
+            raise_from_none(ValueError(self._get_format_error(e.args[0], bar_fields=False)))
 
         return self._fill_text(rtn, width, offset=self.offset)
 

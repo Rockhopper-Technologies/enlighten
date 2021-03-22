@@ -584,6 +584,39 @@ class TestCounter(TestCase):
         formatted = ctr.format(elapsed=5, width=80)
         self.assertEqual(formatted, u'35 35.0 | 5 5.0 1.0 01:35 | 10 10.0 | 15 15.0')
 
+    def test_subcounter_field_not_populated(self):
+        """
+        Exception raised when reserved field is invalid
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=100, count=50)
+        ctr.add_subcounter('yellow')
+        ctr.add_subcounter('blue', count=10)
+
+        ctr.bar_format = u'{count_3}'
+        with self.assertRaisesRegex(ValueError, 'subcounter 3 is not defined'):
+            ctr.format(elapsed=5, width=80)
+
+        for fmt in (u'{rate_1}', u'{eta_1}', u'{interval_1}'):
+            ctr.bar_format = fmt
+            with self.assertRaisesRegex(ValueError, "'all_fields' not specified for subcounter"):
+                ctr.format(elapsed=5, width=80)
+
+        ctr = Counter(stream=self.tty.stdout, total=100, count=50,)
+        for fmt in (u'{count_0}', u'{rate_0}', u'{percentage_0}',
+                    u'{count_00}', u'{rate_00}', u'{percentage_00}'):
+            ctr.bar_format = fmt
+            with self.assertRaisesRegex(ValueError, 'no subcounters are configured'):
+                ctr.format(elapsed=5, width=80)
+
+        # Counter fields
+        ctr = Counter(stream=self.tty.stdout, count=50)
+        ctr.add_subcounter('yellow')
+        for field in ('percentage_1', 'eta_1'):
+            ctr.counter_format = u'|{%s}|' % field
+            with self.assertRaisesRegex(ValueError, 'unavailable for counter_format'):
+                ctr.format(elapsed=5, width=80)
+
     def test_subcounter_count_gt_total(self):
         """
         When total is exceeded, subcounter fields are still populated
@@ -696,6 +729,26 @@ class TestCounter(TestCase):
         self.assertIs(self.ctr._subcounters[1], subcounter2)
         self.assertEqual(subcounter2.count, 5)
         self.assertTrue(subcounter2.all_fields)
+
+    def test_reserve_field_unavailable(self):
+        """
+        Exception raised when reserved field is invalid
+        """
+
+        msg1 = "Reserve field '%s' specified in format, but unavailable for bar_format"
+        msg2 = "Reserve field '%s' specified in format, but unavailable for counter_format"
+
+        ctr = Counter(stream=self.tty.stdout, total=100, count=50)
+        ctr.bar_format = u'{fill}'
+        with self.assertRaisesRegex(ValueError, msg1 % 'fill'):
+            ctr.format(elapsed=5, width=80)
+
+        ctr = Counter(stream=self.tty.stdout, count=50)
+
+        for field in ('bar', 'eta', 'percentage'):
+            ctr.counter_format = u'{%s}' % field
+            with self.assertRaisesRegex(ValueError, msg2 % field):
+                ctr.format(elapsed=5, width=80)
 
     def test_additional_fields(self):
         """
@@ -855,7 +908,7 @@ class TestCounter(TestCase):
         Ensure all built-in fields are populated as expected
         """
 
-        bar_fields = tuple(field for field in enlighten._counter.COUNTER_FIELDS if field != 'fill')
+        bar_fields = tuple(field for field in enlighten._counter.RESERVED_FIELDS if field != 'fill')
         bar_format = u', '.join(u'%s: {%s}' % (field, field) for field in sorted(bar_fields))
 
         ctr = Counter(stream=self.tty.stdout, total=100, bar_format=bar_format,
