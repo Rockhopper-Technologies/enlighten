@@ -160,6 +160,8 @@ class Counter(PrintableCounter):
 
 
     Args:
+        all_fields(bool): Populate ``rate``, ``interval``, and ``eta``
+            formatting fields in subcounters
         bar_format(str): Progress bar format, see :ref:`Format <counter_format>` below
         count(int): Initial count (Default: 0)
         counter_format(str): Counter format, see :ref:`Format <counter_format>` below
@@ -423,7 +425,7 @@ class Counter(PrintableCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('bar_format', 'counter_format', 'desc', 'fields', 'manager',
+    __slots__ = ('all_fields', 'bar_format', 'counter_format', 'desc', 'fields', 'manager',
                  'offset', 'series', 'total', 'unit', '_fields', '_subcounters')
     _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
@@ -434,6 +436,8 @@ class Counter(PrintableCounter):
 
         # Accept additional_fields for backwards compatibility
         self.fields = kwargs.pop('fields', kwargs.pop('additional_fields', {}))
+
+        self.all_fields = kwargs.pop('all_fields', False)
         self.bar_format = kwargs.pop('bar_format', BAR_FMT)
         self.counter_format = kwargs.pop('counter_format', COUNTER_FMT)
         self.desc = kwargs.pop('desc', None)
@@ -803,19 +807,22 @@ class Counter(PrintableCounter):
                     currentTime - self.last_update >= self.min_delta:
                 self.refresh(elapsed=currentTime - self.start)
 
-    def add_subcounter(self, color, count=0, all_fields=False):
+    def add_subcounter(self, color, count=0, all_fields=None):
         """
     Args:
         color(str): Series color as a string or RGB tuple see :ref:`Series Color <series_color>`
         count(int): Initial count (Default: 0)
         all_fields(bool): Populate ``rate``, ``interval``, and ``eta``
-            formatting fields (Default: False)
+            formatting fields (Default: False unless specified in parent)
 
     Returns:
         :py:class:`SubCounter`: Subcounter instance
 
     Add a subcounter for multicolored progress bars
         """
+
+        if all_fields is None:
+            all_fields = self.all_fields
 
         subcounter = SubCounter(self, color=color, count=count, all_fields=all_fields)
         self._subcounters.append(subcounter)

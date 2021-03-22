@@ -658,12 +658,13 @@ class TestCounter(TestCase):
                       u' | {count_2:!.2j}B | {rate_2:!.2j}B/s | {interval_2:!.2j} s/B'
                       u' | {count_3:!.2j}B | {rate_3:!.2j}B/s | {interval_3:!.2j} s/B'
                       )
-        ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20, bar_format=bar_format)
+        ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20,
+                      bar_format=bar_format, all_fields=True)
 
         ctr.count = 2.0 ** 20
-        subcounter1 = ctr.add_subcounter('yellow', all_fields=True)
-        subcounter2 = ctr.add_subcounter('blue', all_fields=True)
-        subcounter3 = ctr.add_subcounter('red', all_fields=True)
+        subcounter1 = ctr.add_subcounter('yellow')
+        subcounter2 = ctr.add_subcounter('blue')
+        subcounter3 = ctr.add_subcounter('red')
 
         subcounter1.count = 512.0 * 2 ** 10
         subcounter2.count = 256.0 * 2 ** 10
