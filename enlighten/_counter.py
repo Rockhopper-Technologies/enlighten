@@ -485,8 +485,14 @@ class Counter(PrintableCounter):
         """
 
         subcounters = []
+        sub_count = 0
+
+        if not self._subcounters:
+            return subcounters
 
         for num, subcounter in enumerate(self._subcounters, 1):
+
+            sub_count += subcounter.count
 
             fields['count_%d' % num] = Float(subcounter.count) if force_float else subcounter.count
 
@@ -523,14 +529,12 @@ class Counter(PrintableCounter):
                     fields['eta_%d' % num] = u'?'
 
         # Parent fields
-        if subcounters:
-            subcount = sum(sub[0].count for sub in subcounters)
-            fields['count_00'] = Float(subcount) if force_float else subcount
-            fields['count_0'] = fields['count'] - subcount
+        fields['count_00'] = Float(sub_count) if force_float else sub_count
+        fields['count_0'] = fields['count'] - sub_count
 
-            if bar_fields:
-                fields['percentage_00'] = percentage_00 = sum(sub[1] for sub in subcounters) * 100
-                fields['percentage_0'] = fields['percentage'] - percentage_00
+        if bar_fields:
+            fields['percentage_00'] = percentage_00 = sum(sub[1] for sub in subcounters) * 100
+            fields['percentage_0'] = fields['percentage'] - percentage_00
 
         return subcounters
 
