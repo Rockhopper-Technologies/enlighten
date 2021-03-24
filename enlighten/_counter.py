@@ -468,7 +468,7 @@ class Counter(PrintableCounter):
 
         return sum(subcounter.count for subcounter in self._subcounters)
 
-    def _get_subcounters(self, elapsed, bar_fields=True, force_float=False):
+    def _get_subcounters(self, elapsed, fields, bar_fields=True, force_float=False):
         """
         Args:
             elapsed(float): Time since started.
@@ -484,7 +484,6 @@ class Counter(PrintableCounter):
         percentage will be set to 0.0
         """
 
-        fields = {}
         subcounters = []
 
         for num, subcounter in enumerate(self._subcounters, 1):
@@ -523,7 +522,17 @@ class Counter(PrintableCounter):
                 else:
                     fields['eta_%d' % num] = u'?'
 
-        return subcounters, fields
+        # Parent fields
+        if subcounters:
+            subcount = sum(sub[0].count for sub in subcounters)
+            fields['count_00'] = Float(subcount) if force_float else subcount
+            fields['count_0'] = fields['count'] - subcount
+
+            if bar_fields:
+                fields['percentage_00'] = percentage_00 = sum(sub[1] for sub in subcounters) * 100
+                fields['percentage_0'] = fields['percentage'] - percentage_00
+
+        return subcounters
 
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def format(self, width=None, elapsed=None):
@@ -676,20 +685,7 @@ class Counter(PrintableCounter):
         fields['percentage'] = percentage * 100
 
         # Have to go through subcounters here so the fields are available
-        subcounters, subFields = self._get_subcounters(elapsed, force_float=force_float)
-
-        # Calculate count and percentage for remainder
-        count_0 = fields['count']
-        percentage_0 = percentage
-        if subcounters:
-            fields.update(subFields)
-            subcount = sum(sub[0].count for sub in subcounters)
-            fields['count_00'] = Float(subcount) if force_float else subcount
-            count_0 = fields['count_0'] = count_0 - subcount
-            subpercentage = sum(sub[1] for sub in subcounters)
-            fields['percentage_00'] = subpercentage * 100
-            percentage_0 = percentage - subpercentage
-            fields['percentage_0'] = percentage_0 * 100
+        subcounters = self._get_subcounters(elapsed, fields, force_float=force_float)
 
         # Partially format
         try:
@@ -712,8 +708,8 @@ class Counter(PrintableCounter):
         barText = u''
 
         if subcounters:
-            block_count = [int(barWidth * percentage_0)]
-            partial_len = (barLen - 1) if count_0 else barLen
+            block_count = [int(barWidth * fields['percentage_0'] / 100)]
+            partial_len = (barLen - 1) if fields['count_0'] else barLen
             remaining = []
 
             # Get full blocks for subcounters and preserve remainders
@@ -746,7 +742,7 @@ class Counter(PrintableCounter):
 
         # If bar isn't complete, add partial block and fill
         if barLen < barWidth:
-            if count_0:
+            if fields.get('count_0', self.count):
                 barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
                 partial_len += 1
             barText += self.series[0] * (barWidth - partial_len)
@@ -766,15 +762,10 @@ class Counter(PrintableCounter):
         Format counter
         """
 
-        # Update fields from subcounters
         fields['fill'] = u'{0}'
-        subcounters, subFields = self._get_subcounters(
-            elapsed, bar_fields=False, force_float=force_float
-        )
-        if subcounters:
-            fields.update(subFields)
-            subcount = fields['count_00'] = sum(sub[0].count for sub in subcounters)
-            fields['count_0'] = self.count - subcount
+
+        # Update fields from subcounters
+        self._get_subcounters(elapsed, fields, bar_fields=False, force_float=force_float)
 
         try:
             if FORMAT_MAP_SUPPORT:
