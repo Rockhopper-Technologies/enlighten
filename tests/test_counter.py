@@ -278,7 +278,9 @@ class TestCounter(TestCase):
                                   'percentage': 60.0, 'percentage_0': 10.0, 'percentage_00': 50.0,
                                   'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
                                   'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'interval_0': 4.0, 'interval_00': 2.0,
                                   'interval_2': 2.0, 'interval_3': 0.0,
+                                  'rate_0': 0.25, 'rate_00': 0.5,
                                   'rate_2': 0.5, 'eta_2': '00:12', 'rate_3': 0.0, 'eta_3': '?'})
 
         fields = {'count': self.ctr.count, 'percentage': 60.0}
@@ -288,7 +290,9 @@ class TestCounter(TestCase):
                                   'percentage': 60.0, 'percentage_0': 10.0, 'percentage_00': 50.0,
                                   'percentage_1': 0.0, 'percentage_2': 40.0, 'percentage_3': 10.0,
                                   'count_1': 0, 'count_2': 4, 'count_3': 1,
+                                  'interval_0': 0.0, 'interval_00': 0.0,
                                   'interval_2': 0.0, 'interval_3': 0.0,
+                                  'rate_0': 0.0, 'rate_00': 0.0,
                                   'rate_2': 0.0, 'eta_2': '?', 'rate_3': 0.0, 'eta_3': '?'})
 
         self.ctr = Counter(total=0, desc='Test', unit='ticks', manager=self.manager)
@@ -300,6 +304,8 @@ class TestCounter(TestCase):
         self.assertEqual(fields, {'count': 0, 'count_0': 0, 'count_00': 0,
                                   'percentage': 0.0, 'percentage_0': 0.0, 'percentage_00': 0.0,
                                   'percentage_1': 0.0, 'count_1': 0,
+                                  'interval_0': 0.0, 'interval_00': 0.0,
+                                  'rate_0': 0.0, 'rate_00': 0.0,
                                   'interval_1': 0.0, 'rate_1': 0.0, 'eta_1': '00:00'})
 
     def test_get_subcounter_counter_format(self):
@@ -314,7 +320,9 @@ class TestCounter(TestCase):
         self.assertEqual(subcounters, [(subcounter1, 0.0), (subcounter2, 0.0), (subcounter3, 0.0)])
         self.assertEqual(fields, {'count': 12, 'count_0': 5, 'count_00': 7,
                                   'count_1': 0, 'count_2': 6, 'count_3': 1,
+                                  'interval_0': 0.75 ** -1, 'interval_00': 0.75 ** -1,
                                   'interval_2': 0.75 ** -1, 'interval_3': 0.0,
+                                  'rate_0': 0.75, 'rate_00': 0.75,
                                   'rate_2': 0.75, 'rate_3': 0.0})
 
     def test_remove(self):

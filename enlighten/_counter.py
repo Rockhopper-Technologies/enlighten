@@ -327,13 +327,21 @@ class Counter(PrintableCounter):
 
         Additional fields when subcounters are used:
 
-        - count_n (:py:class:`int`) - Current value of ``count``
+        - count_n(:py:class:`int`) - Current value of ``count``
         - count_0(:py:class:`int`) - Remaining count after deducting counts for all subcounters
-        - count_00 (:py:class:`int`) - Sum of counts from all subcounters
-        - percentage_n (:py:class:`float`) - Percentage complete (``bar_format`` only)
+        - count_00(:py:class:`int`) - Sum of counts from all subcounters
+        - interval_0(:py:class:`prefixed.Float`) - Average seconds per non-subcounter iteration
+          (inverse of rate_0)
+        - interval_00(:py:class:`prefixed.Float`) - Average seconds per iteration for all
+          subcounters (inverse of rate_00)
+        - percentage_n(:py:class:`float`) - Percentage complete (``bar_format`` only)
         - percentage_0(:py:class:`float`) - Remaining percentage after deducting percentages
           for all subcounters (``bar_format`` only)
-        - percentage_00 (:py:class:`float`) - Total of percentages from all subcounters
+        - percentage_00(:py:class:`float`) - Total of percentages from all subcounters
+        - rate_0(:py:class:`prefixed.Float`) - Average iterations per second excluding subcounters
+          since instance was created
+        - rate_00(:py:class:`prefixed.Float`) - Average iterations per second of all subcounters
+          since instance was created
 
         .. note::
 
@@ -468,6 +476,7 @@ class Counter(PrintableCounter):
 
         return sum(subcounter.count for subcounter in self._subcounters)
 
+    # pylint: disable=too-many-locals
     def _get_subcounters(self, elapsed, fields, bar_fields=True, force_float=False):
         """
         Args:
@@ -485,19 +494,22 @@ class Counter(PrintableCounter):
         """
 
         subcounters = []
-        sub_count = 0
+        count_00 = 0
+        start_count_00 = 0
 
         if not self._subcounters:
             return subcounters
 
         for num, subcounter in enumerate(self._subcounters, 1):
 
-            sub_count += subcounter.count
+            count = subcounter.count
+            count_00 += count
+            start_count_00 += subcounter.start_count
 
-            fields['count_%d' % num] = Float(subcounter.count) if force_float else subcounter.count
+            fields['count_%d' % num] = Float(count) if force_float else count
 
             if self.total and bar_fields:
-                subPercentage = subcounter.count / float(self.total)
+                subPercentage = count / float(self.total)
             else:
                 subPercentage = 0.0
 
@@ -507,34 +519,42 @@ class Counter(PrintableCounter):
             # Save in tuple: count, percentage
             subcounters.append((subcounter, subPercentage))
 
-            if subcounter.all_fields:
+            if not subcounter.all_fields:
+                continue
 
-                interations = float(abs(subcounter.count - subcounter.start_count))
+            # Explicit conversion to float required for Python 2
+            interations = float(abs(count - subcounter.start_count))
+            rate = Float(interations / elapsed) if elapsed else Float(0.0)
+            fields['rate_%d' % num] = rate
+            fields['interval_%d' % num] = rate ** -1 if rate else rate
 
-                if elapsed:
-                    rate = fields['rate_%d' % num] = Float(interations / elapsed)
-                else:
-                    rate = fields['rate_%d' % num] = Float(0.0)
+            if not bar_fields:
+                continue
 
-                fields['interval_%d' % num] = rate ** -1 if rate else rate
+            if self.total == 0:
+                fields['eta_%d' % num] = u'00:00'
+            elif rate:
+                fields['eta_%d' % num] = format_time((self.total - interations) / rate)
+            else:
+                fields['eta_%d' % num] = u'?'
 
-                if not bar_fields:
-                    continue
-
-                if self.total == 0:
-                    fields['eta_%d' % num] = u'00:00'
-                elif rate:
-                    fields['eta_%d' % num] = format_time((self.total - interations) / rate)
-                else:
-                    fields['eta_%d' % num] = u'?'
-
-        # Parent fields
-        fields['count_00'] = Float(sub_count) if force_float else sub_count
-        fields['count_0'] = fields['count'] - sub_count
-
+        # Percentage_0 and percentage_00, bar_format only
         if bar_fields:
             fields['percentage_00'] = percentage_00 = sum(sub[1] for sub in subcounters) * 100
             fields['percentage_0'] = fields['percentage'] - percentage_00
+
+        # count_00 fields (Sum of subcounters)
+        fields['count_00'] = Float(count_00) if force_float else count_00
+        rate = Float(float(abs(count_00 - start_count_00)) / elapsed) if elapsed else Float(0.0)
+        fields['rate_00'] = rate
+        fields['interval_00'] = rate ** -1 if rate else rate
+
+        # count_0 fields (Excluding subcounters)
+        count_0 = fields['count_0'] = fields['count'] - count_00
+        start_count_0 = self.start_count - start_count_00
+        rate = Float(float(abs(count_0 - start_count_0)) / elapsed) if elapsed else Float(0.0)
+        fields['rate_0'] = rate
+        fields['interval_0'] = rate ** -1 if rate else rate
 
         return subcounters
 
@@ -585,12 +605,8 @@ class Counter(PrintableCounter):
         fields['elapsed'] = format_time(elapsed)
 
         # Get rate. Elapsed could be 0 if counter was not updated and has a zero total.
-        if elapsed:
-            # Use iterations so a counter running backwards is accurate
-            rate = fields['rate'] = Float(iterations / elapsed)
-        else:
-            rate = fields['rate'] = Float(0.0)
-
+        rate = Float(iterations / elapsed) if elapsed else Float(0.0)
+        fields['rate'] = rate
         fields['interval'] = rate ** -1 if rate else rate
 
         # Only process bar if total was given and n doesn't exceed total
