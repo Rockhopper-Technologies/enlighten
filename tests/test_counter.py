@@ -570,6 +570,15 @@ class TestCounter(TestCase):
         formatted = ctr.format(elapsed=2, width=80)
         self.assertEqual(formatted, '2.00 KiB / 3.20 MiB | 1.00 KiB/s | 0.00 s/B')
 
+        # Counter_format
+        counter_format = u'{count:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+
+        ctr = Counter(stream=self.tty.stdout, counter_format=counter_format)
+        ctr.count = 2048.0
+
+        formatted = ctr.format(elapsed=2, width=80)
+        self.assertEqual(formatted, '2.00 KiB | 1.00 KiB/s | 0.00 s/B')
+
     def test_color(self):
         """
         Only bar characters should be colorized
