@@ -592,12 +592,12 @@ class Counter(PrintableCounter):
                             EnlightenWarning)
 
         force_float = isinstance(self.count, float) or isinstance(total, float)
-        fields.update({'count': Float(self.count) if force_float else self.count,
-                       'desc': self.desc or u'',
-                       'total': Float(total) if force_float and total is not None else total,
-                       'unit': self.unit or u'',
-                       'desc_pad': u' ' if self.desc else u'',
-                       'unit_pad': u' ' if self.unit else u''})
+        fields['count'] = Float(self.count) if force_float else self.count
+        fields['desc'] = self.desc or u''
+        fields['total'] = Float(total) if force_float and total is not None else total
+        fields['unit'] = self.unit or u''
+        fields['desc_pad'] = u' ' if self.desc else u''
+        fields['unit_pad'] = u' ' if self.unit else u''
 
         # Get elapsed time
         if elapsed is None:
