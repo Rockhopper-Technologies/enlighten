@@ -86,6 +86,7 @@ the iterables and then updates the count by 1.
         time.sleep(0.2)
         print('%s: Baaa' % sheep)
 
+
 User-defined fields
 -------------------
 
@@ -116,3 +117,58 @@ In the following example, ``source`` is a user-defined field that is periodicall
 
 For more information, see the :ref:`Counter Format <counter_format>` and
 :ref:`StatusBar Format <status_format>` sections.
+
+
+Human-readable numeric prefixes
+-------------------------------
+
+Enlighten supports automatic `SI (metric)`_ and `IEC (binary)`_ prefixes using the Prefixed_
+library.
+
+All ``rate`` and ``interval`` formatting fields are of the type :py:class:`prefixed.Float`.
+``total`` and all ``count`` fields default to :py:class:`int`.
+If :py:attr:`~Counter.total` or or :py:attr:`~Counter.count` are set to a :py:class:`float`,
+or a :py:class:`float` is provided to :py:meth:`~Counter.update`,
+these fields will be :py:class:`prefixed.Float` instead.
+
+.. code-block:: python
+
+    import time
+    import random
+    import enlighten
+
+    size = random.uniform(1.0, 10.0) * 2 ** 20  # 1-10 MiB (float)
+    chunk_size = 64 * 1024  # 64 KiB
+
+    bar_format = '{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' \
+                 '{count:!.2j}{unit} / {total:!.2j}{unit} ' \
+                 '[{elapsed}<{eta}, {rate:!.2j}{unit}/s]'
+
+    manager = enlighten.get_manager()
+    pbar = manager.counter(total=size, desc='Downloading', unit='B', bar_format=bar_format)
+
+    bytes_left = size
+    while bytes_left:
+        time.sleep(random.uniform(0.05, 0.15))
+        next_chunk = min(chunk_size, bytes_left)
+        pbar.update(next_chunk)
+        bytes_left -= next_chunk
+
+
+.. code-block:: python
+
+    import enlighten
+
+    counter_format = 'Trying to get to sleep: {count:.2h} sheep'
+
+    counter = enlighten.Counter(counter_format=counter_format)
+    counter.count = 0.0
+    for num in range(10000000):
+        counter.update()
+
+For more information, see the :ref:`Counter Format <counter_format>`
+and the `Prefixed`_ documentation.
+
+.. _SI (metric): https://en.wikipedia.org/wiki/Metric_prefix
+.. _IEC (binary): https://en.wikipedia.org/wiki/Binary_prefix
+.. _Prefixed: https://prefixed.readthedocs.io/en/stable/index.html
