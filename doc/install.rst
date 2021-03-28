@@ -63,5 +63,13 @@ Debian and Ubuntu
     $ apt-get install python3-enlighten
 
 
+Conda
+-----
+
+.. code-block:: console
+
+    $ conda install -c conda-forge enlighten
+
+
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F

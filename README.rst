@@ -3,7 +3,7 @@
 | |docs| |travis| |codecov|
 | |linux| |windows| |mac| |bsd|
 | |pypi| |supported-versions| |supported-implementations|
-| |Fedora| |EPEL| |Arch| |Debian| |Ubuntu|
+| |Fedora| |EPEL| |Arch| |Debian| |Ubuntu| |Anaconda|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
     :target: https://python-enlighten.readthedocs.org
@@ -65,6 +65,9 @@
     :alt: Latest Ubuntu Version
     :target: https://launchpad.net/ubuntu/+source/enlighten
 
+.. |Anaconda| image:: https://img.shields.io/conda/vn/conda-forge/enlighten?color=lightgrey&label=Anaconda&logo=Conda%20Forge&style=plastic
+    :alt: Latest Conda Forge Version
+    :target: https://anaconda.org/conda-forge/enlighten
 
 .. end-badges
 
@@ -146,6 +149,14 @@ Debian and Ubuntu
 
 .. _EPEL: https://fedoraproject.org/wiki/EPEL
 .. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
+
+
+Conda
+-----
+
+.. code-block:: console
+
+    $ conda install -c conda-forge enlighten
 
 
 Examples
