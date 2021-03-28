@@ -25,7 +25,8 @@ def download(manager, size):
     Simulate a download
     """
 
-    pbar = manager.counter(total=size, desc='Downloading', unit='B', bar_format=BAR_FORMAT)
+    pbar = manager.counter(total=size, desc='Downloading',
+                           unit='B', bar_format=BAR_FORMAT, color='purple')
 
     bytes_left = size
     while bytes_left:

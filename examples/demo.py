@@ -17,6 +17,7 @@ import enlighten
 # pylint: disable=wrong-import-order,import-error
 from multicolored import run_tests, load
 from multiple_logging import process_files, win_time_granularity
+from prefixes import download
 
 
 def initialize(manager, initials=15):
@@ -52,6 +53,8 @@ def main():
         load(manager, 40)
         status.update(demo='Testing')
         run_tests(manager, 20)
+        status.update(demo='Downloading')
+        download(manager, 2.0 * 2 ** 20)
         status.update(demo='File Processing')
         process_files(manager)
 
