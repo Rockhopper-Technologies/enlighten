@@ -12,7 +12,7 @@ Provides progress bars and counters which play nice in a TTY console
 """
 
 from enlighten.counter import Counter, StatusBar, SubCounter
-from enlighten._manager import Manager, get_manager
+from enlighten.manager import Manager, get_manager
 from enlighten._util import EnlightenWarning, Justify
 
 

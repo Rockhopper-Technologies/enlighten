@@ -13,6 +13,7 @@ import signal
 import sys
 import time
 
+import enlighten
 from enlighten import _manager
 
 from tests import (unittest, TestCase, mock, MockTTY, MockCounter,
@@ -37,14 +38,14 @@ class TestManager(TestCase):
     def test_init_safe(self):
         with redirect_output('stdout', self.tty.stdout):
             # Companion stream is stderr if stream is stdout
-            manager = _manager.Manager()
+            manager = enlighten.Manager()
             self.assertIs(manager.stream, sys.stdout)
             self.assertIs(manager.term.stream, sys.stdout)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init(self):
         # Companion stream is stderr if stream is stdout
-        manager = _manager.Manager()
+        manager = enlighten.Manager()
         self.assertIs(manager.stream, sys.stdout)
         self.assertIs(manager.term.stream, sys.stdout)
         # This will fail building rpm packages since stderr is redirected
@@ -55,14 +56,14 @@ class TestManager(TestCase):
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_companion_hc(self):
         # Hard-coded companion stream always wins
-        manager = _manager.Manager(companion_stream=OUTPUT)
+        manager = enlighten.Manager(companion_stream=OUTPUT)
         self.assertIs(manager.companion_stream, OUTPUT)
         self.assertIs(manager.companion_term.stream, OUTPUT)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_stderr(self):
         # Companion stream is stdout if stream is stderr
-        manager = _manager.Manager(stream=sys.__stderr__)
+        manager = enlighten.Manager(stream=sys.__stderr__)
         self.assertIs(manager.stream, sys.__stderr__)
         self.assertIs(manager.term.stream, sys.__stderr__)
         # This will fail building rpm packages since stderr is redirected
@@ -74,7 +75,7 @@ class TestManager(TestCase):
     def test_init_redirect(self):
         # If stdout is redirected, but stderr is still a tty, use it for companion
         with redirect_output('stdout', OUTPUT):
-            manager = _manager.Manager()
+            manager = enlighten.Manager()
             self.assertIs(manager.stream, sys.stdout)
             self.assertIs(manager.term.stream, sys.stdout)
             # This will fail building rpm packages since stderr is redirected
@@ -86,7 +87,7 @@ class TestManager(TestCase):
     def test_init_stderr_redirect(self):
         # If stderr is redirected, but stdout is still a tty, use it for companion
         with redirect_output('stderr', OUTPUT):
-            manager = _manager.Manager(stream=sys.stderr)
+            manager = enlighten.Manager(stream=sys.stderr)
             self.assertIs(manager.stream, sys.stderr)
             self.assertIs(manager.term.stream, sys.stderr)
             # This will fail building rpm packages since stderr is redirected
@@ -98,7 +99,7 @@ class TestManager(TestCase):
     def test_init_stderr_companion_hc(self):
 
         # Hard-coded companion stream always wins
-        manager = _manager.Manager(stream=sys.__stderr__, companion_stream=OUTPUT)
+        manager = enlighten.Manager(stream=sys.__stderr__, companion_stream=OUTPUT)
         self.assertIs(manager.companion_stream, OUTPUT)
         self.assertIs(manager.companion_term.stream, OUTPUT)
 
@@ -106,19 +107,19 @@ class TestManager(TestCase):
     def test_init_hc(self):
 
         # Nonstandard stream doesn't get a companion stream by default
-        manager = _manager.Manager(stream=OUTPUT)
+        manager = enlighten.Manager(stream=OUTPUT)
         self.assertIs(manager.stream, OUTPUT)
         self.assertIs(manager.term.stream, OUTPUT)
         self.assertIsNone(manager.companion_stream)
         self.assertIsNone(manager.companion_term)
 
     def test_repr(self):
-        manager = _manager.Manager()
+        manager = enlighten.Manager()
         self.assertEqual(repr(manager), "Manager(stream=%r)" % sys.stdout)
 
     def test_counter_and_remove(self):
         # pylint: disable=no-member,assigning-non-slot
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertEqual(len(manager.counters), 0)
 
         with mock.patch.object(manager, '_set_scroll_area') as ssa:
@@ -182,7 +183,7 @@ class TestManager(TestCase):
         self.assertEqual(ssa.call_count, 1)
 
     def test_counter_position(self):
-        manager = _manager.Manager(stream=self.tty.stdout, set_scroll=False)
+        manager = enlighten.Manager(stream=self.tty.stdout, set_scroll=False)
         counter1 = manager.counter(position=4)
         self.assertEqual(manager.counters[counter1], 4)
 
@@ -199,7 +200,7 @@ class TestManager(TestCase):
     def test_counter_position_pinned(self):
         """If a position is taken, use next available"""
 
-        manager = _manager.Manager(stream=self.tty.stdout, set_scroll=False)
+        manager = enlighten.Manager(stream=self.tty.stdout, set_scroll=False)
         counter1 = manager.counter(position=2)
         self.assertEqual(manager.counters[counter1], 2)
 
@@ -228,7 +229,7 @@ class TestManager(TestCase):
     def test_counter_replaced(self):
         """Counter replaces an existing counter"""
 
-        manager = _manager.Manager(stream=self.tty.stdout, set_scroll=False)
+        manager = enlighten.Manager(stream=self.tty.stdout, set_scroll=False)
 
         # Pinned replacement
         counter1 = manager.counter(position=2)
@@ -254,8 +255,8 @@ class TestManager(TestCase):
             manager.counter(replace=counter1)
 
     def test_inherit_kwargs(self):
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                   unit='knights', not_real=True, desc='Default')
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    unit='knights', not_real=True, desc='Default')
 
         self.assertTrue('unit' in manager.defaults)
         self.assertTrue('desc' in manager.defaults)
@@ -272,7 +273,7 @@ class TestManager(TestCase):
         msg = 'test message'
 
         with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
-            manager = _manager.Manager(stream=self.tty.stdout)
+            manager = enlighten.Manager(stream=self.tty.stdout)
             counter = manager.counter(position=3)
             term = manager.term
             manager.write(msg, counter=counter)
@@ -291,7 +292,7 @@ class TestManager(TestCase):
         msg = u'test message'
 
         with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
-            manager = _manager.Manager(stream=self.tty.stdout, companion_stream=OUTPUT)
+            manager = enlighten.Manager(stream=self.tty.stdout, companion_stream=OUTPUT)
             counter = manager.counter(position=3)
             term = manager.term
             manager.write(msg, counter=counter, flush=False)
@@ -312,7 +313,7 @@ class TestManager(TestCase):
         Output is stored in buffer, but only written in companion stream is defined
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout)
+        manager = enlighten.Manager(stream=self.tty.stdout)
         msg = u'test message'
 
         manager._companion_buffer = [msg]
@@ -339,7 +340,7 @@ class TestManager(TestCase):
         Ensure auto-refreshed counters are updated when others are
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout)
+        manager = enlighten.Manager(stream=self.tty.stdout)
         counter1 = manager.counter(count=1, total=0, counter_format=u'counter1', autorefresh=True)
         counter2 = manager.counter(count=1, total=0, counter_format=u'counter2')
         self.tty.clear()
@@ -374,8 +375,8 @@ class TestManager(TestCase):
         self.assertNotRegex(output, 'counter1')
 
     def test_set_scroll_area_disabled(self):
-        manager = _manager.Manager(stream=self.tty.stdout,
-                                   counter_class=MockCounter, set_scroll=False)
+        manager = enlighten.Manager(stream=self.tty.stdout,
+                                    counter_class=MockCounter, set_scroll=False)
         manager.counters['dummy'] = 3
 
         manager._set_scroll_area()
@@ -383,7 +384,7 @@ class TestManager(TestCase):
         self.assertEqual(self.tty.stdread.readline(), 'X\n')
 
     def test_set_scroll_area_no_change(self):
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
         manager.scroll_offset = 4
 
@@ -395,8 +396,8 @@ class TestManager(TestCase):
         Ensure when no change is made, a term.move is still called for the companion stream
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                   companion_stream=self.tty.stdout)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    companion_stream=self.tty.stdout)
         manager.counters['dummy'] = 3
         manager.scroll_offset = 4
         term = manager.term
@@ -407,7 +408,7 @@ class TestManager(TestCase):
         self.assertEqual(manager._companion_buffer, [term.move(21, 0)])
 
     def test_set_scroll_area(self):
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
         term = manager.term
         stdread = self.tty.stdread
@@ -458,7 +459,7 @@ class TestManager(TestCase):
         self.assertEqual(manager.scroll_offset, 4)
 
     def test_set_scroll_area_force(self):
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
         manager.scroll_offset = 4
         manager.height = 20
@@ -484,7 +485,7 @@ class TestManager(TestCase):
 
         try:
             with mock.patch.object(tty, 'stdout', wraps=tty.stdout) as mockstdout:
-                manager = _manager.Manager(stream=tty.stdout, counter_class=MockCounter)
+                manager = enlighten.Manager(stream=tty.stdout, counter_class=MockCounter)
                 term = manager.term
                 reset = (term.normal_cursor +
                          term.csr(0, term.height - 1) +
@@ -525,7 +526,7 @@ class TestManager(TestCase):
 
     def test_stop(self):
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters[MockCounter(manager=manager)] = 3
         manager.counters[MockCounter(manager=manager)] = 4
         term = manager.term
@@ -572,8 +573,8 @@ class TestManager(TestCase):
         set_scroll is False
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                   set_scroll=False)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    set_scroll=False)
         manager.counters[MockCounter(manager=manager)] = 3
         manager.counters[MockCounter(manager=manager)] = 4
         term = manager.term
@@ -606,7 +607,7 @@ class TestManager(TestCase):
         In this case, _set_scroll_area() was never called
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters[MockCounter(manager=manager)] = 3
         manager.counters[MockCounter(manager=manager)] = 4
         term = manager.term
@@ -628,8 +629,8 @@ class TestManager(TestCase):
         Just make sure we have an extra reset
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                   companion_stream=self.tty.stdout)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    companion_stream=self.tty.stdout)
         manager.counters[MockCounter(manager=manager)] = 3
         manager.counters[MockCounter(manager=manager)] = 4
         term = manager.term
@@ -658,7 +659,7 @@ class TestManager(TestCase):
         Ensure a line feed is given if there is a counter at position 1
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         term = manager.term
 
         manager.counters[MockCounter(manager=manager)] = 3
@@ -685,7 +686,7 @@ class TestManager(TestCase):
         Terminal size is cached unless resize handler runs
         """
 
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         counter3 = MockCounter(manager=manager)
         manager.counters[counter3] = 3
         manager.scroll_offset = 4
@@ -726,42 +727,43 @@ class TestManager(TestCase):
         """
 
         # Not dynamic if explicitly True
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter, threaded=True)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    threaded=True)
         self.assertTrue(manager.threaded)
         with mock.patch('threading.active_count', return_value=4):
             manager.counter()
         self.assertTrue(manager.threaded)
 
         # Not dynamic if explicitly False
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                   threaded=False)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    threaded=False)
         self.assertFalse(manager.threaded)
         with mock.patch('threading.active_count', return_value=4):
             manager.counter()
         self.assertFalse(manager.threaded)
 
         # False by default
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertIsNone(manager.threaded)
         manager.counter()
         self.assertFalse(manager.threaded)
 
         # True if threaded
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertIsNone(manager.threaded)
         with mock.patch('threading.active_count', return_value=4):
             manager.counter()
         self.assertTrue(manager.threaded)
 
         # True if has child processes
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertIsNone(manager.threaded)
         with mock.patch('multiprocessing.active_children', return_value=[1, 2]):
             manager.counter()
         self.assertTrue(manager.threaded)
 
         # True if is child processes
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertIsNone(manager.threaded)
         with mock.patch('multiprocessing.current_process') as c_process:
             c_process.name = 'Process1'
@@ -772,7 +774,8 @@ class TestManager(TestCase):
         """
         Test a resize event threading behavior
         """
-        manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter, threaded=True)
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                    threaded=True)
         counter3 = MockCounter(manager=manager)
         counter3.last_update = time.time()
         manager.counters[counter3] = 3
@@ -807,7 +810,7 @@ class TestManager(TestCase):
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
             mockheight.side_effect = [25, 23]
 
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+            manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
             counter3 = MockCounter(manager=manager)
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
@@ -829,8 +832,8 @@ class TestManager(TestCase):
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
             mockheight.side_effect = [25, 27]
 
-            manager = _manager.Manager(stream=self.tty.stdout, counter_class=MockCounter,
-                                       threaded=True)
+            manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
+                                        threaded=True)
             counter3 = MockCounter(manager=manager)
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
@@ -851,10 +854,10 @@ class TestManager(TestCase):
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
     def test_disable(self):
-        mgr = _manager.Manager(stream=self.tty.stdout, enabled=False)
+        mgr = enlighten.Manager(stream=self.tty.stdout, enabled=False)
         self.assertFalse(mgr.enabled)
         ctr = mgr.counter()
-        self.assertIsInstance(ctr, _manager.Counter)
+        self.assertIsInstance(ctr, enlighten._counter.Counter)
         self.assertFalse(ctr.enabled)
 
         # Make sure this doesn't error
@@ -876,7 +879,7 @@ class TestManager(TestCase):
 
         mgr = None
 
-        with _manager.Manager(stream=self.tty.stdout) as manager:
+        with enlighten.Manager(stream=self.tty.stdout) as manager:
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue(manager.enabled)
             mgr = manager
@@ -886,14 +889,14 @@ class TestManager(TestCase):
     def test_no_resize_signal(self):
 
         # Test normal case initialization
-        stdmgr = _manager.Manager(stream=self.tty.stdout)
+        stdmgr = enlighten.Manager(stream=self.tty.stdout)
         self.assertTrue(hasattr(stdmgr, 'sigwinch_orig'))
         stdmgr.counters[MockCounter(manager=stdmgr)] = 3
         stdmgr.counters[MockCounter(manager=stdmgr)] = 4
 
         # Test no resize signal initialization
         with mock.patch.object(_manager, 'RESIZE_SUPPORTED', False):
-            manager = _manager.Manager(stream=self.tty.stdout)
+            manager = enlighten.Manager(stream=self.tty.stdout)
             self.assertFalse(hasattr(manager, 'sigwinch_orig'))
 
             manager.counters[MockCounter(manager=manager)] = 3
@@ -934,7 +937,7 @@ class TestManager(TestCase):
         with mock.patch.object(_manager.signal, 'signal',
                                wraps=_manager.signal.signal) as mocksignal:
 
-            manager = _manager.Manager(stream=self.tty.stdout, no_resize=True)
+            manager = enlighten.Manager(stream=self.tty.stdout, no_resize=True)
             self.assertFalse(hasattr(manager, 'sigwinch_orig'))
             self.assertFalse(mocksignal.called)
 
@@ -964,7 +967,7 @@ class TestGetManager(TestCase):
         # stdout is attached to a tty
         with redirect_output('stdout', self.tty.stdout):
             self.assertTrue(sys.stdout.isatty())
-            manager = _manager.get_manager(unit='knights')
+            manager = enlighten.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)
             self.assertTrue('enabled' in manager.defaults)
@@ -977,7 +980,7 @@ class TestGetManager(TestCase):
         # stdout is not attached to a tty
         with redirect_output('stdout', OUTPUT):
             self.assertFalse(sys.stdout.isatty())
-            manager = _manager.get_manager(unit='knights')
+            manager = enlighten.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)
             self.assertFalse(manager.enabled)
