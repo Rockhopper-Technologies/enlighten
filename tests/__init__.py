@@ -115,6 +115,7 @@ class MockTTY(object):
     def __init__(self, height=25, width=80):
 
         self.master, self.slave = pty.openpty()
+        # pylint: disable=consider-using-with
         self.stdout = io.open(self.slave, 'w', 1, encoding='UTF-8', newline='')
         self.stdread = io.open(self.master, 'r', encoding='UTF-8', newline='\n')
 

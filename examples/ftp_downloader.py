@@ -37,7 +37,7 @@ class Writer(object):
     def __enter__(self):
         self.status = MANAGER.counter(total=self.size, desc=self.filename,
                                       unit='bytes', leave=False)
-        self.fileobj = open(self.dest, 'wb')
+        self.fileobj = open(self.dest, 'wb')  # pylint: disable=consider-using-with
         return self
 
     def __exit__(self, *args):
