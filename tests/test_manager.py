@@ -113,6 +113,14 @@ class TestManager(TestCase):
         self.assertIsNone(manager.companion_stream)
         self.assertIsNone(manager.companion_term)
 
+    def test_width(self):
+        """Width hard-coded"""
+
+        manager = enlighten.Manager(width=100)
+        ctr = manager.counter(total=100)
+
+        self.assertEqual(len(ctr.format()), 100)
+
     def test_repr(self):
         manager = enlighten.Manager()
         self.assertEqual(repr(manager), "Manager(stream=%r)" % sys.stdout)

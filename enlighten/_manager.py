@@ -40,6 +40,7 @@ class Manager(BaseManager):
         no_resize(bool): Disable resizing support
         threaded(bool): When True resize handling is deferred until next write (Default: False
             unless multiple threads or multiple processes are detected)
+        width(int): Static output width. If unset, terminal width is determined dynamically
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -129,7 +130,6 @@ class Manager(BaseManager):
 
         oldHeight = self.height
         newHeight = self.height = term.height
-        newWidth = term.width
 
         if newHeight < oldHeight:
             buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
@@ -141,7 +141,7 @@ class Manager(BaseManager):
         buffer.append(term.move(max(0, newHeight - self.scroll_offset), 0))
         buffer.append(term.clear_eos)
 
-        self.width = newWidth
+        self.width = self._width or term.width
         self._set_scroll_area(force=True)
 
         for counter in self.counters:

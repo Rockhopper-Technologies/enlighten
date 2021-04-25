@@ -37,6 +37,7 @@ class BaseManager(object):
         term(str): Terminal type passed to Blessed
         threaded(bool): When True resize handling is deferred until next write (Default: False
             unless multiple threads or multiple processes are detected)
+        width(int): Static output width. If unset, width is determined dynamically
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -55,6 +56,7 @@ class BaseManager(object):
         self.status_bar_class = kwargs.pop('status_bar_class', StatusBar)
         self.stream = kwargs.pop('stream', sys.stdout)
         self.threaded = kwargs.pop('threaded', None)
+        self._width = kwargs.pop('width', None)
 
         self.counters = OrderedDict()
 
@@ -69,7 +71,7 @@ class BaseManager(object):
 
         self.term = Terminal(stream=self.stream, kind=kwargs.pop('term', None))
         self.height = self.term.height
-        self.width = self.term.width
+        self.width = self._width or self.term.width
 
         self.defaults = kwargs  # Counter defaults
 
