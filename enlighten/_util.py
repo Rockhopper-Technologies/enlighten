@@ -146,7 +146,7 @@ class Lookahead:
         """
         Args:
             start(int): Positive integer index of first value
-            start(int): Positive integer index to end lookup (not returned)
+            stop(int): Positive integer index to end before (not returned)
 
         Retrieve next value(s) in iterator.
 
