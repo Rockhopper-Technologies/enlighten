@@ -19,6 +19,10 @@ Classes
    :inherited-members:
    :exclude-members: write, remove
 
+.. autoclass:: NotebookManager(stream=None, counter_class=Counter, **kwargs)
+   :inherited-members:
+   :exclude-members: write, remove
+
 .. autoclass:: Counter
     :members:
     :inherited-members:

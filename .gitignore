@@ -13,7 +13,7 @@ __pycache__
 .tox
 # Coverage
 htmlcov
-.coverage
+.coverage*
 
 # Setup
 dist
@@ -21,3 +21,7 @@ build
 
 # Misc
 notes
+
+# Notebooks
+.ipynb_checkpoints
+Untitled*.ipynb

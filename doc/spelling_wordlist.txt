@@ -2,6 +2,7 @@ Conda
 downconverted
 iterable
 iterables
+Jupyter
 natively
 programmatically
 resize

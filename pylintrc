@@ -39,12 +39,14 @@ spelling-ignore-words=
     Avram, ansicon, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
     AttributeError, autorefresh,
     BaseManager, bool,
+    CGA, CSS,
     desc, docstring, downconverted, downloader,
     Enlighten's, exc,
     html,
     IEC, incr, IPC, iterable,
     kwargs,
-    len, Lubkin,
+    Jupyter,
+    len, lookahead, Lubkin,
     meth, Mozilla, MPL,
     noqa,
     peru, pragma, PrintableCounter, py,
@@ -52,6 +54,9 @@ spelling-ignore-words=
     seagreen, setscroll, scrollable, sphinxcontrib, ss, StatusBar, stdout,
     stderr, str, subcounter, subcounters, submodule,
     subprocesses, sys,
-    TestCase, tty, TTY, tuple,
+    Termcap, TestCase, tty, TTY, tuple,
     unicode, unittest, unmanaged,
-    ValueError
+    ValueError,
+
+    # For nbqa
+    NBQA, SEP

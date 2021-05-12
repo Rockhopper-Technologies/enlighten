@@ -17,5 +17,10 @@ from enlighten._util import EnlightenWarning, Justify
 
 
 __version__ = '1.9.0'
-__all__ = ('Counter', 'EnlightenWarning', 'Justify', 'Manager',
-           'StatusBar', 'SubCounter', 'get_manager')
+__all__ = ['Counter', 'EnlightenWarning', 'Justify', 'Manager',
+           'StatusBar', 'SubCounter', 'get_manager', 'NotebookManager']
+
+try:
+    from enlighten.manager import NotebookManager  # noqa: F401
+except ImportError:
+    __all__.remove('NotebookManager')

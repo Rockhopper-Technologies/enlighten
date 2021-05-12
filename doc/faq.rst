@@ -94,3 +94,14 @@ be deferred.
 
 In order to guarantee resize handling is deferred, it is best to pass ``threaded=True`` when
 creating a manager instance.
+
+Why does the output disappear at the end of a notebook cell in VSCode?
+----------------------------------------------------------------------
+
+This is caused by a `bug <https://github.com/microsoft/vscode-jupyter/issues/1710>`_
+in the VSCode Jupyter extension that reverts display updates at the end of a cell.
+This issue has been confirmed by the maintainers, but a fix has not been released yet.
+
+As a temporary workaround, ``manager._primed = False`` at the end of the cell before calling
+``manager.stop()``. Note, this will result in double displays in other environments so should
+only be used if the display is cleared first or the code is limited to running in this extension.

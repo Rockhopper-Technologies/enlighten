@@ -17,6 +17,14 @@ from enlighten._counter import Counter
 from enlighten._manager import Manager
 
 
+try:
+    from IPython import get_ipython
+    IN_NOTEBOOK = 'IPKernelApp' in get_ipython().config
+    from enlighten._notebook_manager import NotebookManager  # pylint: disable=ungrouped-imports
+except (ImportError, AttributeError):
+    IN_NOTEBOOK = False
+
+
 def get_manager(stream=None, counter_class=Counter, **kwargs):
     """
     Args:
@@ -31,8 +39,15 @@ def get_manager(stream=None, counter_class=Counter, **kwargs):
 
     Convenience function to get a manager instance
 
-    If ``stream`` is not attached to a TTY, the :py:class:`Manager` instance is disabled.
+    If running inside a notebook, a :py:class:`NotebookManager`
+    instance is returned. otherwise a standard :py:class:`Manager` instance is returned.
+
+    If a a standard :py:class:`Manager` instance is used and ``stream`` is not attached
+    to a TTY, the :py:class:`Manager` instance is disabled.
     """
+
+    if IN_NOTEBOOK:
+        return NotebookManager(stream=stream, counter_class=counter_class, **kwargs)
 
     stream = sys.stdout if stream is None else stream
     isatty = hasattr(stream, 'isatty') and stream.isatty()

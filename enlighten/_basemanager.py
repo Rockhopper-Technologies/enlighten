@@ -69,7 +69,10 @@ class BaseManager(object):
         self.resize_lock = False
         self.scroll_offset = 1
 
-        self.term = Terminal(stream=self.stream, kind=kwargs.pop('term', None))
+        # If terminal is kind is given, force styling
+        kind = kwargs.pop('term', None)
+        self.term = Terminal(stream=self.stream, kind=kind, force_styling=bool(kind))
+
         self.height = self.term.height
         self.width = self._width or self.term.width
 
