@@ -20,9 +20,12 @@
 Overview
 ========
 
-Enlighten Progress Bar is a console progress bar module for Python. (Yes, another one.)
+Enlighten Progress Bar is a console progress bar library for Python.
+
 The main advantage of Enlighten is it allows writing to stdout and stderr without any
-redirection.
+redirection or additional code. Just print or log as you normally would.
+
+Enlighten also includes experimental support for Jupyter Notebooks.
 
 .. image:: _static/demo.gif
   :target: examples.html

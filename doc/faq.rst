@@ -29,6 +29,18 @@ Enlighten also works relatively well in Linux-like subsystems for Windows such a
 `Cygwin <https://cygwin.com/>`_ or
 `Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
 
+Is Jupyter Notebooks Supported?
+-------------------------------
+
+Experimental support for Jupyter notebooks was added in version 1.10.0.
+
+Jupyter Notebook support is provide by the :py:class:`~enlighten.NotebookManager` class.
+If running inside a Jupyter Notebook, :py:func:`~enlighten.get_manager` will return a
+:py:class:`~enlighten.NotebookManager` instance.
+
+There is currently no support for detecting the width of a Jupyter notebook so output width has been
+set statically to 100 characters. This can be overridden by passing the ``width`` keyword argument
+to :py:func:`~enlighten.get_manager`.
 
 Is PyCharm supported?
 ---------------------
@@ -103,5 +115,6 @@ in the VSCode Jupyter extension that reverts display updates at the end of a cel
 This issue has been confirmed by the maintainers, but a fix has not been released yet.
 
 As a temporary workaround, ``manager._primed = False`` at the end of the cell before calling
-``manager.stop()``. Note, this will result in double displays in other environments so should
-only be used if the display is cleared first or the code is limited to running in this extension.
+:py:meth:`~enlighten.NotebookManager.stop`. Note, this will result in double output in other
+environments so should only be used if the display is cleared first or the code is limited to
+running in this extension.
