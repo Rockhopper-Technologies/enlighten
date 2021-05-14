@@ -38,6 +38,7 @@ RE_SET_A = re.compile(r'\x1b\[(\d+)m')
 RE_LINK = re.compile(r'\x1b]8;.*;(.*)\x1b\\')
 
 CGA_COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
+HTML_ESCAPE = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '?': '&#63;'}
 
 
 class EnlightenWarning(Warning):
@@ -256,7 +257,7 @@ class HTMLConverter(object):
                 del to_out[:]  # Python 2 compatible .clear()
 
                 # Append character and continue
-                out += value
+                out += HTML_ESCAPE.get(value, value)
                 continue
 
             # Parse links

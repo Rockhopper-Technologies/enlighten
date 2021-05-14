@@ -70,7 +70,7 @@ class NotebookManager(BaseManager):
             return
 
         self._html.data = '%s<div class="enlighten">\n%s\n</div>\n' % (
-                          self._converter.style, '\n'.join(self._output))
+                          self._converter.style, '\n'.join(reversed(self._output)))
 
         if self._primed:
             self._display.update(self._html)
