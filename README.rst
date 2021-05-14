@@ -81,6 +81,8 @@ redirection or additional code. Just print or log as you normally would.
 
 Enlighten also includes experimental support for Jupyter Notebooks.
 
+|
+
 .. image:: https://raw.githubusercontent.com/Rockhopper-Technologies/enlighten/master/doc/_static/demo.gif
     :target: http://python-enlighten.readthedocs.io/en/stable/examples.html
 
