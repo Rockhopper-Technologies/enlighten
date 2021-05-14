@@ -8,16 +8,22 @@
 Demo of Enlighten's features
 """
 
+import os
 import platform
 import random
 import time
+import sys
 
 import enlighten
 
-# pylint: disable=wrong-import-order,import-error
-from multicolored import run_tests, load
-from multiple_logging import process_files, win_time_granularity
-from prefixes import download
+# Hack so imports work regardless of how this gets called
+# We do it this way so any enlighten path can be used
+sys.path.insert(1, os.path.dirname(__file__))
+
+# pylint: disable=wrong-import-order,import-error,wrong-import-position
+from multicolored import run_tests, load  # noqa: E402
+from multiple_logging import process_files, win_time_granularity  # noqa: E402
+from prefixes import download  # noqa: E402
 
 
 def initialize(manager, initials=15):
