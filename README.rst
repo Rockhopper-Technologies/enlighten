@@ -9,8 +9,8 @@
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
 
-.. |travis| image:: https://img.shields.io/travis/Rockhopper-Technologies/enlighten.svg?style=plastic&logo=travis
-    :target: https://travis-ci.org/Rockhopper-Technologies/enlighten
+.. |travis| image:: https://img.shields.io/travis/com/Rockhopper-Technologies/enlighten.svg?style=plastic&logo=travis
+    :target: https://travis-ci.com/Rockhopper-Technologies/enlighten
     :alt: Travis-CI Build Status
 
 .. |codecov| image:: https://img.shields.io/codecov/c/github/Rockhopper-Technologies/enlighten.svg?style=plastic&logo=codecov
