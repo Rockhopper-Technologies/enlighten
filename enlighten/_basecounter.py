@@ -18,7 +18,7 @@ from enlighten._util import BASESTRING
 try:
     from collections.abc import Iterable
 except ImportError:  # pragma: no cover(Python 2)
-    from collections import Iterable
+    from collections import Iterable  # pylint: disable=deprecated-class
 
 
 class BaseCounter(object):
