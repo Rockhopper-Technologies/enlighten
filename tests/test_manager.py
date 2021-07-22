@@ -356,7 +356,7 @@ class TestManager(TestCase):
         # Counter 1 in auto-refresh list
         self.assertIn(counter1, manager.autorefresh)
 
-        # If auto-refreshed counter hasn't been refreshed recently refresh
+        # If auto-refreshed counter hasn't been refreshed recently, refresh
         counter1.last_update = 0
         counter2.refresh()
         self.tty.stdout.write(u'X\n')

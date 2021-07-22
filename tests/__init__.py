@@ -136,7 +136,8 @@ class MockTTY(object):
         self.stdread.close()
 
     def clear(self):
-        termios.tcflush(self.stdread, termios.TCIFLUSH)
+        # Using TCIOFLUSH here instead of TCIFLUSH to support MacOS
+        termios.tcflush(self.stdread, termios.TCIOFLUSH)
 
     def resize(self, height, width):
         fcntl.ioctl(self.slave, termios.TIOCSWINSZ, struct.pack('hhhh', height, width, 0, 0))
