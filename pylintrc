@@ -24,6 +24,7 @@ disable=
     super-with-arguments,  # Python 2
     too-few-public-methods,
     useless-object-inheritance,  # Python 2
+    redundant-u-string-prefix,  # Python 2
 
 [SIMILARITIES]
 # Minimum lines number of a similarity.

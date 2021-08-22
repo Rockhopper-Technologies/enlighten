@@ -27,7 +27,7 @@ def run_notebook(path):
     The notebook's path is set to the current working directory
     """
 
-    with open(path) as notebook_file:
+    with open(path, encoding='utf-8') as notebook_file:
         notebook = nbformat.read(notebook_file, as_version=nbformat.NO_CONVERT)
 
     process = ExecutePreprocessor(timeout=60, allow_errors=True)
