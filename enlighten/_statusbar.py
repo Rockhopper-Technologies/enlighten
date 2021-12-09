@@ -200,7 +200,7 @@ class StatusBar(PrintableCounter):
 
             elapsed = elapsed if elapsed is not None else self.elapsed
             fields['elapsed'] = format_time(elapsed)
-            fields['fill'] = u'{0}'
+            fields['fill'] = self._placeholder_
 
             # Format
             try:

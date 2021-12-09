@@ -683,7 +683,7 @@ class Counter(PrintableCounter):
         Format progress bar
         """
 
-        fields['bar'] = u'{0}'
+        fields['bar'] = self._placeholder_
         fields['len_total'] = len(str(self.total))
 
         # Get percentage
@@ -719,10 +719,10 @@ class Counter(PrintableCounter):
 
         # Determine bar width
         if self.offset is None:
-            barWidth = width - self.manager.term.length(rtn) + 3  # 3 is for the bar placeholder
+            barWidth = width - self.manager.term.length(rtn) + self._placeholder_len_
         else:
             # Offset was explicitly given
-            barWidth = width - len(rtn) + self.offset + 3  # 3 is for the bar placeholder
+            barWidth = width - len(rtn) + self.offset + self._placeholder_len_
 
         complete = barWidth * percentage
         barLen = int(complete)
@@ -768,7 +768,7 @@ class Counter(PrintableCounter):
                 partial_len += 1
             barText += self.series[0] * (barWidth - partial_len)
 
-        return rtn.format(self._colorize(barText))
+        return rtn.replace(self._placeholder_, self._colorize(barText))
 
     def _format_counter(self, fields, width, elapsed, force_float):
         """
@@ -783,7 +783,7 @@ class Counter(PrintableCounter):
         Format counter
         """
 
-        fields['fill'] = u'{0}'
+        fields['fill'] = self._placeholder_
 
         # Update fields from subcounters
         self._get_subcounters(elapsed, fields, bar_fields=False, force_float=force_float)

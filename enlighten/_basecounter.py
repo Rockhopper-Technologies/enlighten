@@ -32,6 +32,8 @@ class BaseCounter(object):
 
     __slots__ = ('_color', 'count', 'manager', 'start_count')
     _repr_attrs = ('count', 'color')
+    _placeholder_ = u'___ENLIGHTEN_PLACEHOLDER___'
+    _placeholder_len_ = len(_placeholder_)
 
     def __repr__(self):
 
@@ -241,26 +243,31 @@ class PrintableCounter(BaseCounter):
             offset(int): Number of non-printable characters to account for when formatting
 
         Returns:
-            :py:class:`str`: String with ``'{0}'`` replaced with fill characters
+            :py:class:`str`: String with ``self._placeholder_`` replaced with fill characters
 
-        Replace ``'{0}'`` in string with appropriate number of fill characters
+        Replace ``self._placeholder_`` in string with appropriate number of fill characters
         """
 
-        fill_count = text.count(u'{0}')
+        fill_count = text.count(self._placeholder_)
         if not fill_count:
             return text
 
         if offset is None:
-            remaining = width - self.manager.term.length(text) + 3 * fill_count
+            remaining = width - self.manager.term.length(text) + self._placeholder_len_ * fill_count
         else:
-            remaining = width - len(text) + offset + 3 * fill_count
+            remaining = width - len(text) + offset + self._placeholder_len_ * fill_count
 
+        # If only one substitution is required, make it
         if fill_count == 1:
-            return text.format(self.fill * remaining)
+            return text.replace(self._placeholder_, self.fill * remaining)
 
+        # Determine even fill size and number of extra characters to fill
         fill_size, extra = divmod(remaining, fill_count)
 
-        # Add extra fill evenly starting from the last one
-        text = '{1}'.join(text.rsplit('{0}', extra))
-        return text.format(self.fill * fill_size,
-                           self.fill * (fill_size + 1))
+        # Add extra fill is needed, add extra fill evenly starting from the end
+        if extra:
+            text = text.replace(self._placeholder_, self.fill * fill_size, fill_count - extra)
+            return text.replace(self._placeholder_, self.fill * (fill_size + 1))
+
+        # If fill is even, replace evenly
+        return text.replace(self._placeholder_, self.fill * fill_size)
