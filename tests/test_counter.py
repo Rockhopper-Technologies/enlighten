@@ -778,6 +778,28 @@ class TestCounter(TestCase):
             with self.assertRaisesRegex(ValueError, msg2 % field):
                 ctr.format(elapsed=5, width=80)
 
+    def test_fields_curly_braces(self):
+        """
+        Ensure curly braces work in fields
+        """
+
+        ctr_format = u'{desc} {count:d} {unit}{fill}'
+        bar_format = u'{desc} {count:d} {unit}{bar}'
+
+        ctr = Counter(stream=self.tty.stdout, total=1, desc='open{', unit='dudes',
+                      counter_format=ctr_format, bar_format=bar_format)
+        self.assertEqual(ctr.format(width=80), 'open{ 0 dudes' + ' ' * 67)
+        ctr.count = 4
+        self.assertEqual(ctr.format(width=80), 'open{ 4 dudes' + ' ' * 67)
+
+        ctr.desc = 'normal'
+        ctr.unit = 'close}'
+        ctr.count = 0
+
+        self.assertEqual(ctr.format(width=80), 'normal 0 close}' + ' ' * 65)
+        ctr.count = 4
+        self.assertEqual(ctr.format(width=80), 'normal 4 close}' + ' ' * 65)
+
     def test_additional_fields(self):
         """
         Add additional fields to format
