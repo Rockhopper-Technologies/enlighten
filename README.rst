@@ -1,6 +1,6 @@
 .. start-badges
 
-| |docs| |travis| |codecov|
+| |docs| |gh_actions| |codecov|
 | |linux| |windows| |mac| |bsd|
 | |pypi| |supported-versions| |supported-implementations|
 | |Fedora| |EPEL| |Arch| |Debian| |Ubuntu| |Anaconda|
@@ -8,6 +8,10 @@
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
+
+.. |gh_actions| image:: https://img.shields.io/github/workflow/status/Rockhopper-Technologies/enlighten/Tests?event=push&logo=github-actions&style=plastic
+    :target: https://github.com/Rockhopper-Technologies/enlighten/actions/workflows/tests.yml
+    :alt: GitHub Actions Status
 
 .. |travis| image:: https://img.shields.io/travis/com/Rockhopper-Technologies/enlighten.svg?style=plastic&logo=travis
     :target: https://travis-ci.com/Rockhopper-Technologies/enlighten
