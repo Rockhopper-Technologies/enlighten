@@ -1,0 +1,78 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  release:
+  schedule:
+    # Every Thursday at 1 AM
+    - cron: '0 1 * * 4'
+
+jobs:
+
+  Tests:
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    name: ${{ startsWith(matrix.toxenv, 'py') && matrix.python-version || format('{0} ({1})', matrix.toxenv, matrix.python-version) }} ${{ matrix.optional && '[OPTIONAL]' }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        python-version: ['3.10']
+        toxenv: [lint, docs, codecov]
+        include:
+
+          - python-version: 3.9
+            toxenv: py39
+
+          - python-version: 3.8
+            toxenv: py38
+
+          - python-version: 3.7
+            toxenv: py37
+
+          - python-version: 3.6
+            toxenv: py36
+
+          - python-version: 3.5
+            toxenv: py35
+
+          - python-version: 3.4
+            optional: true
+            os: ubuntu-18.04
+            toxenv: py34
+
+          - python-version: 2.7
+            toxenv: py27
+
+          - python-version: 2.7
+            toxenv: el7
+
+          - python-version: pypy-2.7
+            toxenv: pypy
+
+          - python-version: pypy3
+            toxenv: pypy3
+
+          - python-version: '3.11-dev'
+            optional: true
+            toxenv: py311
+            toxpython: 3.11
+
+    env:
+      TOXENV: ${{ matrix.toxenv }}
+      TOXPYTHON: python${{ matrix.toxpython || matrix.python-version }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Run tox
+        run: tox
