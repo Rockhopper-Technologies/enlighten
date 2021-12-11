@@ -24,6 +24,7 @@ TERMINAL = 'blessed.Terminal'
 
 
 # pylint: disable=missing-docstring, protected-access, too-many-statements, too-many-public-methods
+# pylint: disable=too-many-lines
 
 class TestManager(TestCase):
 
@@ -44,14 +45,17 @@ class TestManager(TestCase):
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init(self):
-        # Companion stream is stderr if stream is stdout
-        manager = enlighten.Manager()
+        # Companion stream is __stderr__ if stream is __stdout__
+
+        # Need to mock isatty() for some build and test environments
+        with mock.patch.object(sys, '__stderr__') as mock_stderr:
+            mock_stderr.isatty.return_value = True
+            manager = enlighten.Manager(stream=sys.__stdout__)
+
         self.assertIs(manager.stream, sys.stdout)
         self.assertIs(manager.term.stream, sys.stdout)
-        # This will fail building rpm packages since stderr is redirected
-        if sys.__stderr__.isatty():
-            self.assertIs(manager.companion_stream, sys.__stderr__)
-            self.assertIs(manager.companion_term.stream, sys.__stderr__)
+        self.assertIs(manager.companion_stream, mock_stderr)
+        self.assertIs(manager.companion_term.stream, mock_stderr)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_companion_hc(self):
@@ -62,38 +66,47 @@ class TestManager(TestCase):
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_stderr(self):
-        # Companion stream is stdout if stream is stderr
-        manager = enlighten.Manager(stream=sys.__stderr__)
+        # Companion stream is __stdout__ if stream is __stderr__
+
+        # Need to mock isatty() for some build and test environments
+        with mock.patch.object(sys, '__stdout__') as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            manager = enlighten.Manager(stream=sys.__stderr__)
+
         self.assertIs(manager.stream, sys.__stderr__)
         self.assertIs(manager.term.stream, sys.__stderr__)
-        # This will fail building rpm packages since stderr is redirected
-        if sys.__stdout__.isatty():
-            self.assertIs(manager.companion_stream, sys.__stdout__)
-            self.assertIs(manager.companion_term.stream, sys.__stdout__)
+        self.assertIs(manager.companion_stream, mock_stdout)
+        self.assertIs(manager.companion_term.stream, mock_stdout)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_redirect(self):
         # If stdout is redirected, but stderr is still a tty, use it for companion
         with redirect_output('stdout', OUTPUT):
-            manager = enlighten.Manager()
+
+            # Need to mock isatty() for some build and test environments
+            with mock.patch.object(sys, 'stderr') as mock_stderr:
+                mock_stderr.isatty.return_value = True
+                manager = enlighten.Manager()
+
             self.assertIs(manager.stream, sys.stdout)
             self.assertIs(manager.term.stream, sys.stdout)
-            # This will fail building rpm packages since stderr is redirected
-            if sys.__stderr__.isatty():
-                self.assertIs(manager.companion_stream, sys.stderr)
-                self.assertIs(manager.companion_term.stream, sys.stderr)
+            self.assertIs(manager.companion_stream, mock_stderr)
+            self.assertIs(manager.companion_term.stream, mock_stderr)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_stderr_redirect(self):
         # If stderr is redirected, but stdout is still a tty, use it for companion
         with redirect_output('stderr', OUTPUT):
-            manager = enlighten.Manager(stream=sys.stderr)
+
+            # Need to mock isatty() for some build and test environments
+            with mock.patch.object(sys, 'stdout') as mock_stdout:
+                mock_stdout.isatty.return_value = True
+                manager = enlighten.Manager(stream=sys.stderr)
+
             self.assertIs(manager.stream, sys.stderr)
             self.assertIs(manager.term.stream, sys.stderr)
-            # This will fail building rpm packages since stderr is redirected
-            if sys.__stdout__.isatty():
-                self.assertIs(manager.companion_stream, sys.stdout)
-                self.assertIs(manager.companion_term.stream, sys.stdout)
+            self.assertIs(manager.companion_stream, mock_stdout)
+            self.assertIs(manager.companion_term.stream, mock_stdout)
 
     @unittest.skipIf(STDOUT_NO_FD, 'No file descriptor for stdout')
     def test_init_stderr_companion_hc(self):

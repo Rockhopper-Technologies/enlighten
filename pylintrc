@@ -45,7 +45,7 @@ spelling-ignore-words=
     desc, docstring, downconverted, downloader,
     Enlighten's, exc,
     html,
-    IEC, incr, IPC, iterable,
+    IEC, incr, IPC, isatty, iterable,
     kwargs,
     Jupyter,
     len, lookahead, Lubkin,
