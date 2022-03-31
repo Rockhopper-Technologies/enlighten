@@ -433,7 +433,7 @@ class Counter(PrintableCounter):
     """
     # pylint: disable=too-many-instance-attributes
 
-    __slots__ = ('all_fields', 'bar_format', 'counter_format', 'desc', 'fields', 'manager',
+    __slots__ = ('all_fields', 'bar_format', 'counter_format', 'desc', 'fields',
                  'offset', 'series', 'total', 'unit', '_fields', '_subcounters')
     _repr_attrs = ('desc', 'total', 'count', 'unit', 'color')
 
