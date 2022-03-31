@@ -104,12 +104,8 @@ class BaseCounter(object):
         If no color is specified for this instance, the content is returned unmodified
         """
 
-        # No color specified
-        if self._color is None:
-            return content
-
-        # Used spec cached by color.setter
-        return self._color[1](content)
+        # Used spec cached by color.setter if available
+        return content if self._color is None else self._color[1](content)
 
     def update(self, *args, **kwargs):
         """

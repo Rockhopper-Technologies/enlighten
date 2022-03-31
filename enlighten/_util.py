@@ -136,9 +136,7 @@ class Lookahead:
         return self
 
     def __next__(self):
-        if self.buffer:
-            return self.buffer.pop(0)
-        return next(self.iterator)
+        return self.buffer.pop(0) if self.buffer else next(self.iterator)
 
     # Python 2
     next = __next__

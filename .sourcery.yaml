@@ -1,0 +1,9 @@
+refactor:
+  skip:
+    - replace-interpolation-with-fstring  # Python 3.6+
+    - use-contextlib-suppress  # Python 3.4+ (Possibly less efficient)
+    - use-fstring-for-concatenation  # Python 3.6+
+    - use-named-expression  # Python 3.8+
+
+clone_detection:
+  min_lines: 4

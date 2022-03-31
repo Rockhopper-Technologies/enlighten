@@ -508,11 +508,7 @@ class Counter(PrintableCounter):
 
             fields['count_%d' % num] = Float(count) if force_float else count
 
-            if self.total and bar_fields:
-                subPercentage = count / float(self.total)
-            else:
-                subPercentage = 0.0
-
+            subPercentage = count / float(self.total) if self.total and bar_fields else 0.0
             if bar_fields:
                 fields['percentage_%d' % num] = subPercentage * 100
 
@@ -696,13 +692,8 @@ class Counter(PrintableCounter):
             percentage = self.count / float(self.total)
             rate = fields['rate']
 
-            # Get eta
-            if rate:
-                # Use iterations so a counter running backwards is accurate
-                fields['eta'] = format_time((self.total - iterations) / rate)
-            else:
-                fields['eta'] = u'?'
-
+            # Get eta. Use iterations so a counter running backwards is accurate
+            fields['eta'] = format_time((self.total - iterations) / rate) if rate else u'?'
         fields['percentage'] = percentage * 100
 
         # Have to go through subcounters here so the fields are available
