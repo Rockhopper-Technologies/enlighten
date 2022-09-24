@@ -49,7 +49,7 @@ def get_manager(stream=None, counter_class=Counter, **kwargs):
     if IN_NOTEBOOK:
         return NotebookManager(stream=stream, counter_class=counter_class, **kwargs)
 
-    stream = sys.stdout if stream is None else stream
+    stream = sys.__stdout__ if stream is None else stream
     isatty = hasattr(stream, 'isatty') and stream.isatty()
     kwargs['enabled'] = isatty and kwargs.get('enabled', True)
     return Manager(stream=stream, counter_class=counter_class, **kwargs)

@@ -986,8 +986,8 @@ class TestGetManager(TestCase):
     def test_get_manager_tty(self):
 
         # stdout is attached to a tty
-        with redirect_output('stdout', self.tty.stdout):
-            self.assertTrue(sys.stdout.isatty())
+        with redirect_output('__stdout__', self.tty.stdout):
+            self.assertTrue(sys.__stdout__.isatty())
             manager = enlighten.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)
@@ -999,8 +999,8 @@ class TestGetManager(TestCase):
     def test_get_manager_no_tty(self):
 
         # stdout is not attached to a tty
-        with redirect_output('stdout', OUTPUT):
-            self.assertFalse(sys.stdout.isatty())
+        with redirect_output('__stdout__', OUTPUT):
+            self.assertFalse(sys.__stdout__.isatty())
             manager = enlighten.get_manager(unit='knights')
             self.assertIsInstance(manager, _manager.Manager)
             self.assertTrue('unit' in manager.defaults)

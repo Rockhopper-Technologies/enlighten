@@ -24,23 +24,15 @@ from enlighten._basecounter import BaseCounter
 from enlighten._counter import Counter
 from enlighten._statusbar import StatusBar
 
-# pylint: disable=import-error
+
 if sys.version_info[:2] < (3, 3):
     import mock
 else:
     from unittest import mock  # noqa: F401  # pylint: disable=no-name-in-module
 
-if sys.version_info[0] < 3:
-    from StringIO import StringIO
-    PY2 = True
-else:
-    from io import StringIO
-    PY2 = False
 
-# pylint: enable=import-error
-
-
-OUTPUT = StringIO()
+PY2 = sys.version_info[0] < 3
+OUTPUT = io.StringIO()
 os.environ['TERM'] = 'xterm-256color'  # Default to xterm-256color
 
 
