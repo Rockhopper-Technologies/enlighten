@@ -160,10 +160,7 @@ class Lookahead:
             except StopIteration:
                 break
 
-        if stop is None:
-            return self.buffer[start]
-
-        return self.buffer[start:stop]
+        return self.buffer[start] if stop is None else self.buffer[start:stop]
 
 
 class Span(list):

@@ -105,7 +105,7 @@ def run_tests(manager, tests=100):
             if result == 7:
                 LOGGER.error("Test %d did not complete", num)
                 errors.update()
-            elif result in (5, 6):
+            elif result in {5, 6}:
                 LOGGER.error("Test %d failed", num)
                 failures.update()
             else:

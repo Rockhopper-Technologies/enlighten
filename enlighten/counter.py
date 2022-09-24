@@ -21,12 +21,13 @@ from enlighten.manager import get_manager
 
 # Counter is defined here to avoid circular dependencies
 class Counter(_Counter):  # pylint: disable=missing-docstring
+    # pylint: disable=too-many-instance-attributes
 
     __doc__ = _Counter.__doc__
 
     def __init__(self, **kwargs):
 
-        manager = kwargs.get('manager', None)
+        manager = kwargs.get('manager')
         stream = kwargs.pop('stream', sys.stdout)
 
         if manager is None:
