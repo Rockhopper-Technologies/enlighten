@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,7 +26,7 @@ class BaseManager(object):
 
     Args:
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
-            defaults to :py:data:`sys.stdout`
+            defaults to :py:data:`sys.__stdout__`
         status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
         set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
@@ -54,7 +54,7 @@ class BaseManager(object):
         self.no_resize = kwargs.pop('no_resize', False)
         self.set_scroll = kwargs.pop('set_scroll', True)
         self.status_bar_class = kwargs.pop('status_bar_class', StatusBar)
-        self.stream = kwargs.pop('stream', sys.stdout)
+        self.stream = kwargs.pop('stream', sys.__stdout__)
         self.threaded = kwargs.pop('threaded', None)
         self._width = kwargs.pop('width', None)
 

@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,7 +35,7 @@ The :py:func:`~enlighten.get_manager` function slightly simplifies this
     import enlighten
 
     # Example configuration object
-    config = {'stream': None,  # Defaults to sys.stdout
+    config = {'stream': None,  # Defaults to sys.__stdout__
               'useCounter': False}
 
     manager = enlighten.get_manager(stream=config['stream'], enabled=config['useCounter'])

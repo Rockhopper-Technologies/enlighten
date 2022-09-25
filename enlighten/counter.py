@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,7 +28,7 @@ class Counter(_Counter):  # pylint: disable=missing-docstring
     def __init__(self, **kwargs):
 
         manager = kwargs.get('manager')
-        stream = kwargs.pop('stream', sys.stdout)
+        stream = kwargs.pop('stream', sys.__stdout__)
 
         if manager is None:
             manager = get_manager(stream=stream, counter_class=self.__class__, set_scroll=False)

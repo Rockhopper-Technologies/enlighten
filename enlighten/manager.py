@@ -29,7 +29,7 @@ def get_manager(stream=None, counter_class=Counter, **kwargs):
     """
     Args:
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
-            defaults to :py:data:`sys.stdout`
+            defaults to :py:data:`sys.__stdout__`
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will passed to the manager class.

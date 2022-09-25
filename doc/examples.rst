@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ Advanced
 
 To maintain multiple progress bars simultaneously or write to the console, a manager is required.
 
-Advanced output will only work when the output stream, :py:data:`sys.stdout` by default,
+Advanced output will only work when the output stream, :py:data:`sys.__stdout__` by default,
 is attached to a TTY. :py:func:`~enlighten.get_manager` can be used to get a manager instance.
 It will return a disabled :py:class:`~enlighten.Manager` instance if the stream is not attached to a TTY
 and an enabled instance if it is.

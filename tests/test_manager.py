@@ -39,7 +39,7 @@ class TestManager(TestCase):
     def test_init_safe(self):
         with redirect_output('stdout', self.tty.stdout):
             # Companion stream is stderr if stream is stdout
-            manager = enlighten.Manager()
+            manager = enlighten.Manager(stream=sys.stdout)
             self.assertIs(manager.stream, sys.stdout)
             self.assertIs(manager.term.stream, sys.stdout)
 
@@ -86,7 +86,7 @@ class TestManager(TestCase):
             # Need to mock isatty() for some build and test environments
             with mock.patch.object(sys, 'stderr') as mock_stderr:
                 mock_stderr.isatty.return_value = True
-                manager = enlighten.Manager()
+                manager = enlighten.Manager(stream=sys.stdout)
 
             self.assertIs(manager.stream, sys.stdout)
             self.assertIs(manager.term.stream, sys.stdout)

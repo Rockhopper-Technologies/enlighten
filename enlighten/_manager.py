@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,7 +30,7 @@ class Manager(BaseManager):
 
     Args:
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
-            defaults to :py:data:`sys.stdout`
+            defaults to :py:data:`sys.__stdout__`
         status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
         set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
@@ -57,9 +57,8 @@ class Manager(BaseManager):
         the primary output stream. The cursor position in the companion stream will be
         moved in coordination with the primary stream.
 
-        If the value is :py:data:`None`, :py:data:`sys.stdout` and :py:data:`sys.stderr` will
-        be used as companion streams. Unless explicitly
-        specified, a stream which is not attached to a TTY (the case when
+        If the value is :py:data:`None`, the companion stream will be dynamically determined.
+        Unless explicitly specified, a stream which is not attached to a TTY (the case when
         redirected to a file), will not be used as a companion stream.
 
     """

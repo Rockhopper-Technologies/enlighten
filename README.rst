@@ -190,7 +190,7 @@ Advanced
 
 To maintain multiple progress bars simultaneously or write to the console, a manager is required.
 
-Advanced output will only work when the output stream, ``sys.stdout`` by default,
+Advanced output will only work when the output stream, ``sys.__stdout__`` by default,
 is attached to a TTY. get_manager_ can be used to get a manager instance.
 It will return a disabled Manager_ instance if the stream is not attached to a TTY
 and an enabled instance if it is.

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -183,7 +183,7 @@ class Counter(PrintableCounter):
 
     A :py:class:`Counter` instance can be created with the :py:meth:`Manager.counter` method
     or, when a standalone progress bar for simple applications is required, the :py:class:`Counter`
-    class can be called directly. The output stream will default to :py:data:`sys.stdout` unless
+    class can be called directly. The output stream will default to :py:data:`sys.__stdout__` unless
     ``stream`` is set.
 
     .. note::
