@@ -148,6 +148,8 @@ def check_copyrights():
     rtn = 0
     for entry in process.stdout.splitlines():
 
+        modified = None
+
         # Get the year in the copyright line
         match = re.match(r'([^:]+):.*(20\d\d)', entry)
         if match:
@@ -157,13 +159,26 @@ def check_copyrights():
             if filename in changed_now:
                 modified = this_year
 
+            # Otherwise, try to get the year of last commit that wasn't only updating copyright
             else:
-                # Get date from git history
                 git_log = subprocess.run(
-                    ('git', 'log', '-1', '--pretty=format:%cs', filename),
+                    ('git', '--no-pager', 'log', '-U0', filename),
                     stdout=subprocess.PIPE, check=True, text=True
                 )
-                modified = git_log.stdout[:4]
+
+                for line in git_log.stdout.splitlines():
+
+                    # Get year
+                    if line.startswith('Date: '):
+                        modified = line.split()[5]
+
+                    # Skip blank line and lines that aren't changes
+                    if not line.strip() or line[0] != '+' or line[:3] == '+++':
+                        continue
+
+                    # Stop looking on the first line we hit that isn't a copyright
+                    if re.search(r'copyright.*20\d\d', line, re.IGNORECASE) is None:
+                        break
 
             # Special case for Sphinx configuration
             if filename == 'doc/conf.py' and modified != this_year:
@@ -176,7 +191,7 @@ def check_copyrights():
                 modified = process.stdout[:4]
 
             # Compare modified date to copyright year
-            if modified != year:
+            if modified and modified != year:
                 rtn = 1
                 print('%s [%s]' % (entry, modified))
 
