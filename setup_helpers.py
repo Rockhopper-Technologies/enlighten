@@ -1,4 +1,4 @@
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,9 +8,11 @@
 Functions to help with build and setup
 """
 
+import datetime
 import io
 import os
 import re
+import subprocess
 import sys
 
 
@@ -107,6 +109,80 @@ def check_rst2html(path):
     return 0
 
 
+def check_copyrights():
+    """
+    Check files recursively to ensure year of last change is in copyright line
+    """
+
+    this_year = str(datetime.date.today().year)
+    changed_now = []
+
+    # Get list of changed files
+    process = subprocess.run(
+        ('git', 'status', '--porcelain=1'), stdout=subprocess.PIPE, check=True, text=True
+    )
+    for entry in process.stdout.splitlines():
+        filename = entry[3:].strip()
+
+        # Get changes for file
+        process = subprocess.run(
+            ('git', 'diff', '-U0', filename), stdout=subprocess.PIPE, check=True, text=True
+        )
+
+        # Find files with changes that aren't only for copyright
+        for line in process.stdout.splitlines():
+            if line[0] != '+' or line[:3] == '+++':  # Ignore anything but the new contents
+                continue
+
+            if re.search(r'copyright.*20\d\d', line, re.IGNORECASE):  # Ignore copyright line
+                continue
+
+            changed_now.append(filename)
+            break
+
+    # Look for copyright lines
+    process = subprocess.run(
+        ('git', 'grep', '-i', 'copyright'), stdout=subprocess.PIPE, check=True, text=True
+    )
+
+    rtn = 0
+    for entry in process.stdout.splitlines():
+
+        # Get the year in the copyright line
+        match = re.match(r'([^:]+):.*(20\d\d)', entry)
+        if match:
+            filename, year = match.groups()
+
+            # If files is in current changes, use this year
+            if filename in changed_now:
+                modified = this_year
+
+            else:
+                # Get date from git history
+                git_log = subprocess.run(
+                    ('git', 'log', '-1', '--pretty=format:%cs', filename),
+                    stdout=subprocess.PIPE, check=True, text=True
+                )
+                modified = git_log.stdout[:4]
+
+            # Special case for Sphinx configuration
+            if filename == 'doc/conf.py' and modified != this_year:
+
+                # Get the latest change date for docs
+                process = subprocess.run(
+                    ('git', 'log', '-1', '--pretty=format:%cs', 'doc/*.rst'),
+                    stdout=subprocess.PIPE, check=True, text=True
+                )
+                modified = process.stdout[:4]
+
+            # Compare modified date to copyright year
+            if modified != year:
+                rtn = 1
+                print('%s [%s]' % (entry, modified))
+
+    return rtn
+
+
 if __name__ == '__main__':
 
     # Do nothing if no arguments were given
@@ -130,6 +206,10 @@ if __name__ == '__main__':
         if len(sys.argv) < 3:
             sys.exit('Missing filename for ReST to HTML check')
         sys.exit(check_rst2html(sys.argv[2]))
+
+    # Print misspelled word list
+    if sys.argv[1] == 'copyright':
+        sys.exit(check_copyrights())
 
     # Unknown option
     else:
