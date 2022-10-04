@@ -52,8 +52,8 @@ class TestManager(TestCase):
             mock_stderr.isatty.return_value = True
             manager = enlighten.Manager(stream=sys.__stdout__)
 
-        self.assertIs(manager.stream, sys.stdout)
-        self.assertIs(manager.term.stream, sys.stdout)
+        self.assertIs(manager.stream, sys.__stdout__)
+        self.assertIs(manager.term.stream, sys.__stdout__)
         self.assertIs(manager.companion_stream, mock_stderr)
         self.assertIs(manager.companion_term.stream, mock_stderr)
 
@@ -136,7 +136,7 @@ class TestManager(TestCase):
 
     def test_repr(self):
         manager = enlighten.Manager()
-        self.assertEqual(repr(manager), "Manager(stream=%r)" % sys.stdout)
+        self.assertEqual(repr(manager), "Manager(stream=%r)" % sys.__stdout__)
 
     def test_counter_and_remove(self):
         # pylint: disable=no-member,assigning-non-slot
