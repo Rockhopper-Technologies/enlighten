@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -99,7 +99,7 @@ class TestHTMLConverter(TestCase):
     def setUpClass(cls):
         cls.tty = MockTTY()
         cls.term = blessed.Terminal(
-            stream=cls.tty.stdout, kind='xterm-256color', force_styling=True
+            stream=cls.tty.stdout, force_styling=True
         )
         cls.term.number_of_colors = 1 << 24
 
