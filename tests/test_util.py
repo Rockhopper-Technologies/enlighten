@@ -63,29 +63,42 @@ class TestLookahead(TestCase):
 
         self.assertEqual([next(wrapped) for _ in range(10)], list(range(10)))
 
-    def test_lookahead(self):
-        """Verify lookahead() behavior"""
+    def test_getitem(self):
+        """Verify __getitem__ behavior"""
 
         wrapped = Lookahead(iter(range(10)))
 
-        self.assertEqual(wrapped.lookahead(0), 0)
-        self.assertEqual(wrapped.lookahead(4), 4)
-        self.assertEqual(wrapped.lookahead(2, 4), [2, 3])
-        self.assertEqual(wrapped.lookahead(8, 12), [8, 9])
+        self.assertEqual(wrapped[0], 0)
+        self.assertEqual(wrapped[4], 4)
+        self.assertEqual(wrapped[2: 4], [2, 3])
+        self.assertEqual(wrapped[8: 12], [8, 9])
 
-    def test_lookahead_iteration(self):
-        """lookahead() output changes as iteration proceeds"""
+        with self.assertRaisesRegex(TypeError, 'Index or slice notation is required'):
+            wrapped['named_key']  # pylint: disable=pointless-statement
+
+        with self.assertRaisesRegex(ValueError, 'Negative indexes are not supported'):
+            wrapped[-1]  # pylint: disable=pointless-statement
+
+    def test_buffer(self):
+        """Output changes as iteration proceeds"""
 
         wrapped = Lookahead(iter(range(10)))
 
         self.assertEqual(next(wrapped), 0)
-        self.assertEqual(wrapped.lookahead(0), 1)
+        self.assertEqual(wrapped[0], 1)
         self.assertEqual(next(wrapped), 1)
-        self.assertEqual(wrapped.lookahead(4), 6)
+        self.assertEqual(wrapped[4], 6)
         self.assertEqual(next(wrapped), 2)
-        self.assertEqual(wrapped.lookahead(2, 4), [5, 6])
+        self.assertEqual(wrapped[2: 4], [5, 6])
         self.assertEqual(next(wrapped), 3)
-        self.assertEqual(wrapped.lookahead(8, 12), [])
+        self.assertEqual(wrapped[8: 12], [])
+
+    def test_step_notation(self):
+        """Slice notation is supported"""
+
+        wrapped = Lookahead(iter(range(10)))
+
+        self.assertEqual(wrapped[: 6: 2], [0, 2, 4])
 
 
 class TestHTMLConverter(TestCase):

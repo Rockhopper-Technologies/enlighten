@@ -141,18 +141,18 @@ class Lookahead:
     # Python 2
     next = __next__
 
-    def lookahead(self, start, stop=None):
-        """
-        Args:
-            start(int): Positive integer index of first value
-            stop(int): Positive integer index to end before (not returned)
+    def __getitem__(self, key):
 
-        Retrieve next value(s) in iterator.
+        if isinstance(key, int):
+            first = last = key
+        elif isinstance(key, slice):
+            first = key.start or 0
+            last = max(first, (key.stop or 0) - 1)
+        else:
+            raise TypeError('Index or slice notation is required')
 
-        start and stop roughly behave like slice notation, but must be positive
-        """
-
-        last = max(start, (stop or 0) - 1)
+        if first < 0:
+            raise ValueError('Negative indexes are not supported')
 
         while last >= len(self.buffer):
             try:
@@ -160,7 +160,7 @@ class Lookahead:
             except StopIteration:
                 break
 
-        return self.buffer[start] if stop is None else self.buffer[start:stop]
+        return self.buffer.__getitem__(key)
 
 
 class Span(list):
@@ -265,7 +265,7 @@ class HTMLConverter(object):
 
             # Look for normal to close span
             if value == normal[0] and \
-               normal[1:] == [val[0] for val in parsed.lookahead(0, self.normal_rem or None)]:
+               normal[1:] == [val[0] for val in parsed[: self.normal_rem or None]]:
 
                 # Clear rest of normal
                 for _ in range(self.normal_rem):
