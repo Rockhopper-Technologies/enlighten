@@ -19,8 +19,15 @@ import re
 import sys
 import warnings
 
-from blessed.colorspace import RGB_256TABLE
+from blessed.colorspace import RGB_256TABLE, X11_COLORNAMES_TO_RGB
 from blessed.sequences import iter_parse
+
+
+try:
+    from functools import lru_cache
+except ImportError:  # pragma: no cover(Python 2)
+    # lru_cache was added in Python 3.2
+    from backports.functools_lru_cache import lru_cache
 
 
 try:
@@ -318,6 +325,38 @@ class HTMLConverter(object):
             4: ('enlighten-underline', {'text-decoration': 'underline'}),
         }
 
+    @property
+    @lru_cache()
+    def rgb_to_colors(self):
+        """
+        Dictionary for translating known RGB values into X11 names
+        """
+
+        rtn = {}
+        for key, val in sorted(X11_COLORNAMES_TO_RGB.items()):
+            val = '#%02x%02x%02x' % val
+            if val not in rtn:
+                rtn[val] = key
+
+        return rtn
+
+    def _color256_lookup(self, idx):
+        """
+        Look up RGB values and attempt to get names in the 256 color space
+        """
+
+        rgb = str(RGB_256TABLE[idx])
+
+        # Some terminals use 256 color syntax for basic colors
+        if 0 <= idx <= 7:  # pragma: no cover(Non-standard Terminal)
+            name = CGA_COLORS[idx]
+        elif 8 <= idx <= 15:  # pragma: no cover(Non-standard Terminal)
+            name = 'bright-%s' % CGA_COLORS[idx - 8]
+        else:
+            name = self.rgb_to_colors.get((rgb[1:3], rgb[3:5], rgb[5:7]), rgb[1:])
+        return name, rgb
+
+    @lru_cache(maxsize=256)
     def _parse_style(self, value, cap):  # pylint: disable=too-many-return-statements
         r"""
         Args:
@@ -332,12 +371,14 @@ class HTMLConverter(object):
         # Parse RGB color foreground
         if cap is caps['color_rgb']:
             rgb = '#%02x%02x%02x' % tuple(int(num) for num in RE_COLOR_RGB.match(value).groups())
-            return 'enlighten-fg-%s' % rgb[1:], {'color': rgb}
+            name = self.rgb_to_colors.get(rgb, rgb[1:])
+            return 'enlighten-fg-%s' % name, {'color': rgb}
 
         # Parse RGB color background
         if cap is caps['on_color_rgb']:
             rgb = '#%02x%02x%02x' % tuple(int(num) for num in RE_ON_COLOR_RGB.match(value).groups())
-            return 'enlighten-bg-%s' % rgb[1:], {'background-color': rgb}
+            name = self.rgb_to_colors.get(rgb, rgb[1:])
+            return 'enlighten-bg-%s' % name, {'background-color': rgb}
 
         # Weird and inconsistent bug that seems to affect Python <= 3.5
         # Matches set_a_attributes3 instead of more specific color 256 patterns
@@ -349,13 +390,13 @@ class HTMLConverter(object):
 
         # Parse 256 color foreground
         if cap is caps['color256']:
-            rgb = str(RGB_256TABLE[int(RE_COLOR_256.match(value).group(1))])
-            return 'enlighten-fg-%s' % rgb[1:], {'color': rgb}
+            name, rgb = self._color256_lookup(int(RE_COLOR_256.match(value).group(1)))
+            return 'enlighten-fg-%s' % name, {'color': rgb}
 
         # Parse 256 color background
         if cap is caps['on_color256']:
-            rgb = str(RGB_256TABLE[int(RE_ON_COLOR_256.match(value).group(1))])
-            return 'enlighten-bg-%s' % rgb[1:], {'background-color': rgb}
+            name, rgb = self._color256_lookup(int(RE_ON_COLOR_256.match(value).group(1)))
+            return 'enlighten-bg-%s' % name, {'background-color': rgb}
 
         # Parse text attributes
         if cap is caps['set_a_attributes1']:

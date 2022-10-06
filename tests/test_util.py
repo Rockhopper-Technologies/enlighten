@@ -130,22 +130,22 @@ class TestHTMLConverter(TestCase):
         out = self.converter.to_html(self.term.blue_on_aquamarine('blue_on_aquam'))
         self.assertEqual(
             out,
-            '<pre><span class="enlighten-fg-blue enlighten-bg-7fffd4">blue_on_aquam</span></pre>'
+            u'<pre><span class="enlighten-fg-blue enlighten-bg-aquamarine">blue_on_aquam</span></pre>'
         )
 
         self.assertEqual(self.converter._styles['enlighten-fg-blue'], {'color': '#0000ee'})
         self.assertEqual(
-            self.converter._styles['enlighten-bg-7fffd4'], {'background-color': '#7fffd4'}
+            self.converter._styles['enlighten-bg-aquamarine'], {'background-color': '#7fffd4'}
         )
 
         # RGB color on CGA color
         out = self.converter.to_html(self.term.aquamarine_on_blue('aquam_on_blue'))
         self.assertEqual(
             out,
-            '<pre><span class="enlighten-fg-7fffd4 enlighten-bg-blue">aquam_on_blue</span></pre>'
+            u'<pre><span class="enlighten-fg-aquamarine enlighten-bg-blue">aquam_on_blue</span></pre>'
         )
 
-        self.assertEqual(self.converter._styles['enlighten-fg-7fffd4'], {'color': '#7fffd4'})
+        self.assertEqual(self.converter._styles['enlighten-fg-aquamarine'], {'color': '#7fffd4'})
         self.assertEqual(
             self.converter._styles['enlighten-bg-blue'], {'background-color': '#0000ee'}
         )
@@ -260,7 +260,7 @@ class TestHTMLConverter(TestCase):
         out = self.converter.to_html(self.term.blue_on_aquamarine(self.term.blue('blue_on_aquam')))
         self.assertEqual(
             out,
-            '<pre><span class="enlighten-fg-blue enlighten-bg-7fffd4">blue_on_aquam</span></pre>'
+            u'<pre><span class="enlighten-fg-blue enlighten-bg-aquamarine">blue_on_aquam</span></pre>'
         )
 
     def test_style_output(self):
@@ -270,7 +270,7 @@ class TestHTMLConverter(TestCase):
 
         self.assertEqual(
             out,
-            '<pre><span class="enlighten-fg-red enlighten-bg-708090">red_on_slategrey</span></pre>'
+            u'<pre><span class="enlighten-fg-red enlighten-bg-slategray">red_on_slategrey</span></pre>'
         )
 
         style = '''\
@@ -278,7 +278,7 @@ class TestHTMLConverter(TestCase):
         .enlighten-fg-red {
           color: #cd0000;
         }
-        .enlighten-bg-708090 {
+        .enlighten-bg-slategray {
           background-color: #708090;
         }
         </style>
