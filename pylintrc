@@ -6,6 +6,10 @@ output-format=colorized
 # Use max line length of 100
 max-line-length=100
 
+# Regexp for a line that is allowed to be longer than the limit.
+# URLs and pure strings
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$|^\s*[f|r|u]?b?[\"\'\`].+[\"\'\`]$
+
 [DESIGN]
 # Maximum number of branch for function / method body.
 max-branches=15
