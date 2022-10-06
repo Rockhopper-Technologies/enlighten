@@ -1,8 +1,14 @@
 
 [REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, json
+# and msvs (visual studio). You can also give a reporter class, e.g.
+# mypackage.mymodule.MyReporterClass.
 output-format=colorized
 
+
 [FORMAT]
+
 # Use max line length of 100
 max-line-length=100
 
@@ -10,11 +16,15 @@ max-line-length=100
 # URLs and pure strings
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$|^\s*[f|r|u]?b?[\"\'\`].+[\"\'\`]$
 
+
 [DESIGN]
+
 # Maximum number of branch for function / method body.
 max-branches=15
 
+
 [BASIC]
+
 # As far as I can tell, PEP-8 (Nov 1, 2013) does not specify
 # a specific naming convention for variables and arguments
 # prefer mixedcase, starting with a lowercase or underscore
@@ -23,7 +33,18 @@ variable-rgx=[a-z_][A-Za-z0-9_]{1,29}[A-Za-z0-9_]$
 # Good variable names which should always be accepted, separated by a comma.
 good-names=e,_
 
+
 [MESSAGES CONTROL]
+
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once). You can also use "--disable=all" to
+# disable everything first and then re-enable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use "--disable=all --enable=classes
+# --disable=W".
 disable=
     consider-using-f-string,  # Python 2
     redundant-u-string-prefix,  # Python 2
@@ -31,9 +52,12 @@ disable=
     too-few-public-methods,
     useless-object-inheritance,  # Python 2
 
+
 [SIMILARITIES]
+
 # Minimum lines number of a similarity.
 min-similarity-lines=8
+
 
 [SPELLING]
 
