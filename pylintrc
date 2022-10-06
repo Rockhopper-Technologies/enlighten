@@ -33,6 +33,10 @@ variable-rgx=[a-z_][A-Za-z0-9_]{1,29}[A-Za-z0-9_]$
 # Good variable names which should always be accepted, separated by a comma.
 good-names=e,_
 
+# Regular expression which should only match function or class names that do
+# not require a docstring.
+no-docstring-rgx=__.*__
+
 
 [MESSAGES CONTROL]
 
