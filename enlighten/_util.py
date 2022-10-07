@@ -271,8 +271,7 @@ class HTMLConverter(object):
             last_added = to_out[-1] if to_out else None
 
             # Look for normal to close span
-            if value == normal[0] and \
-               normal[1:] == [val[0] for val in parsed[: self.normal_rem or None]]:
+            if value == normal[0] and normal[1:] == [val[0] for val in parsed[: self.normal_rem]]:
 
                 # Clear rest of normal
                 for _ in range(self.normal_rem):
