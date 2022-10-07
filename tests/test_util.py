@@ -212,20 +212,6 @@ class TestHTMLConverter(TestCase):
             self.converter._styles['enlighten-underline'], {'text-decoration': 'underline'}
         )
 
-        # Blink
-        out = self.converter.to_html(self.term.blink('blink'))
-        self.assertEqual(out, '<pre><span class="enlighten-blink">blink</span></pre>')
-
-        self.assertEqual(
-            self.converter._additional_styles,
-            {'@keyframes enlighten-blink-animation {\n  to {\n    visibility: hidden;\n  }\n}'}
-        )
-
-        self.assertEqual(
-            self.converter._styles['enlighten-blink'],
-            {'animation': 'enlighten-blink-animation 1s steps(5, start) infinite'}
-        )
-
     def test_unsupported(self):
         """Verify unsupported does not produce classes"""
 
@@ -286,11 +272,24 @@ class TestHTMLConverter(TestCase):
 
         self.assertEqual(self.converter.style, dedent(style))
 
-    def test_style_output_additional(self):
-        """Verify style section output with additional sections"""
+    def test_blink(self):
+        """Blink requires an additional style section"""
+
+        if not self.term.blink:
+            self.skipTest('blink is not supported by this terminal')
 
         out = self.converter.to_html(self.term.blink('blink'))
         self.assertEqual(out, '<pre><span class="enlighten-blink">blink</span></pre>')
+
+        self.assertEqual(
+            self.converter._additional_styles,
+            {'@keyframes enlighten-blink-animation {\n  to {\n    visibility: hidden;\n  }\n}'}
+        )
+
+        self.assertEqual(
+            self.converter._styles['enlighten-blink'],
+            {'animation': 'enlighten-blink-animation 1s steps(5, start) infinite'}
+        )
 
         style = '''\
         <style>
