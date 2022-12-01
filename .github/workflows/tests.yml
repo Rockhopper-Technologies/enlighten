@@ -13,6 +13,7 @@ jobs:
   Tests:
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     name: ${{ startsWith(matrix.toxenv, 'py') && matrix.python-version || format('{0} ({1})', matrix.toxenv, matrix.python-version) }} ${{ matrix.optional && '[OPTIONAL]' }}
+    continue-on-error: ${{ matrix.optional || false }}
 
     strategy:
       fail-fast: false
@@ -21,6 +22,9 @@ jobs:
         python-version: ['3.10']
         toxenv: [lint, docs, codecov]
         include:
+
+          - python-version: 3.11
+            toxenv: py311
 
           - python-version: 3.9
             toxenv: py39
@@ -33,9 +37,11 @@ jobs:
 
           - python-version: 3.6
             toxenv: py36
+            os: ubuntu-20.04
 
           - python-version: 3.5
             toxenv: py35
+            os: ubuntu-20.04
 
           - python-version: 3.4
             optional: true
@@ -44,9 +50,11 @@ jobs:
 
           - python-version: 2.7
             toxenv: py27
+            os: ubuntu-20.04
 
           - python-version: 2.7
             toxenv: el7
+            os: ubuntu-20.04
 
           - python-version: pypy-2.7
             toxenv: pypy27
@@ -54,10 +62,10 @@ jobs:
           - python-version: pypy-3.9
             toxenv: pypy39
 
-          - python-version: '3.11-dev'
+          - python-version: '3.12-dev'
             optional: true
-            toxenv: py311
-            toxpython: 3.11
+            toxenv: py312
+            toxpython: 3.12
 
     env:
       TOXENV: ${{ matrix.toxenv }}
