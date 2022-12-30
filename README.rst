@@ -9,7 +9,7 @@
     :target: https://python-enlighten.readthedocs.org
     :alt: Documentation Status
 
-.. |gh_actions| image:: https://img.shields.io/github/workflow/status/Rockhopper-Technologies/enlighten/Tests?event=push&logo=github-actions&style=plastic
+.. |gh_actions| image:: https://img.shields.io/github/actions/workflow/status/Rockhopper-Technologies/enlighten/tests.yml?event=push&logo=github-actions&style=plastic
     :target: https://github.com/Rockhopper-Technologies/enlighten/actions/workflows/tests.yml
     :alt: GitHub Actions Status
 
