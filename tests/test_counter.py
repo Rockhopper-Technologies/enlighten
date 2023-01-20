@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -562,7 +562,7 @@ class TestCounter(TestCase):
         """
         Floats should support prefixed formatting
         """
-        bar_format = u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+        bar_format = u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j}s/B'
 
         ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20, bar_format=bar_format)
         ctr.count = 2048.0
@@ -571,7 +571,7 @@ class TestCounter(TestCase):
         self.assertEqual(formatted, '2.00 KiB / 3.20 MiB | 1.00 KiB/s | 0.00 s/B')
 
         # Counter_format
-        counter_format = u'{count:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+        counter_format = u'{count:!.2j}B | {rate:!.2j}B/s | {interval:!.2j}s/B'
 
         ctr = Counter(stream=self.tty.stdout, counter_format=counter_format)
         ctr.count = 2048.0
@@ -679,11 +679,11 @@ class TestCounter(TestCase):
         Subcounter float fields should support prefixed formatting
         """
 
-        bar_format = (u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j} s/B'
+        bar_format = (u'{count:!.2j}B / {total:!.2j}B | {rate:!.2j}B/s | {interval:!.2j}s/B'
                       u' | {count_0:!.2j}B | {count_00:!.2j}B'
-                      u' | {count_1:!.2j}B | {rate_1:!.2j}B/s | {interval_1:!.2j} s/B'
-                      u' | {count_2:!.2j}B | {rate_2:!.2j}B/s | {interval_2:!.2j} s/B'
-                      u' | {count_3:!.2j}B | {rate_3:!.2j}B/s | {interval_3:!.2j} s/B'
+                      u' | {count_1:!.2j}B | {rate_1:!.2j}B/s | {interval_1:!.2j}s/B'
+                      u' | {count_2:!.2j}B | {rate_2:!.2j}B/s | {interval_2:!.2j}s/B'
+                      u' | {count_3:!.2j}B | {rate_3:!.2j}B/s | {interval_3:!.2j}s/B'
                       )
         ctr = Counter(stream=self.tty.stdout, total=3.2 * 2 ** 20,
                       bar_format=bar_format, all_fields=True)
