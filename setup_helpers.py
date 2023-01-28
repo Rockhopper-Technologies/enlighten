@@ -1,4 +1,4 @@
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -109,36 +109,52 @@ def check_rst2html(path):
     return 0
 
 
-def check_copyrights():
+def _get_changed_files():
     """
-    Check files recursively to ensure year of last change is in copyright line
+    Get files in current repository that have been changed
+    Ignore changes to copyright lines
     """
 
-    this_year = str(datetime.date.today().year)
-    changed_now = []
+    changed = []
 
     # Get list of changed files
     process = subprocess.run(
         ('git', 'status', '--porcelain=1'), stdout=subprocess.PIPE, check=True, text=True
     )
     for entry in process.stdout.splitlines():
-        filename = entry[3:].strip()
 
-        # Get changes for file
-        process = subprocess.run(
-            ('git', 'diff', '-U0', filename), stdout=subprocess.PIPE, check=True, text=True
-        )
+        # Ignore deleted files
+        if entry[1] == 'D':
+            continue
+
+        # Construct diff command
+        filename = entry[3:].strip()
+        diff_cmd = ['git', 'diff', filename]
+        if entry[0].strip():
+            diff_cmd.insert(-1, '--cached')
 
         # Find files with changes that aren't only for copyright
+        process = subprocess.run(diff_cmd, stdout=subprocess.PIPE, check=True, text=True)
         for line in process.stdout.splitlines():
-            if line[0] != '+' or line[:3] == '+++':  # Ignore anything but the new contents
+            if line[0] != '+' or line[:3] == '+++':  # Ignore everything but the new contents
                 continue
 
             if re.search(r'copyright.*20\d\d', line, re.IGNORECASE):  # Ignore copyright line
                 continue
 
-            changed_now.append(filename)
+            changed.append(filename)
             break
+
+    return changed
+
+
+def check_copyrights():
+    """
+    Check files recursively to ensure year of last change is in copyright line
+    """
+
+    this_year = str(datetime.date.today().year)
+    changed_now = _get_changed_files()
 
     # Look for copyright lines
     process = subprocess.run(
@@ -151,11 +167,12 @@ def check_copyrights():
         modified = None
 
         # Get the year in the copyright line
-        match = re.match(r'([^:]+):.*(20\d\d)', entry)
+        filename, text = entry.split(':', 1)
+        match = re.match(r'.*(20\d\d)', text)
         if match:
-            filename, year = match.groups()
+            year = match.group(1)
 
-            # If files is in current changes, use this year
+            # If file is in current changes, use this year
             if filename in changed_now:
                 modified = this_year
 
@@ -193,7 +210,7 @@ def check_copyrights():
             # Compare modified date to copyright year
             if modified and modified != year:
                 rtn = 1
-                print('%s [%s]' % (entry, modified))
+                print('%s: %s [%s]' % (filename, text, modified))
 
     return rtn
 
