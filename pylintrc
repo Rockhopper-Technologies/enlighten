@@ -1,4 +1,10 @@
 
+[MAIN]
+
+# Load and enable all available extensions. Use --list-extensions to see a list
+# all available extensions.
+enable-all-extensions=yes
+
 [REPORTS]
 
 # Set the output format. Available formats are text, parseable, colorized, json
