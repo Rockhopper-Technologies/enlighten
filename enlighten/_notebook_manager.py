@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -86,9 +86,10 @@ class NotebookManager(BaseManager):
 
         positions = self.counters.values()
 
-        for num in range(max(positions), 0, -1):
-            if num not in positions:
-                self._output[num - 1] = '  <br>'
+        if positions:
+            for num in range(max(positions), 0, -1):
+                if num not in positions:
+                    self._output[num - 1] = '  <br>'
 
         for counter in self.counters:
             counter.enabled = False
