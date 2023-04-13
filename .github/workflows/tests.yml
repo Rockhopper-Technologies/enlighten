@@ -43,11 +43,6 @@ jobs:
             toxenv: py35
             os: ubuntu-20.04
 
-          - python-version: '3.4'
-            optional: true
-            os: ubuntu-18.04
-            toxenv: py34
-
           - python-version: '2.7'
             toxenv: py27
             os: ubuntu-20.04

@@ -90,7 +90,7 @@ def check_rst2html(path):
     """
 
     # pylint: disable=import-error,import-outside-toplevel
-    from contextlib import redirect_stderr  # Import here because it breaks <= Python 3.4
+    from contextlib import redirect_stderr  # Import here because it breaks <= Python 2
     from docutils.core import publish_file  # Import here because only available in doc tests
 
     stderr = io.StringIO()
