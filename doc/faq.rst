@@ -57,7 +57,7 @@ The PyCharm Python console is currently not supported because :py:data:`sys.stdo
 does not reference a valid TTY.
 
 
-.. spelling::
+.. spelling:word-list::
     csr
     eos
     eol

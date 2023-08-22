@@ -8,6 +8,7 @@
 Functions to help with build and setup
 """
 
+import contextlib
 import datetime
 import io
 import os
@@ -67,6 +68,9 @@ def print_all_spelling_errors(path):
     """
 
     rtn = 0
+    if not os.path.isdir(path):
+        return rtn
+
     for filename in os.listdir(path):
         if print_spelling_errors(os.path.join(path, filename)):
             rtn = 1
@@ -89,14 +93,12 @@ def check_rst2html(path):
     Checks for warnings when doing ReST to HTML conversion
     """
 
-    # pylint: disable=import-error,import-outside-toplevel
-    from contextlib import redirect_stderr  # Import here because it breaks <= Python 2
-    from docutils.core import publish_file  # Import here because only available in doc tests
+    from docutils.core import publish_file  # pylint: disable=import-error,import-outside-toplevel
 
     stderr = io.StringIO()
 
     # This will exit with status if there is a bad enough error
-    with redirect_stderr(stderr):
+    with contextlib.redirect_stderr(stderr):
         output = publish_file(source_path=path, writer_name='html',
                               enable_exit_status=True, destination_path='/dev/null')
 
@@ -239,7 +241,7 @@ if __name__ == '__main__':
             sys.exit('Missing filename for ReST to HTML check')
         sys.exit(check_rst2html(sys.argv[2]))
 
-    # Print misspelled word list
+    # Check copyrights
     if sys.argv[1] == 'copyright':
         sys.exit(check_copyrights())
 

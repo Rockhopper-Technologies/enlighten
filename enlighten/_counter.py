@@ -147,7 +147,7 @@ class SubCounter(BaseCounter):
 
 class Counter(PrintableCounter):
     """
-    .. spelling::
+    .. spelling:word-list::
         desc
         len
         seagreen
