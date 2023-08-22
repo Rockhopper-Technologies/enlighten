@@ -12,6 +12,7 @@ jobs:
 
   Tests:
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    container: ${{ matrix.container }}
     name: ${{ startsWith(matrix.toxenv, 'py') && matrix.python-version || format('{0} ({1})', matrix.toxenv, matrix.python-version) }} ${{ matrix.optional && '[OPTIONAL]' }}
     continue-on-error: ${{ matrix.optional || false }}
 
@@ -19,21 +20,22 @@ jobs:
       fail-fast: false
 
       matrix:
-        python-version: ['3.11']
-        toxenv: [lint, docs, coverage]
+        python-version:  ['3.7', '3.8', '3.9', '3.10']
         include:
 
-          - python-version: '3.10'
-            toxenv: py310
+          - python-version: '3.11'
+            toxenv: lint
 
-          - python-version: '3.9'
-            toxenv: py39
+          - python-version: '3.11'
+            toxenv: docs
 
-          - python-version: '3.8'
-            toxenv: py38
+          - python-version: '3.12-dev'
+            optional: true
+            toxenv: py312
+            toxpython: '3.12'
 
-          - python-version: '3.7'
-            toxenv: py37
+          - python-version: '3.11'
+            toxenv: coverage
 
           - python-version: '3.6'
             toxenv: py36
@@ -44,12 +46,12 @@ jobs:
             os: ubuntu-20.04
 
           - python-version: '2.7'
+            container: {image: 'python:2.7.18-buster'}
             toxenv: py27
-            os: ubuntu-20.04
 
           - python-version: '2.7'
+            container: {image: 'python:2.7.18-buster'}
             toxenv: el7
-            os: ubuntu-20.04
 
           - python-version: pypy-2.7
             toxenv: pypy27
@@ -63,16 +65,17 @@ jobs:
             toxpython: '3.12'
 
     env:
-      TOXENV: ${{ matrix.toxenv }}
+      TOXENV: ${{ matrix.toxenv || format('py{0}', matrix.python-version) }}
       TOXPYTHON: python${{ matrix.toxpython || matrix.python-version }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+        if: ${{ matrix.python-version != '2.7' }}
 
       - name: Install tox
         run: pip install tox
