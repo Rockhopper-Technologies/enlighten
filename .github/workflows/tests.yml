@@ -13,7 +13,7 @@ jobs:
   Tests:
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     container: ${{ matrix.container }}
-    name: ${{ startsWith(matrix.toxenv, 'py') && matrix.python-version || format('{0} ({1})', matrix.toxenv, matrix.python-version) }} ${{ matrix.optional && '[OPTIONAL]' }}
+    name: ${{ (matrix.toxenv && !startsWith(matrix.toxenv, 'py')) && format('{0} ({1})', matrix.toxenv, matrix.python-version) || matrix.python-version }} ${{ matrix.optional && '[OPTIONAL]' }}
     continue-on-error: ${{ matrix.optional || false }}
 
     strategy:
@@ -58,11 +58,6 @@ jobs:
 
           - python-version: pypy-3.9
             toxenv: pypy39
-
-          - python-version: '3.12-dev'
-            optional: true
-            toxenv: py312
-            toxpython: '3.12'
 
     env:
       TOXENV: ${{ matrix.toxenv || format('py{0}', matrix.python-version) }}
