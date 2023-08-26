@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -142,6 +142,7 @@ class TestManager(TestCase):
         # pylint: disable=no-member,assigning-non-slot
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         self.assertEqual(len(manager.counters), 0)
+        clear_and_refresh = ['clear(flush=False)', 'refresh(flush=False, elapsed=None)']
 
         with mock.patch.object(manager, '_set_scroll_area') as ssa:
             counter1 = manager.counter(leave=True)
@@ -152,13 +153,12 @@ class TestManager(TestCase):
         self.assertEqual(ssa.call_count, 1)
 
         with mock.patch.object(manager, '_set_scroll_area') as ssa:
-            counter2 = manager.counter(leave=False)
+            counter2 = manager.counter(leave=False, position=1)
         self.assertFalse(counter2.leave)
         self.assertEqual(len(manager.counters), 2)
         self.assertEqual(manager.counters[counter1], 2)
         self.assertEqual(manager.counters[counter2], 1)
-        self.assertEqual(counter1.calls,
-                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
+        self.assertEqual(counter1.calls, clear_and_refresh)
         self.assertEqual(counter2.calls, [])
         self.assertEqual(ssa.call_count, 1)
         counter1.calls = []
@@ -168,24 +168,24 @@ class TestManager(TestCase):
         self.assertFalse(counter3.leave)
         self.assertEqual(len(manager.counters), 3)
         self.assertEqual(manager.counters[counter1], 3)
-        self.assertEqual(manager.counters[counter2], 2)
-        self.assertEqual(manager.counters[counter3], 1)
-        self.assertEqual(counter1.calls,
-                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
-        self.assertEqual(counter2.calls,
-                         ['clear(flush=False)', 'refresh(flush=False, elapsed=None)'])
+        self.assertEqual(manager.counters[counter2], 1)
+        self.assertEqual(manager.counters[counter3], 2)
+        self.assertEqual(counter1.calls, clear_and_refresh)
+        self.assertEqual(counter2.calls, [])
         self.assertEqual(counter3.calls, [])
         self.assertEqual(ssa.call_count, 1)
         counter1.calls = []
-        counter2.calls = []
 
         manager.remove(counter3)
         self.assertEqual(len(manager.counters), 2)
         self.assertFalse(counter3 in manager.counters)
+        self.assertEqual(counter1.calls, clear_and_refresh)
+        counter1.calls = []
 
         # Remove again, no error
         manager.remove(counter3)
         self.assertEqual(len(manager.counters), 2)
+        self.assertEqual(counter1.calls, [])  # No position changes
 
         manager.remove(counter1)
         self.assertEqual(len(manager.counters), 2)
@@ -196,9 +196,9 @@ class TestManager(TestCase):
         self.assertFalse(counter4.leave)
         self.assertEqual(len(manager.counters), 3)
         self.assertEqual(manager.counters[counter1], 3)
-        self.assertEqual(manager.counters[counter2], 2)
-        self.assertEqual(manager.counters[counter4], 1)
-        self.assertEqual(counter1.calls, [])
+        self.assertEqual(manager.counters[counter2], 1)
+        self.assertEqual(manager.counters[counter4], 2)
+        self.assertEqual(counter1.calls, clear_and_refresh)
         self.assertEqual(counter2.calls, [])
         self.assertEqual(counter4.calls, [])
         self.assertEqual(ssa.call_count, 1)

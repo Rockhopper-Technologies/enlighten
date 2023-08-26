@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -308,12 +308,46 @@ class BaseManager(object):
         instead used :py:meth:`Counter.close`.
         """
 
-        if not counter.leave:
-            try:
-                del self.counters[counter]
-                self.autorefresh.remove(counter)
-            except (KeyError, ValueError):
-                pass
+        # If leave is set, there is nothing to do
+        if counter.leave:
+            return
+
+        # Remove counter from manager
+        try:
+            del self.counters[counter]
+            self.autorefresh.remove(counter)
+        except (KeyError, ValueError):
+            pass
+
+        # Get pinned counters  # pylint: disable=protected-access
+        pinned = {pos: ctr for ctr, pos in self.counters.items() if ctr._pinned}
+
+        # Iterate through all counters in reverse order to determine new positions
+        pos = 1
+        to_refresh = []
+        for ctr in reversed(self.counters):
+
+            if ctr in pinned.values():
+                continue
+
+            old_pos = self.counters[ctr]
+
+            while pos in pinned:
+                pos += 1
+
+            if pos != old_pos:
+                ctr.clear(flush=False)
+                to_refresh.append(ctr)
+
+                self.counters[ctr] = pos
+
+            pos += 1
+
+        # Refresh counters
+        self._set_scroll_area()
+        for ctr in reversed(to_refresh):
+            ctr.refresh(flush=False)
+        self._flush_streams()
 
     def _autorefresh(self, exclude):
         """

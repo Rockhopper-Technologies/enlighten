@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -159,7 +159,7 @@ class Manager(BaseManager):
 
         # Save scroll offset for resizing
         oldOffset = self.scroll_offset
-        newOffset = max(self.counters.values()) + 1
+        newOffset = max(self.counters.values()) + 1 if self.counters else 1
         if newOffset > oldOffset:
             self.scroll_offset = newOffset
             use_new = True
