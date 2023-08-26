@@ -118,3 +118,10 @@ As a temporary workaround, ``manager._primed = False`` at the end of the cell be
 :py:meth:`~enlighten.NotebookManager.stop`. Note, this will result in double output in other
 environments so should only be used if the display is cleared first or the code is limited to
 running in this extension.
+
+Why isn't my progress bar displayed until :py:meth:`~enlighten.Counter.update` is called?
+-----------------------------------------------------------------------------------------
+
+Progress bars and counters are not automatically drawn when created because some fields may be
+missing if subcounters are used. To force the counter to draw before updating, call
+:py:meth:`~enlighten.Counter.refresh`
