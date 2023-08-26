@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -60,9 +60,9 @@ class TestBaseCounter(TestCase):
             BaseCounter(manager=self.manager, color=256)
 
         # Invalid iterable
-        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \[\]'):
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \(\)'):
             BaseCounter(manager=self.manager, color=[])
-        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \[1\]'):
+        with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \(1,\)'):
             BaseCounter(manager=self.manager, color=[1])
         with self.assertRaisesRegex(AttributeError, r'Invalid color specified: \(1, 2\)'):
             BaseCounter(manager=self.manager, color=(1, 2))

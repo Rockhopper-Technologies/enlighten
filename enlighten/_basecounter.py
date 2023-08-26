@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +13,7 @@ Provides BaseCounter and PrintableCounter classes
 
 import time
 
-from enlighten._util import BASESTRING
+from enlighten._util import BASESTRING, lru_cache
 
 try:
     from collections.abc import Iterable
@@ -76,20 +76,39 @@ class BaseCounter(object):
 
         if value is None:
             self._color = None
-        elif isinstance(value, int) and 0 <= value <= 255:
-            self._color = (value, self.manager.term.color(value))
-        elif isinstance(value, BASESTRING):
+
+        elif isinstance(value, list):
+            self._color = (value, self._resolve_color(tuple(value)))
+
+        else:
+            self._color = (value, self._resolve_color(value))
+
+    @lru_cache(maxsize=512)
+    def _resolve_color(self, value):
+        """
+        Caching method to resolve a color to terminal code
+        """
+
+        # Color provided as an int form 0 to 255
+        if isinstance(value, int) and 0 <= value <= 255:
+            return self.manager.term.color(value)
+
+        # Color provided as a string
+        if isinstance(value, BASESTRING):
             term = self.manager.term
             color_cap = self.manager.term.formatter(value)
             if not color_cap and term.does_styling and term.number_of_colors:
                 raise AttributeError('Invalid color specified: %s' % value)
-            self._color = (value, color_cap)
-        elif isinstance(value, Iterable) and \
+            return color_cap
+
+        # Color provided as an RGB iterable
+        if isinstance(value, Iterable) and \
                 len(value) == 3 and \
                 all(isinstance(_, int) and 0 <= _ <= 255 for _ in value):
-            self._color = (value, self.manager.term.color_rgb(*value))
-        else:
-            raise AttributeError('Invalid color specified: %s' % repr(value))
+            return self.manager.term.color_rgb(*value)
+
+        # Invalid format given
+        raise AttributeError('Invalid color specified: %s' % repr(value))
 
     def _colorize(self, content):
         """
