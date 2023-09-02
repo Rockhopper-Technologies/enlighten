@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,10 +29,13 @@ class TestFormatTime(TestCase):
         self.assertEqual(format_time(0), '00:00')
         self.assertEqual(format_time(6), '00:06')
         self.assertEqual(format_time(42), '00:42')
+        self.assertEqual(format_time(48.2), '00:48')
+        self.assertEqual(format_time(52.6), '00:53')
 
     def test_minutes(self):
         """Verify minutes formatting"""
 
+        self.assertEqual(format_time(59.9), '01:00')
         self.assertEqual(format_time(60), '01:00')
         self.assertEqual(format_time(128), '02:08')
         self.assertEqual(format_time(1684), '28:04')
