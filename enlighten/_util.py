@@ -1,6 +1,6 @@
 
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -76,9 +76,9 @@ def format_time(seconds):
     """
 
     # Always do minutes and seconds in mm:ss format
-    minutes = seconds // 60
-    hours = minutes // 60
-    rtn = u'%02.0f:%02.0f' % (minutes % 60, seconds % 60)
+    minutes, seconds = divmod(round(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    rtn = u'%02d:%02d' % (minutes, seconds)
 
     #  Add hours if there are any
     if hours:
