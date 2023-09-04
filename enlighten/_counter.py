@@ -8,7 +8,7 @@
 """
 **Enlighten counter submodule**
 
-Provides Counter and SubConter classes
+Provides Counter and SubCounter classes
 """
 
 import math
