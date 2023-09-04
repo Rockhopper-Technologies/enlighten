@@ -82,11 +82,10 @@ def format_time(seconds):
 
     #  Add hours if there are any
     if hours:
-
-        rtn = u'%dh %s' % (int(hours % 24), rtn)
+        days, hours = divmod(hours, 24)
+        rtn = u'%dh %s' % (hours, rtn)
 
         #  Add days if there are any
-        days = int(hours // 24)
         if days:
             rtn = u'%dd %s' % (days, rtn)
 
