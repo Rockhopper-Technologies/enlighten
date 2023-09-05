@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,8 +10,6 @@
 
 Provides Counter class
 """
-
-import sys
 
 from enlighten._counter import Counter as _Counter
 from enlighten._counter import SubCounter  # pylint: disable=unused-import # noqa: F401
@@ -25,14 +23,12 @@ class Counter(_Counter):  # pylint: disable=missing-docstring
 
     __doc__ = _Counter.__doc__
 
-    def __init__(self, **kwargs):
+    def __new__(cls, **kwargs):
 
-        manager = kwargs.get('manager')
-        stream = kwargs.pop('stream', sys.__stdout__)
+        manager = kwargs.pop('manager', None)
+        stream = kwargs.pop('stream', None)
 
         if manager is None:
-            manager = get_manager(stream=stream, counter_class=self.__class__, set_scroll=False)
-            manager.counters[self] = 1
-            kwargs['manager'] = manager
+            manager = get_manager(stream=stream)
 
-        super(Counter, self).__init__(**kwargs)
+        return manager.counter(**kwargs)

@@ -14,7 +14,7 @@ import time
 from enlighten import Counter as CounterDirect, EnlightenWarning, Manager
 from enlighten._counter import Counter, RESERVED_FIELDS, SERIES_STD as _SERIES_STD
 
-from tests import TestCase, mock, MockManager, MockTTY, MockCounter, PY2, unittest
+from tests import TestCase, MockManager, MockTTY, MockCounter, PY2, unittest
 
 
 # pylint: disable=protected-access
@@ -219,14 +219,7 @@ class TestCounter(TestCase):
         self.assertRegex(formatted, r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
                          r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
 
-        # Validate stream is being used with manager
-        with mock.patch.object(self.tty, 'stdout', wraps=self.tty.stdout) as mockstdout:
-            mockstdout.encoding = None
-            ctr = CounterDirect(stream=self.tty.stdout, total=100, desc='Test', unit='ticks')
-            ctr.refresh(flush=False)
-            self.assertFalse(mockstdout.flush.called)
-            ctr.refresh(flush=True)
-            self.assertTrue(mockstdout.flush.called)
+        self.assertIs(ctr.manager.stream, self.tty.stdout)
 
         # Uses manager that is supplied if given
         ctr = CounterDirect(total=100, manager=self.manager)
