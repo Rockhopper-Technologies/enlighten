@@ -1,18 +1,18 @@
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """
-Basic progress bar example
+Progress bar example that uses floats for count and total
 """
 
 from __future__ import print_function
 
 import time
 
-import enlighten
+from enlighten import get_manager
 
 # Use float formatting for count and total in bar_format
 BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}.1f}/{total:.1f} ' + \
@@ -27,8 +27,9 @@ def process_files(count=None):
     Process files with a single progress bar
     """
 
-    pbar = enlighten.Counter(total=count, desc='Simple', unit='ticks',
-                             bar_format=BAR_FMT, counter_format=COUNTER_FMT)
+    manager = get_manager()
+    pbar = manager.counter(total=count, desc='Floats', unit='ticks',
+                           bar_format=BAR_FMT, counter_format=COUNTER_FMT)
 
     for _ in range(100):
         time.sleep(0.05)

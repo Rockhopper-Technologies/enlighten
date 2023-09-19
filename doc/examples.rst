@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,33 +8,50 @@
 :github_url: https://github.com/Rockhopper-Technologies/enlighten
 
 
-Examples
-========
+How to Use
+==========
 
-Basic
------
+Managers
+--------
 
-For a basic status bar, invoke the :py:class:`~enlighten.Counter` class directly.
+The first step is to create a manager. Managers handle output to the terminal and allow multiple
+progress bars to be displayed at the same time.
+
+:py:func:`~enlighten.get_manager` can be used to get a :py:class:`~enlighten.Manager` instance.
+Managers will only display output when the output stream, :py:data:`sys.__stdout__` by default,
+is attached to a TTY. If the stream is not attached to a TTY, the manager instance returned will be
+disabled.
+
+In most cases, a manager can be created like this.
+
+.. code-block:: python
+
+    import enlighten
+    manager = enlighten.get_manager()
+
+If you need to use a different output stream, or override the defaults, see the documentation for
+:py:func:`~enlighten.get_manager`
+
+
+Progress Bars
+-------------
+
+For a basic progress bar, invoke the :py:meth:`Manager.counter <enlighten.Manager.counter>` method.
 
 .. code-block:: python
 
     import time
     import enlighten
 
-    pbar = enlighten.Counter(total=100, desc='Basic', unit='ticks')
+    manager = enlighten.get_manager()
+    pbar = enlighten.counter(total=100, desc='Basic', unit='ticks')
+
     for num in range(100):
         time.sleep(0.1)  # Simulate work
         pbar.update()
 
-Advanced
---------
-
-To maintain multiple progress bars simultaneously or write to the console, a manager is required.
-
-Advanced output will only work when the output stream, :py:data:`sys.__stdout__` by default,
-is attached to a TTY. :py:func:`~enlighten.get_manager` can be used to get a manager instance.
-It will return a disabled :py:class:`~enlighten.Manager` instance if the stream is not attached to a TTY
-and an enabled instance if it is.
+Additional progress bars can be created with additional calls to the
+:py:meth:`Manager.counter <enlighten.Manager.counter>` method.
 
 .. code-block:: python
 
@@ -67,16 +84,18 @@ total. If neither of these conditions are met, the counter format is used:
     import time
     import enlighten
 
-    counter = enlighten.Counter(desc='Basic', unit='ticks')
+    manager = enlighten.get_manager()
+    counter = manager.counter(desc='Basic', unit='ticks')
+
     for num in range(100):
         time.sleep(0.1)  # Simulate work
         counter.update()
 
 Status Bars
 -----------
-Status bars are bars that work similarly to progress similarly to progress bars and counters,
-but present relatively static information.
-Status bars are created with :py:meth:`Manager.status_bar <enlighten.Manager.status_bar>`.
+Status bars are bars that work similarly to progress bars and counters, but present relatively
+static information. Status bars are created with
+:py:meth:`Manager.status_bar <enlighten.Manager.status_bar>`.
 
 .. code-block:: python
 
@@ -128,7 +147,9 @@ about valid colors.
     import time
     import enlighten
 
-    counter = enlighten.Counter(total=100, desc='Colorized', unit='ticks', color='red')
+    manager = enlighten.get_manager()
+    counter = manager.counter(total=100, desc='Colorized', unit='ticks', color='red')
+
     for num in range(100):
         time.sleep(0.1)  # Simulate work
     counter.update()
@@ -225,7 +246,8 @@ listed in the progress bar.
                 u'E:{count_1:{len_total}d} ' + \
                 u'[{elapsed}<{eta}, {rate:.2f}{unit_pad}{unit}/s]'
 
-    success = enlighten.Counter(total=100, desc='Testing', unit='tests',
+    manager = enlighten.get_manager()
+    success = manager.counter(total=100, desc='Testing', unit='tests',
                                 color='green', bar_format=bar_format)
     errors = success.add_subcounter('white')
     failures = success.add_subcounter('red')
@@ -256,7 +278,8 @@ are all derived from the second subcounter added.
                 u' {count_2:{len_total}d}/{total:d} ' + \
                 u'[{elapsed}<{eta_2}, {rate_2:.2f}{unit_pad}{unit}/s]'
 
-    initializing = enlighten.Counter(total=services, desc='Starting', unit='services',
+    manager = enlighten.get_manager()
+    initializing = manager.counter(total=services, desc='Starting', unit='services',
                                     color='red', bar_format=bar_format)
     starting = initializing.add_subcounter('yellow')
     started = initializing.add_subcounter('green', all_fields=True)

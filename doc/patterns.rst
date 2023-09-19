@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -161,10 +161,14 @@ these fields will be :py:class:`prefixed.Float` instead.
 
     counter_format = 'Trying to get to sleep: {count:.2h} sheep'
 
-    counter = enlighten.Counter(counter_format=counter_format)
+    manager = enlighten.get_manager()
+    counter = manager.counter(counter_format=counter_format)
     counter.count = 0.0
     for num in range(10000000):
         counter.update()
+
+
+
 
 For more information, see the :ref:`Counter Format <counter_format>`
 and the `Prefixed`_ documentation.
