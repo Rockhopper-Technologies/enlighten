@@ -25,14 +25,14 @@ Enlighten has supported Windows since version 1.3.0.
 
 Windows does not currently support resizing.
 
-Enlighten also works relatively well in Linux-like subsystems for Windows such as
+Enlighten also works in Linux-like subsystems for Windows such as
 `Cygwin <https://cygwin.com/>`_ or
 `Windows Subsystem for Linux <https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_.
 
 Is Jupyter Notebooks Supported?
 -------------------------------
 
-Experimental support for Jupyter notebooks was added in version 1.10.0.
+Support for Jupyter notebooks was added in version 1.10.0.
 
 Jupyter Notebook support is provide by the :py:class:`~enlighten.NotebookManager` class.
 If running inside a Jupyter Notebook, :py:func:`~enlighten.get_manager` will return a
@@ -56,6 +56,8 @@ and select `Emulate terminal in output console`.
 The PyCharm Python console is currently not supported because :py:data:`sys.stdout`
 does not reference a valid TTY.
 
+We are also tracking an `issue with CSR <https://youtrack.jetbrains.com/issue/IDEA-252747>`_
+in the PyCharm terminal.
 
 .. spelling:word-list::
     csr
@@ -106,18 +108,6 @@ be deferred.
 
 In order to guarantee resize handling is deferred, it is best to pass ``threaded=True`` when
 creating a manager instance.
-
-Why does the output disappear at the end of a notebook cell in VSCode?
-----------------------------------------------------------------------
-
-This is caused by a `bug <https://github.com/microsoft/vscode-jupyter/issues/1710>`_
-in the VSCode Jupyter extension that reverts display updates at the end of a cell.
-This issue has been confirmed by the maintainers, but a fix has not been released yet.
-
-As a temporary workaround, ``manager._primed = False`` at the end of the cell before calling
-:py:meth:`~enlighten.NotebookManager.stop`. Note, this will result in double output in other
-environments so should only be used if the display is cleared first or the code is limited to
-running in this extension.
 
 Why isn't my progress bar displayed until :py:meth:`~enlighten.Counter.update` is called?
 -----------------------------------------------------------------------------------------
