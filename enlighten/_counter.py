@@ -84,7 +84,7 @@ class SubCounter(BaseCounter):
             all_fields(bool): Populate ``rate``, ``interval``, and ``eta`` fields (Default: False)
         """
 
-        if parent.count - parent.subcount - count < 0:
+        if parent._count - parent.subcount - count < 0:
             raise ValueError('Invalid count: %s' % count)
 
         super(SubCounter, self).__init__(manager=parent.manager, color=color, count=count)
@@ -128,7 +128,7 @@ class SubCounter(BaseCounter):
             raise ValueError('source must be parent or peer')
 
         # Make sure counts won't go negative
-        if self.count + incr < 0 or source.count - incr < 0:
+        if self._count + incr < 0 or source.count - incr < 0:
             raise ValueError('Invalid increment: %s' % incr)
 
         # Make sure parent count won't go negative
@@ -462,9 +462,9 @@ class Counter(PrintableCounter):
         Get elapsed time is seconds (float)
         """
 
-        # Clock stops running when total is reached
-        if self.count == self.total:
-            return self.last_update - self.start
+        # If closed or total is reached, use last time count was updated
+        if self._closed or self._count == self.total:
+            return self._count_updated - self.start
 
         return time.time() - self.start
 
@@ -474,7 +474,8 @@ class Counter(PrintableCounter):
         Sum of counts from all subcounters
         """
 
-        return sum(subcounter.count for subcounter in self._subcounters)
+        # pylint: disable=protected-access
+        return sum(subcounter._count for subcounter in self._subcounters)
 
     # pylint: disable=too-many-locals
     def _get_subcounters(self, elapsed, fields, bar_fields=True, force_float=False):
@@ -569,8 +570,9 @@ class Counter(PrintableCounter):
 
         width = width or self.manager.width
         total = self.total
+        count = self.count
 
-        iterations = float(abs(self.count - self.start_count))
+        iterations = float(abs(count - self.start_count))
 
         fields = self.fields.copy()
         fields.update(self._fields)
@@ -587,8 +589,8 @@ class Counter(PrintableCounter):
                             ', '.join(reserved_fields),
                             EnlightenWarning)
 
-        force_float = isinstance(self.count, float) or isinstance(total, float)
-        fields['count'] = Float(self.count) if force_float else self.count
+        force_float = isinstance(count, float) or isinstance(total, float)
+        fields['count'] = Float(count) if force_float else count
         fields['desc'] = self.desc or u''
         fields['total'] = Float(total) if force_float and total is not None else total
         fields['unit'] = self.unit or u''
@@ -607,7 +609,7 @@ class Counter(PrintableCounter):
         fields['interval'] = rate ** -1 if rate else rate
 
         # Only process bar if total was given and n doesn't exceed total
-        if total is not None and self.count <= total:
+        if total is not None and count <= total:
             return self._format_bar(fields, iterations, width, elapsed, force_float)
 
         # Otherwise return a counter
@@ -689,7 +691,7 @@ class Counter(PrintableCounter):
             fields['eta'] = u'00:00'
         else:
             # Use float to force to float in Python 2
-            percentage = self.count / float(self.total)
+            percentage = self._count / float(self.total)
             rate = fields['rate']
 
             # Get eta. Use iterations so a counter running backwards is accurate
@@ -806,7 +808,7 @@ class Counter(PrintableCounter):
         if self.enabled:
             currentTime = time.time()
             # Update if force, 100%, or minimum delta has been reached
-            if force or self.count == self.total or \
+            if force or self._count == self.total or \
                     currentTime - self.last_update >= self.min_delta:
                 self.refresh(elapsed=currentTime - self.start)
 

@@ -30,7 +30,7 @@ class BaseCounter(object):
     Base class for counters
     """
 
-    __slots__ = ('_color', 'count', 'manager', 'start_count')
+    __slots__ = ('_color', '_count', 'manager', 'start_count')
     _repr_attrs = ('count', 'color')
     _placeholder_ = u'___ENLIGHTEN_PLACEHOLDER___'
     _placeholder_len_ = len(_placeholder_)
@@ -50,7 +50,7 @@ class BaseCounter(object):
         if keywords is not None:
             kwargs = keywords
 
-        self.count = self.start_count = kwargs.pop('count', 0)
+        self._count = self.start_count = kwargs.pop('count', 0)
         self._color = None
 
         self.manager = kwargs.pop('manager', None)
@@ -58,6 +58,20 @@ class BaseCounter(object):
             raise TypeError('manager must be specified')
 
         self.color = kwargs.pop('color', None)
+
+    @property
+    def count(self):
+        """
+        Running count
+        A property so additional logic can be added in children
+        """
+
+        return self._count
+
+    @count.setter
+    def count(self, value):
+
+        self._count = value
 
     @property
     def color(self):
@@ -144,12 +158,13 @@ class BaseCounter(object):
                 self.update()
 
 
-class PrintableCounter(BaseCounter):
+class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attributes
     """
     Base class for printable counters
     """
 
-    __slots__ = ('enabled', '_fill', 'last_update', 'leave', 'min_delta', '_pinned', 'start')
+    __slots__ = ('_closed', '_count_updated', 'enabled', '_fill', 'last_update',
+                 'leave', 'min_delta', '_pinned', 'start')
 
     def __init__(self, keywords=None, **kwargs):
 
@@ -157,19 +172,34 @@ class PrintableCounter(BaseCounter):
             kwargs = keywords
         super(PrintableCounter, self).__init__(keywords=kwargs)
 
+        self._closed = False
         self.enabled = kwargs.pop('enabled', True)
         self._fill = u' '
         self.fill = kwargs.pop('fill', u' ')
         self.leave = kwargs.pop('leave', True)
         self.min_delta = kwargs.pop('min_delta', 0.1)
         self._pinned = False
-        self.last_update = self.start = time.time()
+        self.last_update = self.start = self._count_updated = time.time()
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         self.close()
+
+    @property
+    def count(self):
+        """
+        Running count
+        """
+
+        return self._count
+
+    @count.setter
+    def count(self, value):
+
+        self._count = value
+        self._count_updated = time.time()
 
     @property
     def elapsed(self):
@@ -228,6 +258,7 @@ class PrintableCounter(BaseCounter):
         else:
             self.refresh()
 
+        self._closed = True
         self.manager.remove(self)
 
     def format(self, width=None, elapsed=None):

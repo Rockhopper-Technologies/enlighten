@@ -140,13 +140,18 @@ class TestCounter(TestCase):
 
         ctr = self.ctr
         ctr.start = time.time() - 5.0
-        ctr.last_update = ctr.start + 3.0
+        ctr._count_updated = ctr.start + 3.0
 
         self.assertEqual(int(ctr.elapsed), 5)
 
-        # Clock stops running when total is reached
-        ctr.count = ctr.total
+        # Uses last time count was updated when closed
+        ctr.close()
         self.assertEqual(int(ctr.elapsed), 3)
+
+        # Used last time count was updated when count equals total
+        ctr._closed = False
+        ctr.count = ctr.total
+        self.assertEqual(int(ctr.elapsed), 5)
 
     def test_refresh(self):
         """
