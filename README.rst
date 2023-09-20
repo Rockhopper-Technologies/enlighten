@@ -3,7 +3,7 @@
 | |docs| |gh_actions| |codecov|
 | |linux| |windows| |mac| |bsd|
 | |pypi| |supported-versions| |supported-implementations|
-| |Fedora| |EPEL| |Arch| |Debian| |Ubuntu| |Anaconda|
+| |Fedora| |EPEL| |Debian| |Ubuntu| |Anaconda|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
     :target: https://python-enlighten.readthedocs.org
@@ -56,10 +56,6 @@
 .. |EPEL| image:: https://img.shields.io/fedora/v/python3-enlighten/epel8?color=lightgray&label=EPEL&logo=EPEL
     :alt: Latest EPEL Version
     :target: https://src.fedoraproject.org/rpms/python-enlighten
-
-.. |Arch| image:: https://img.shields.io/aur/version/python-enlighten?color=lightgray&logo=Arch%20Linux&style=plastic&label=Arch
-    :alt: Latest Arch Linux Version
-    :target: https://aur.archlinux.org/packages/python-enlighten
 
 .. |Debian| image:: https://img.shields.io/debian/v/enlighten/sid?color=lightgray&logo=Debian&style=plastic&label=Debian
     :alt: Latest Debian Version
@@ -117,32 +113,11 @@ RPM
 Fedora and EL8 (RHEL/CentOS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(EPEL_ repositories must be configured_ for EL8)
+(For EPEL_ repositories must be configured_)
 
 .. code-block:: console
 
     $ dnf install python3-enlighten
-
-EL7 (RHEL/CentOS)
-^^^^^^^^^^^^^^^^^
-
-(EPEL_ repositories must be configured_)
-
-.. code-block:: console
-
-    $ yum install python2-enlighten
-    $ yum install python36-enlighten
-
-
-PKG
----
-
-Arch Linux
-^^^^^^^^^^
-
-.. code-block:: console
-
-    $ pacman -S python-enlighten
 
 
 DEB
@@ -155,16 +130,16 @@ Debian and Ubuntu
     $ apt-get install python3-enlighten
 
 
-.. _EPEL: https://fedoraproject.org/wiki/EPEL
-.. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
-
-
 Conda
 -----
 
 .. code-block:: console
 
     $ conda install -c conda-forge enlighten
+
+
+.. _EPEL: https://fedoraproject.org/wiki/EPEL
+.. _configured: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
 
 
 How to Use

@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2021 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,32 +25,11 @@ RPM
 Fedora and EL8 (RHEL/CentOS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(EPEL_ repositories must be configured_ for EL8)
+(For EPEL_ repositories must be configured_)
 
 .. code-block:: console
 
     $ dnf install python3-enlighten
-
-EL7 (RHEL/CentOS)
-^^^^^^^^^^^^^^^^^
-
-(EPEL_ repositories must be configured_)
-
-.. code-block:: console
-
-    $ yum install python2-enlighten
-    $ yum install python36-enlighten
-
-
-PKG
----
-
-Arch Linux
-^^^^^^^^^^
-
-.. code-block:: console
-
-    $ pacman -S python-enlighten
 
 
 DEB
