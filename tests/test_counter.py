@@ -280,6 +280,24 @@ class TestCounterFormat(TestCase):
     def tearDown(self):
         self.tty.close()
 
+    def test_str(self):
+        """
+        Printing counter as string should show formatted output
+        """
+
+        ctr = Counter(stream=self.tty.stdout, total=100, desc='Test',
+                      unit='ticks', series=SERIES_STD, manager=self.manager)
+        ctr.start = time.time() - 50
+        ctr.count = 50
+
+        if PY2:
+            self.assertRegex(str(ctr).decode('utf-8'), r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
+                             r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
+
+        else:
+            self.assertRegex(str(ctr), r'Test  50%\|' + u'█+[▏▎▍▌▋▊▉]?' +
+                             r'[ ]+\|  50/100 \[00:5\d<00:5\d, \d.\d\d ticks/s\]')
+
     def test_format_no_total(self):
         """
         Counter format is used when no total is given

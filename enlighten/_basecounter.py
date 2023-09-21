@@ -181,6 +181,14 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         self._pinned = False
         self.last_update = self.start = self._count_updated = time.time()
 
+    def __str__(self):
+
+        # format() returns Unicode so encode if Python 2
+        return self.format() if BASESTRING is str else self.format().encode('utf-8')
+
+    def __unicode__(self):  # pragma: no cover(Python 2)
+        return self.format()
+
     def __enter__(self):
         return self
 
