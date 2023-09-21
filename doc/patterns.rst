@@ -168,11 +168,64 @@ these fields will be :py:class:`prefixed.Float` instead.
         counter.update()
 
 
-
-
 For more information, see the :ref:`Counter Format <counter_format>`
 and the `Prefixed`_ documentation.
 
 .. _SI (metric): https://en.wikipedia.org/wiki/Metric_prefix
 .. _IEC (binary): https://en.wikipedia.org/wiki/Binary_prefix
 .. _Prefixed: https://prefixed.readthedocs.io/en/stable/index.html
+
+Manually Printing
+-----------------
+
+By default, if the manager's stream is connected to a TTY, bars and counters are automatically
+printed and updated. There may, however be cases where manual output is desired in addition to or
+instead of the automatic output. For example, to send to other streams or print to a file.
+
+The output for an individual bar can be retrieved from the :py:meth:`~Counter.format` method. This
+supports optional arguments to specify width and elapsed time.
+
+.. code-block:: python
+
+    import enlighten
+
+    manager = enlighten.get_manager(enabled=False)
+    pbar = manager.counter(desc='Progress', total=10)
+
+    pbar.update()
+    print(pbar.format(width=100))
+
+
+As a shortcut, the counter object will call the :py:meth:`~Counter.format` method with the default
+arguments when coerced to a string.
+
+.. code-block:: python
+
+    import enlighten
+
+    manager = enlighten.get_manager(enabled=False)
+    pbar = manager.counter(desc='Progress', total=10)
+
+    pbar.update()
+    print(pbar)
+
+
+While Enlighten's default output provides more advanced capability, A basic refreshing progress bar
+can be created like so.
+
+.. code-block:: python
+
+    import enlighten
+    import time
+
+    manager = enlighten.get_manager(enabled=False)
+    pbar = manager.counter(desc='Progress', total=10)
+
+    print()
+
+    for num in range(10):
+        time.sleep(0.2)
+        pbar.update()
+        print(f'\r{pbar}', end='', flush=True)
+
+    print()
