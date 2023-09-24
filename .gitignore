@@ -26,3 +26,6 @@ notes
 # Notebooks
 .ipynb_checkpoints
 Untitled*.ipynb
+
+# Specialist
+.specialist
