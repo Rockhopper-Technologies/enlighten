@@ -76,8 +76,8 @@ spelling-dict=en_US
 
 # List of comma separated words that should not be checked.
 spelling-ignore-words=
-    Avram, ansicon, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, attr,
-    AttributeError, autorefresh,
+    Avram, ansicon, Args, assertRaisesRegexp, assertRegexpMatches, assertNotRegexpMatches, asv,
+    attr, AttributeError, autorefresh,
     BaseManager, bool,
     CGA, CSS,
     desc, docstring, downconverted, downloader,
