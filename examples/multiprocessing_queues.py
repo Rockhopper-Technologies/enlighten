@@ -1,4 +1,4 @@
-# Copyright 2019 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2019 - 2023 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,8 +42,8 @@ def multiprocess_systems(manager, systems):
 
     started = 0
     active = {}
-    pb_started = manager.counter(total=systems, desc='Systems:', unit='systems', color='yellow')
-    pb_finished = pb_started.add_subcounter('green', all_fields=True)
+    pb_started = manager.counter(total=systems, desc='Systems:', unit='systems', color='yellow2')
+    pb_finished = pb_started.add_subcounter('green3', all_fields=True)
 
     # Loop until all systems finish
     while systems > started or active:
