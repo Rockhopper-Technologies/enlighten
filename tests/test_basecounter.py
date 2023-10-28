@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """
-Test module for enlighten._counter and enlighten.counter
+Test module for enlighten._basecounter
 """
 
 from types import GeneratorType
