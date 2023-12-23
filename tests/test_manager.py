@@ -848,6 +848,33 @@ class TestManager(TestCase):
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
+    def test_resize_handler_height_less_empty(self):
+
+        with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
+            mockheight.side_effect = [25, 23]
+
+            manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+            counter3 = MockCounter(manager=manager, leave=False)
+            manager.counters[counter3] = 3
+            manager.scroll_offset = 4
+            counter3.close()
+
+            # Clear refresh on close
+            self.tty.stdout.write(u'\n')
+            self.tty.stdread.readline()
+
+            with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
+                manager._resize_handler()
+            self.assertEqual(ssa.call_count, 1)
+
+            self.assertEqual(manager.height, 23)
+
+            # Move to scroll offset and print two new lines
+            self.assertEqual(self.tty.stdread.readline(), manager.term.move(19, 0) + '\n')
+            self.assertEqual(self.tty.stdread.readline(), '\n')
+
+            self.assertEqual(counter3.calls, ['refresh(flush=True, elapsed=None)'])
+
     def test_resize_handler_height_greater_threaded(self):
 
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
