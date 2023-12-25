@@ -206,9 +206,6 @@ class TestCounter(TestCase):
                          r'write\(output=%s, flush=True, position=3\)' % self.output)
         self.assertFalse(self.ctr in self.manager.counters)
 
-        # If it runs again, it shouldn't throw an error
-        self.ctr.close()
-
     def test_direct(self):
         """
         Use Counter directly without specifying manager
@@ -238,22 +235,35 @@ class TestCounter(TestCase):
         manager = MockManager()
 
         # Clear is False
-        ctr = MockCounter(manager=manager)
+        ctr = MockCounter(manager=manager, leave=False)
+        manager.counters[ctr] = 1
         ctr.close()
         self.assertEqual(ctr.calls, ['refresh(flush=True, elapsed=None)'])
         self.assertEqual(manager.remove_calls, 1)
 
+        # Manager is already closed
+        del ctr.calls[:]  # Python 2.7 does not support list.clear()
+        if not PY2:  # Skip warnings tests in Python 2
+            with self.assertWarnsRegex(EnlightenWarning, 'already closed') as warn:
+                ctr.close()
+            self.assertRegex(__file__, warn.filename)
+            self.assertEqual(ctr.calls, [])
+            self.assertEqual(manager.remove_calls, 2)
+
+        manager = MockManager()
+
         # Clear is True, leave is True
         ctr = MockCounter(manager=manager, leave=True)
+        manager.counters[ctr] = 1
         ctr.close(clear=True)
         self.assertEqual(ctr.calls, ['refresh(flush=True, elapsed=None)'])
-        self.assertEqual(manager.remove_calls, 2)
+        self.assertEqual(manager.remove_calls, 1)
 
         # Clear is True, leave is False
         ctr = MockCounter(manager=manager, leave=False)
         ctr.close(clear=True)
         self.assertEqual(ctr.calls, ['clear(flush=True)'])
-        self.assertEqual(manager.remove_calls, 3)
+        self.assertEqual(manager.remove_calls, 2)
 
     def test_context_manager(self):
         """

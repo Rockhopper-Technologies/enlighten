@@ -914,7 +914,6 @@ class TestManager(TestCase):
         ctr.refresh()
         ctr.close()
         ctr.leave = False
-        ctr.close()
 
         mgr.write()
         mgr.stop()

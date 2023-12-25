@@ -13,7 +13,7 @@ Provides BaseCounter and PrintableCounter classes
 
 import time
 
-from enlighten._util import BASESTRING, lru_cache
+from enlighten._util import BASESTRING, EnlightenWarning, lru_cache, warn_best_level
 
 try:
     from collections.abc import Iterable
@@ -261,9 +261,15 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         If ``leave`` is True, the default, the effect is the same as :py:meth:`refresh`.
         """
 
+        # Warn if counter is already closed
+        if self._closed:
+            warn_best_level('Closing already closed counter: %r' % self, EnlightenWarning)
+
         if clear and not self.leave:
             self.clear()
-        else:
+
+        # If counter was already closed we may not know the position
+        elif self in self.manager.counters:
             self.refresh()
 
         self._closed = True
