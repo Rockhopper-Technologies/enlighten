@@ -136,7 +136,7 @@ class Manager(BaseManager):
                 buffer.append(u'\n' * (2 * max(self.counters.values())))
             else:
                 buffer.append(u'\n\n')
-        elif newHeight > oldHeight and self.threaded:
+        elif newHeight > oldHeight:
             buffer.append(term.move(newHeight, 0))
             buffer.append(u'\n' * (self.scroll_offset - 1))
 
