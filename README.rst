@@ -53,7 +53,7 @@
     :alt: Latest Fedora Version
     :target: https://src.fedoraproject.org/rpms/python-enlighten
 
-.. |EPEL| image:: https://img.shields.io/fedora/v/python3-enlighten/epel8?color=lightgray&label=EPEL&logo=EPEL
+.. |EPEL| image:: https://img.shields.io/fedora/v/python3-enlighten/epel9?color=lightgray&label=EPEL&logo=EPEL
     :alt: Latest EPEL Version
     :target: https://src.fedoraproject.org/rpms/python-enlighten
 
