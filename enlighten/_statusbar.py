@@ -135,6 +135,18 @@ class StatusBar(PrintableCounter):
 
     __slots__ = ('fields', '_justify', 'status_format', '_static', '_fields')
 
+    @property
+    def elapsed(self):
+        """
+        Get elapsed time in seconds (float)
+        """
+
+        # If closed, used time it was closed
+        if self._closed:
+            return self._closed_time
+
+        return time.time() - self.start
+
     def __init__(self, *args, **kwargs):
 
         super(StatusBar, self).__init__(keywords=kwargs)
