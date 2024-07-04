@@ -163,7 +163,7 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
     Base class for printable counters
     """
 
-    __slots__ = ('_closed', '_count_updated', 'enabled', '_fill', 'last_update',
+    __slots__ = ('_closed', '_closed_time', '_count_updated', 'enabled', '_fill', 'last_update',
                  'leave', 'min_delta', '_pinned', 'start')
 
     def __init__(self, keywords=None, **kwargs):
@@ -180,6 +180,7 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         self.min_delta = kwargs.pop('min_delta', 0.1)
         self._pinned = False
         self.last_update = self.start = self._count_updated = time.time()
+        self._closed_time = None
 
     def __str__(self):
 
@@ -271,6 +272,8 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         # If counter was already closed we may not know the position
         elif self in self.manager.counters:
             self.refresh()
+
+        self._closed_time = time.time() - self.start
 
         self._closed = True
         self.manager.remove(self)
