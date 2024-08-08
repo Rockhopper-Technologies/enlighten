@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -722,9 +722,9 @@ class Counter(PrintableCounter):
         barText = u''
 
         if subcounters:
-            block_count = [int(barWidth * fields['percentage_0'] / 100)]
-            partial_len = (barLen - 1) if fields['count_0'] else barLen
-            remaining = []
+            remainder, count = math.modf(barWidth * fields['percentage_0'] / 100)
+            block_count = [int(count)]
+            remaining = [(remainder, 0)]
 
             # Get full blocks for subcounters and preserve remainders
             for idx, entry in enumerate(subcounters, 1):
@@ -734,8 +734,10 @@ class Counter(PrintableCounter):
 
             # Until blocks are accounted for, add full blocks for highest remainders
             remaining.sort()
-            while sum(block_count) < partial_len and remaining:
-                block_count[remaining.pop()[1]] += 1
+            while sum(block_count) < barLen and remaining:
+                remainder, idx = remaining.pop()
+                if remainder >= 0.85:
+                    block_count[idx] += 1
 
             # Format partial bars
             for idx, subLen in reversed(list(enumerate(block_count))):
@@ -756,7 +758,7 @@ class Counter(PrintableCounter):
 
         # If bar isn't complete, add partial block and fill
         if barLen < barWidth:
-            if fields.get('count_0', self.count):
+            if self.count and not subcounters:
                 barText += self.series[int(round((complete - barLen) * (len(self.series) - 1)))]
                 partial_len += 1
             barText += self.series[0] * (barWidth - partial_len)
