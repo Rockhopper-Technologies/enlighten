@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -353,6 +353,22 @@ class TestCounterSubCounter(TestCase):
         ctr.add_subcounter('yellow', count=44)
         ctr.add_subcounter('blue', count=4)
         ctr.add_subcounter('red', count=2)
+
+        formatted = ctr.format(width=80)
+        bartext = term.red(BLOCK) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 41
+        self.assertEqual(formatted, bartext)
+
+    def test_subcounter_roundinf(self):
+        """
+        Extend subcounters to account for remainders
+        """
+
+        ctr = self.manager.counter(stream=self.tty.stdout, total=300, bar_format=u'{bar}')
+        term = ctr.manager.term
+        ctr.count = 151
+        ctr.add_subcounter('yellow', count=132)
+        ctr.add_subcounter('blue', count=12)
+        ctr.add_subcounter('red', count=7)
 
         formatted = ctr.format(width=80)
         bartext = term.red(BLOCK*2) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 40
