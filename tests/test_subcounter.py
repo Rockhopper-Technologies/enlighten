@@ -358,20 +358,54 @@ class TestCounterSubCounter(TestCase):
         bartext = term.red(BLOCK) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 41
         self.assertEqual(formatted, bartext)
 
-    def test_subcounter_roundinf(self):
+    def test_subcounter_rounding(self):
         """
-        Extend subcounters to account for remainders
+        Extend subcounters to account for remainders when count reaches total
         """
 
         ctr = self.manager.counter(stream=self.tty.stdout, total=300, bar_format=u'{bar}')
         term = ctr.manager.term
         ctr.count = 151
-        ctr.add_subcounter('yellow', count=132)
-        ctr.add_subcounter('blue', count=12)
-        ctr.add_subcounter('red', count=7)
+        sub1 = ctr.add_subcounter('yellow', count=132)
+        sub2 = ctr.add_subcounter('blue', count=12)
+        sub3 = ctr.add_subcounter('red', count=7)
 
         formatted = ctr.format(width=80)
-        bartext = term.red(BLOCK*2) + term.blue(BLOCK*3) + term.yellow(BLOCK*35) + ' ' * 40
+        bartext = term.red(BLOCK) + term.blue(BLOCK * 3) + term.yellow(BLOCK * 35) + ' ' * 41
+        self.assertEqual(formatted, bartext)
+
+        # Bar complete
+        ctr.count = 300
+        sub1.count = 262
+        sub2.count = 24
+        sub3.count = 14
+
+        formatted = ctr.format(width=80)
+        bartext = term.red(BLOCK * 4) + term.blue(BLOCK * 6) + term.yellow(BLOCK * 70)
+        self.assertEqual(formatted, bartext)
+
+    def test_subcounter_rounding_with_main(self):
+        """
+        Extend subcounters and main counter to account for remainders when count reaches total
+        """
+
+        ctr = self.manager.counter(stream=self.tty.stdout, total=300, bar_format=u'{bar}')
+        term = ctr.manager.term
+        ctr.count = 151
+        sub1 = ctr.add_subcounter('yellow', count=132)
+        sub2 = ctr.add_subcounter('blue', count=12)
+
+        formatted = ctr.format(width=80)
+        bartext = term.blue(BLOCK * 3) + term.yellow(BLOCK * 35) + BLOCK + ' ' * 41
+        self.assertEqual(formatted, bartext)
+
+        # Bar complete
+        ctr.count = 300
+        sub1.count = 262
+        sub2.count = 24
+
+        formatted = ctr.format(width=80)
+        bartext = term.blue(BLOCK * 6) + term.yellow(BLOCK * 70) + BLOCK * 4
         self.assertEqual(formatted, bartext)
 
     def test_subcounter_prefixed(self):
