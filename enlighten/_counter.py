@@ -733,10 +733,10 @@ class Counter(PrintableCounter):
                 remaining.append((remainder, idx))
 
             # Until blocks are accounted for, add full blocks for highest remainders
-            remaining.sort()
-            while sum(block_count) < barLen and remaining:
-                remainder, idx = remaining.pop()
-                if remainder >= 0.85:
+            if self._count == self.total:
+                remaining.sort()
+                while sum(block_count) < barLen and remaining:
+                    _, idx = remaining.pop()
                     block_count[idx] += 1
 
             # Format partial bars
