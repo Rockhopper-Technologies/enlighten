@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -115,3 +115,15 @@ Why isn't my progress bar displayed until :py:meth:`~enlighten.Counter.update` i
 Progress bars and counters are not automatically drawn when created because some fields may be
 missing if subcounters are used. To force the counter to draw before updating, call
 :py:meth:`~enlighten.Counter.refresh`
+
+Why does the output get scrambled when the number of progress bars exceeds the terminal height?
+-----------------------------------------------------------------------------------------------
+
+Enlighten draws progress bars in a non-scrolling region at the bottom of the terminal. This
+areas is limited to the size of the terminal. In some terminals, the output
+is cut off to the size of the terminal. In others, lines will be overwritten and appear scrambled.
+
+We advise you to close progress bars when they are complete and do not add additional value for the
+user. However, if you have a need to create a lot of progress bars, you may want to check the size
+of the terminal and resize it if needed. How this is accomplished will depend on the platform and
+terminal you are using.
