@@ -28,6 +28,8 @@ ignore-long-lines=^\s*(# )?<?https?://\S+>?$|^\s*[f|r|u]?b?[\"\'\`].+[\"\'\`]$
 # Maximum number of branch for function / method body.
 max-branches=15
 
+# Maximum number of positional arguments for function / method.
+max-positional-arguments=6
 
 [BASIC]
 
