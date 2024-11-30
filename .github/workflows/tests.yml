@@ -20,22 +20,22 @@ jobs:
       fail-fast: false
 
       matrix:
-        python-version:  ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version:  ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         include:
 
-          - python-version: '3.12'
+          - python-version: '3.13'
             toxenv: lint
 
-          - python-version: '3.12'
+          - python-version: '3.13'
             toxenv: docs
 
-          - python-version: '3.12'
+          - python-version: '3.13'
             toxenv: coverage
 
-          - python-version: '3.13-dev'
+          - python-version: '3.14-dev'
             optional: true
-            toxenv: py313
-            toxpython: '3.13'
+            toxenv: py314
+            toxpython: '3.14'
 
           - python-version: '3.6'
             toxenv: py36
@@ -48,10 +48,6 @@ jobs:
           - python-version: '2.7'
             container: {image: 'python:2.7.18-buster'}
             toxenv: py27
-
-          - python-version: '2.7'
-            container: {image: 'python:2.7.18-buster'}
-            toxenv: el7
 
           - python-version: pypy-2.7
             toxenv: pypy27
