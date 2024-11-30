@@ -4,6 +4,7 @@
 | |linux| |windows| |mac| |bsd|
 | |pypi| |supported-versions| |supported-implementations|
 | |Fedora| |EPEL| |Debian| |Ubuntu| |Anaconda|
+| |Python-Bytes|
 
 .. |docs| image:: https://img.shields.io/readthedocs/python-enlighten.svg?style=plastic&logo=read-the-docs
     :target: https://python-enlighten.readthedocs.org
@@ -68,6 +69,10 @@
 .. |Anaconda| image:: https://img.shields.io/conda/vn/conda-forge/enlighten?color=lightgrey&label=Anaconda&logo=Conda%20Forge&style=plastic
     :alt: Latest Conda Forge Version
     :target: https://anaconda.org/conda-forge/enlighten
+
+.. |Python-Bytes| image:: https://img.shields.io/badge/Python_Bytes_Podcast-Episode_184-D7F9FF?logo=podcastindex&labelColor=blue&style=plastic
+    :alt: Featured on Python Bytes
+    :target: https://pythonbytes.fm/episodes/show/184/too-many-ways-to-wait-with-await
 
 .. end-badges
 
