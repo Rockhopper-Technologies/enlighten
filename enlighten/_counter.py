@@ -483,12 +483,12 @@ class Counter(PrintableCounter):
         Args:
             elapsed(float): Time since started.
             bar_fields(bool): When False, only set fields for basic counter
+            force_float(bool): Coerces count fields to :py:class:`prefixed.Float`
 
         Returns:
             :py:class:`tuple`: list of subcounters and dictionary of additional fields
 
         Each subcounter in the list will be in a tuple of (subcounter, percentage)
-        Fields in the dictionary are addressed in the Format documentation of this class
 
         When `bar_fields` is False, only subcounter count, interval, and rate fields are set.
         percentage will be set to 0.0
@@ -674,6 +674,7 @@ class Counter(PrintableCounter):
             iterations (float): Absolute value of count change from start
             width (int): Width in columns to make progress bar
             elapsed(float): Time since started
+            force_float(bool): Coerces count fields to :py:class:`prefixed.Float`
 
         Returns:
             :py:class:`str`: Formatted progress bar
