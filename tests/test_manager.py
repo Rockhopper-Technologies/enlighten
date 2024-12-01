@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,6 @@ Test module for enlighten._manager
 
 import signal
 import sys
-import time
 
 import enlighten
 from enlighten import _manager
@@ -377,7 +376,7 @@ class TestManager(TestCase):
         self.assertRegex(output, 'counter2.+counter1')
 
         # If auto-refreshed counter has been refreshed recently, skip
-        counter1.last_update = time.time() + 5
+        counter1.last_update = counter1.start + 5.0
         counter2.refresh()
         self.tty.stdout.write(u'X\n')
         output = self.tty.stdread.readline()
@@ -798,7 +797,7 @@ class TestManager(TestCase):
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                     threaded=True)
         counter3 = MockCounter(manager=manager)
-        counter3.last_update = time.time()
+        counter3.last_update = counter3.start
         manager.counters[counter3] = 3
         manager.scroll_offset = 4
         term = manager.term

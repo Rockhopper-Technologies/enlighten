@@ -9,8 +9,6 @@
 Test module for enlighten._counter and enlighten.counter
 """
 
-import time
-
 from enlighten import Counter as CounterDirect, EnlightenWarning, Manager
 from enlighten._counter import Counter, RESERVED_FIELDS, SERIES_STD as _SERIES_STD
 
@@ -93,8 +91,8 @@ class TestCounter(TestCase):
         counter.min_delta = 500
         counter.update()
         self.assertEqual(counter.output, [1, 2])
-        counter.min_delta = .01
-        time.sleep(.01)
+        counter.min_delta = 0.01
+        counter.last_update -= 0.01
         counter.update()
         self.assertEqual(counter.output, [1, 2, 4])
 
@@ -139,7 +137,7 @@ class TestCounter(TestCase):
         """
 
         ctr = self.ctr
-        ctr.start = time.time() - 5.0
+        ctr.start -= 5.0
         ctr._count_updated = ctr.start + 3.0
 
         self.assertEqual(int(ctr.elapsed), 5)
@@ -162,7 +160,7 @@ class TestCounter(TestCase):
         self.ctr.refresh()
         self.assertRegex(self.manager.output[0],
                          r'write\(output=%s, flush=True, position=3\)' % self.output)
-        self.assertAlmostEqual(self.ctr.last_update, time.time(), delta=0.3)
+        self.assertAlmostEqual(self.ctr.last_update, self.ctr.start, delta=0.3)
 
         self.manager.output = []
         self.ctr.refresh(flush=False)
@@ -214,7 +212,7 @@ class TestCounter(TestCase):
         ctr = CounterDirect(stream=self.tty.stdout, total=100, desc='Test',
                             unit='ticks', series=SERIES_STD)
         self.assertIsInstance(ctr.manager, Manager)
-        ctr.start = time.time() - 50
+        ctr.start -= 50.0
         ctr.update(50, force=True)
 
         formatted = ctr.format()
@@ -297,7 +295,7 @@ class TestCounterFormat(TestCase):
 
         ctr = Counter(stream=self.tty.stdout, total=100, desc='Test',
                       unit='ticks', series=SERIES_STD, manager=self.manager)
-        ctr.start = time.time() - 50
+        ctr.start -= 50.0
         ctr.count = 50
 
         if PY2:
@@ -317,7 +315,7 @@ class TestCounterFormat(TestCase):
         ctr = Counter(stream=self.tty.stdout, manager=self.manager)
         self.assertRegex(ctr.format(width=80), r'0 \[00:0\d, 0.00/s\]')
         ctr.count = 50
-        ctr.start = time.time() - 50
+        ctr.start -= 50.0
         self.assertRegex(ctr.format(width=80), r'50 \[00:5\d, \d.\d\d/s\]')
 
         # With unit and description
@@ -326,7 +324,7 @@ class TestCounterFormat(TestCase):
         self.assertEqual(len(rtn), 80)
         self.assertRegex(rtn, r'Test 0 ticks \[00:0\d, 0.00 ticks/s\]')
         ctr.count = 50
-        ctr.start = time.time() - 50
+        ctr.start -= 50.0
         rtn = ctr.format(width=80)
         self.assertEqual(len(rtn), 80)
         self.assertRegex(rtn, r'Test 50 ticks \[00:5\d, \d.\d\d ticks/s\]')
@@ -340,7 +338,7 @@ class TestCounterFormat(TestCase):
             stream=self.tty.stdout, total=10, desc='Test', unit='ticks', manager=self.manager
         )
         ctr.count = 50
-        ctr.start = time.time() - 50
+        ctr.start -= 50.0
         rtn = ctr.format(width=80)
         self.assertEqual(len(rtn), 80)
         self.assertRegex(rtn, r'Test 50 ticks \[00:5\d, \d.\d\d ticks/s\]')
@@ -371,7 +369,7 @@ class TestCounterFormat(TestCase):
         ctr = Counter(stream=self.tty.stdout, total=10, desc='Test',
                       unit='ticks', series=SERIES_STD, manager=self.manager)
         ctr.count = 10
-        ctr.start = time.time() - 10
+        ctr.start -= 10.0
         formatted = ctr.format(width=80)
         self.assertEqual(len(formatted), 80)
         self.assertRegex(formatted,
