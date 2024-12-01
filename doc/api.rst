@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,7 +40,7 @@ Functions
 ---------
 
 .. autofunction:: enlighten.get_manager(stream=None, counter_class=Counter, **kwargs)
-
+.. autofunction:: format_time
 
 Constants
 ---------

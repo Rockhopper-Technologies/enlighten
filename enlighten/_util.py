@@ -1,6 +1,6 @@
 
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -70,9 +70,19 @@ def warn_best_level(message, category):
 def format_time(seconds):
     """
     Args:
-        seconds (float): amount of time
+        seconds (float): A period of time expressed in seconds
 
-    Format time string for eta and elapsed
+    Returns:
+        :py:class:`str`: Time formatted in seconds, minutes, hours, and days
+
+
+    Format time as displayed in the ``elapsed`` and ``eta`` fields
+
+    The format will take one of the following forms depending on the length of time:
+
+        - 01:56
+        - 12h 01:56
+        - 1d 0h 01:56
     """
 
     # Always do minutes and seconds in mm:ss format

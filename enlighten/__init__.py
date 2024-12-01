@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,12 +13,12 @@ Provides progress bars and counters which play nice in a TTY console
 
 from enlighten.counter import Counter, StatusBar, SubCounter
 from enlighten.manager import Manager, get_manager
-from enlighten._util import EnlightenWarning, Justify
+from enlighten._util import EnlightenWarning, Justify, format_time
 
 
 __version__ = '1.12.4'
-__all__ = ['Counter', 'EnlightenWarning', 'Justify', 'Manager',
-           'StatusBar', 'SubCounter', 'get_manager', 'NotebookManager']
+__all__ = ['Counter', 'EnlightenWarning', 'format_time', 'get_manager', 'Justify',
+           'Manager', 'NotebookManager', 'StatusBar', 'SubCounter']
 
 try:
     from enlighten.manager import NotebookManager  # noqa: F401
