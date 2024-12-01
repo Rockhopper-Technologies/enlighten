@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -172,7 +172,7 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
             kwargs = keywords
         super(PrintableCounter, self).__init__(keywords=kwargs)
 
-        self._closed = False
+        self._closed = 0.0  # Time when closed, 0 indicates it's open
         self.enabled = kwargs.pop('enabled', True)
         self._fill = u' '
         self.fill = kwargs.pop('fill', u' ')
@@ -215,7 +215,7 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         Get elapsed time is seconds (float)
         """
 
-        return time.time() - self.start
+        return (self._closed or time.time()) - self.start
 
     @property
     def fill(self):
@@ -259,11 +259,15 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         Do final refresh and remove from manager
 
         If ``leave`` is True, the default, the effect is the same as :py:meth:`refresh`.
+
+        When closed, elapsed time will stop even when refreshed
         """
 
         # Warn if counter is already closed
         if self._closed:
             warn_best_level('Closing already closed counter: %r' % self, EnlightenWarning)
+        else:
+            self._closed = time.time()
 
         if clear and not self.leave:
             self.clear()
@@ -272,7 +276,6 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         elif self in self.manager.counters:
             self.refresh()
 
-        self._closed = True
         self.manager.remove(self)
 
     def format(self, width=None, elapsed=None):

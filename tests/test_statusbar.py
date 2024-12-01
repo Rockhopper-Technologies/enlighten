@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2020 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -167,3 +167,22 @@ class TestStatusBar(TestCase):
             self.manager.status_bar(status_format=u'Stage: {stage}, elapsed: {elapsed}', stage=1,
                                     elapsed='Reserved field')
         self.assertRegex(tests.__file__, warn.filename)
+
+    def test_elapsed(self):
+        """
+        Elapsed property only counts to closed time
+        """
+
+        self.manager.status_bar_class = MockStatusBar
+        sbar = self.manager.status_bar('Hello', 'World!')
+        now = sbar.start
+        sbar.start -= 5.0
+
+        self.assertEqual(int(sbar.elapsed), 5)
+
+        sbar.close()
+        self.assertEqual(int(sbar._closed), int(now))  # pylint: disable=protected-access
+        self.assertEqual(int(sbar.elapsed), 5)
+
+        sbar._closed -= 1.0
+        self.assertEqual(int(sbar.elapsed), 4)

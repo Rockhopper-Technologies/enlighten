@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -149,7 +149,7 @@ class TestCounter(TestCase):
         self.assertEqual(int(ctr.elapsed), 3)
 
         # Used last time count was updated when count equals total
-        ctr._closed = False
+        ctr._closed = 0.0
         ctr.count = ctr.total
         self.assertEqual(int(ctr.elapsed), 5)
 
