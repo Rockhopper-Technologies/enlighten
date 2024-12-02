@@ -16,7 +16,7 @@ from enlighten.manager import Manager, get_manager
 from enlighten._util import EnlightenWarning, Justify, format_time
 
 
-__version__ = '1.12.4'
+__version__ = '1.13.0'
 __all__ = ['Counter', 'EnlightenWarning', 'format_time', 'get_manager', 'Justify',
            'Manager', 'NotebookManager', 'StatusBar', 'SubCounter']
 
