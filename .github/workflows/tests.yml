@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        python-version:  ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version:  ['3.8', '3.9', '3.10', '3.11', '3.12']
         include:
 
           - python-version: '3.13'
@@ -36,6 +36,10 @@ jobs:
             optional: true
             toxenv: py314
             toxpython: '3.14'
+
+          - python-version: '3.7'
+            toxenv: py37
+            os: ubuntu-22.04
 
           - python-version: '3.6'
             toxenv: py36
