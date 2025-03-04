@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,6 +8,8 @@
 """
 Test module for enlighten._statusbar
 """
+
+import time
 
 from enlighten import EnlightenWarning, Justify
 
@@ -175,14 +177,14 @@ class TestStatusBar(TestCase):
 
         self.manager.status_bar_class = MockStatusBar
         sbar = self.manager.status_bar('Hello', 'World!')
-        now = sbar.start
-        sbar.start -= 5.0
+        now = time.time()
+        sbar.start = now - 5.0
 
-        self.assertEqual(int(sbar.elapsed), 5)
+        self.assertEqual(round(sbar.elapsed), 5)
 
         sbar.close()
-        self.assertEqual(int(sbar._closed), int(now))  # pylint: disable=protected-access
-        self.assertEqual(int(sbar.elapsed), 5)
+        self.assertEqual(round(sbar._closed), round(now))  # pylint: disable=protected-access
+        self.assertEqual(round(sbar.elapsed), 5)
 
         sbar._closed -= 1.0
-        self.assertEqual(int(sbar.elapsed), 4)
+        self.assertEqual(round(sbar.elapsed), 4)
