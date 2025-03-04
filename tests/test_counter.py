@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -230,7 +230,7 @@ class TestCounter(TestCase):
         Counter closing behavior
         """
 
-        manager = MockManager()
+        manager = MockManager(stream=self.tty.stdout)
 
         # Clear is False
         ctr = MockCounter(manager=manager, leave=False)
@@ -248,7 +248,7 @@ class TestCounter(TestCase):
             self.assertEqual(ctr.calls, [])
             self.assertEqual(manager.remove_calls, 2)
 
-        manager = MockManager()
+        manager = MockManager(stream=self.tty.stdout)
 
         # Clear is True, leave is True
         ctr = MockCounter(manager=manager, leave=True)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -128,7 +128,7 @@ class TestManager(TestCase):
     def test_width(self):
         """Width hard-coded"""
 
-        manager = enlighten.Manager(width=100)
+        manager = enlighten.Manager(width=100, stream=self.tty.stdout)
         ctr = manager.counter(total=100)
 
         self.assertEqual(len(ctr.format()), 100)
@@ -458,7 +458,7 @@ class TestManager(TestCase):
 
         # Make sure nothing was flushed
         self.tty.stdout.write(u'X\n')
-        self.assertEqual(stdread.readline(), 'X\n')
+        self.assertEqual(stdread.readline(), term.u7 + 'X\n')
 
         # Run it again and make sure exit handling isn't reset
         del manager._buffer[:]
@@ -496,6 +496,27 @@ class TestManager(TestCase):
                              [term.hide_cursor,
                               term.csr(0, scroll_position),
                               term.move(scroll_position, 0)])
+            self.assertEqual(manager._companion_buffer, [])
+            atexit.register.assert_called_with(manager._at_exit)
+
+    def test_set_scroll_area_column(self):
+        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
+        manager.counters['dummy'] = 3
+        manager.scroll_offset = 4
+        manager.height = 20
+        scroll_position = manager.height - manager.scroll_offset
+        term = manager.term
+
+        with mock.patch('enlighten._manager.atexit') as atexit:
+            manager._set_scroll_area(force=True, column=3)
+
+            self.assertEqual(manager.scroll_offset, 4)
+            self.assertTrue(manager.process_exit)
+
+            self.assertEqual(manager._buffer,
+                             [term.hide_cursor,
+                              term.csr(0, scroll_position),
+                              term.move(scroll_position, 3)])
             self.assertEqual(manager._companion_buffer, [])
             atexit.register.assert_called_with(manager._at_exit)
 
@@ -567,7 +588,7 @@ class TestManager(TestCase):
 
         # No output, No changes
         self.tty.stdout.write(u'X\n')
-        self.assertEqual(self.tty.stdread.readline(), 'X\n')
+        self.assertEqual(self.tty.stdread.readline(), term.u7 + 'X\n')
         self.assertEqual(signal.getsignal(signal.SIGWINCH), manager._stage_resize)
         self.assertTrue(manager.process_exit)
 

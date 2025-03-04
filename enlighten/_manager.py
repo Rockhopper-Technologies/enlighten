@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -144,7 +144,7 @@ class Manager(BaseManager):
         buffer.append(term.clear_eos)
 
         self.width = self._width or term.width
-        self._set_scroll_area(force=True)
+        self._set_scroll_area(force=True, column=0)
 
         for counter in self.counters:
             counter.refresh(flush=False)
@@ -152,7 +152,7 @@ class Manager(BaseManager):
 
         self.resize_lock = False
 
-    def _set_scroll_area(self, force=False):
+    def _set_scroll_area(self, force=False, column=None):
         """
         Args:
             force(bool): Set the scroll area even if no change in height and position is detected
@@ -202,10 +202,14 @@ class Manager(BaseManager):
                 buffer.append(term.hide_cursor)
                 buffer.append(term.csr(0, scrollPosition))
 
+            # Get current horizontal position. If we can't get it, it's -1, so use 0 instead
+            if column is None:
+                column = max(self.term.get_location(timeout=1)[1], 0)
+
             # Always reset position
-            buffer.append(term.move(scrollPosition, 0))
+            buffer.append(term.move(scrollPosition, column))
             if self.companion_term is not None:
-                self._companion_buffer.append(term.move(scrollPosition, 0))
+                self._companion_buffer.append(term.move(scrollPosition, column))
 
     def _flush_streams(self):
         """
