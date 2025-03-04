@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,7 +26,7 @@ class StatusBar(PrintableCounter):
     Args:
         enabled(bool): Status (Default: :py:data:`True`)
         color(str): Color as a string or RGB tuple see :ref:`Status Color <status_color>`
-        fields(dict): Additional fields used for :ref:`formating <status_format>`
+        fields(dict): Additional fields used for :ref:`formatting <status_format>`
         fill(str): Fill character used in formatting and justifying text (Default: ' ')
         justify(str):
             One of :py:attr:`Justify.CENTER`, :py:attr:`Justify.LEFT`, :py:attr:`Justify.RIGHT`
