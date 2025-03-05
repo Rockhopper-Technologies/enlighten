@@ -478,6 +478,27 @@ class TestManager(TestCase):
 
         self.assertEqual(manager.scroll_offset, 4)
 
+        # Ensure cursor is returned to previous position
+        del manager._buffer[:]
+        del manager._companion_buffer[:]
+        with mock.patch('enlighten._manager.atexit') as atexit:
+            with mock.patch('blessed.Terminal.get_location') as get_location:
+                get_location.return_value = (0, 3)
+                manager._set_scroll_area()
+
+        self.assertIn(term.move(scroll_position, 3), manager._buffer)
+
+        # Ensure on resize cursor is put at the start of the line
+        del manager._buffer[:]
+        del manager._companion_buffer[:]
+        manager.resize_lock = True
+        with mock.patch('enlighten._manager.atexit') as atexit:
+            with mock.patch('blessed.Terminal.get_location') as get_location:
+                get_location.return_value = (0, 3)
+                manager._set_scroll_area()
+
+        self.assertIn(term.move(scroll_position, 0), manager._buffer)
+
     def test_set_scroll_area_force(self):
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         manager.counters['dummy'] = 3
@@ -496,27 +517,6 @@ class TestManager(TestCase):
                              [term.hide_cursor,
                               term.csr(0, scroll_position),
                               term.move(scroll_position, 0)])
-            self.assertEqual(manager._companion_buffer, [])
-            atexit.register.assert_called_with(manager._at_exit)
-
-    def test_set_scroll_area_column(self):
-        manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-        manager.counters['dummy'] = 3
-        manager.scroll_offset = 4
-        manager.height = 20
-        scroll_position = manager.height - manager.scroll_offset
-        term = manager.term
-
-        with mock.patch('enlighten._manager.atexit') as atexit:
-            manager._set_scroll_area(force=True, column=3)
-
-            self.assertEqual(manager.scroll_offset, 4)
-            self.assertTrue(manager.process_exit)
-
-            self.assertEqual(manager._buffer,
-                             [term.hide_cursor,
-                              term.csr(0, scroll_position),
-                              term.move(scroll_position, 3)])
             self.assertEqual(manager._companion_buffer, [])
             atexit.register.assert_called_with(manager._at_exit)
 

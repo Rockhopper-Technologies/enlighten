@@ -144,7 +144,7 @@ class Manager(BaseManager):
         buffer.append(term.clear_eos)
 
         self.width = self._width or term.width
-        self._set_scroll_area(force=True, column=0)
+        self._set_scroll_area(force=True)
 
         for counter in self.counters:
             counter.refresh(flush=False)
@@ -152,7 +152,7 @@ class Manager(BaseManager):
 
         self.resize_lock = False
 
-    def _set_scroll_area(self, force=False, column=None):
+    def _set_scroll_area(self, force=False):
         """
         Args:
             force(bool): Set the scroll area even if no change in height and position is detected
@@ -203,7 +203,10 @@ class Manager(BaseManager):
                 buffer.append(term.csr(0, scrollPosition))
 
             # Get current horizontal position. If we can't get it, it's -1, so use 0 instead
-            if column is None:
+            if self.resize_lock:
+                column = 0
+            else:
+                self.stream.flush()
                 column = max(self.term.get_location(timeout=1)[1], 0)
 
             # Always reset position
