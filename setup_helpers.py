@@ -1,4 +1,4 @@
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -204,7 +204,7 @@ def check_copyrights():
 
                 # Get the latest change date for docs
                 process = subprocess.run(
-                    ('git', 'log', '-1', '--pretty=format:%cs', 'doc/*.rst'),
+                    ('git', 'log', '-1', '--pretty=format:%cs', 'doc/*.rst', 'enlighten/*.py'),
                     stdout=subprocess.PIPE, check=True, text=True
                 )
                 modified = process.stdout[:4]
