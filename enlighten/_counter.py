@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -835,3 +835,13 @@ class Counter(PrintableCounter):
         subcounter = SubCounter(self, color=color, count=count, all_fields=all_fields)
         self._subcounters.append(subcounter)
         return subcounter
+
+    def reset(self):
+        """
+        Reset to initial state
+        """
+
+        super(Counter, self).reset()
+
+        for subcounter in self._subcounters:
+            subcounter._count = subcounter.start_count  # pylint: disable=protected-access

@@ -9,6 +9,8 @@
 Test module for enlighten._counter and enlighten.counter
 """
 
+import time
+
 from enlighten import Counter as CounterDirect, EnlightenWarning, Manager
 from enlighten._counter import Counter, RESERVED_FIELDS, SERIES_STD as _SERIES_STD
 
@@ -274,6 +276,23 @@ class TestCounter(TestCase):
             ctr.update()
 
         self.assertFalse(ctr in mgr.counters)
+
+    def test_reset(self):
+        """
+        Counter can be reset
+        """
+
+        ctr = self.ctr
+        ctr.start_count = 1
+        ctr.start -= 5.0
+        ctr._count_updated = ctr.start + 3.0
+        ctr.count = 9
+
+        ctr.reset()
+        self.assertAlmostEqual(ctr.start, time.time(), delta=0.1)
+        self.assertEqual(ctr.start, ctr._count_updated)
+        self.assertEqual(ctr.start, ctr.last_update)
+        self.assertEqual(ctr.count, 1)
 
 
 class TestCounterFormat(TestCase):

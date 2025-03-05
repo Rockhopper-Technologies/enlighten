@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,6 +8,8 @@
 """
 Test module for subcounter operations
 """
+
+import time
 
 from enlighten._counter import Counter, SubCounter, SERIES_STD
 
@@ -441,3 +443,22 @@ class TestCounterSubCounter(TestCase):
                 ' | 128.00 KiB | 128.00 KiB/s | 0.00 s/B'
             )
         )
+
+    def test_reset(self):
+        """Subcounters can be reset"""
+
+        ctr = self.ctr
+        ctr.start_count = 2
+        ctr.count = 9
+        ctr.start -= 5.0
+        ctr._count_updated = ctr.start + 3.0
+
+        subcounter = ctr.add_subcounter('green', count=1)
+        subcounter.count = 5
+
+        ctr.reset()
+        self.assertAlmostEqual(ctr.start, time.time(), delta=0.1)
+        self.assertEqual(ctr.start, ctr._count_updated)
+        self.assertEqual(ctr.start, ctr.last_update)
+        self.assertEqual(ctr.count, 2)
+        self.assertEqual(subcounter.count, 1)
