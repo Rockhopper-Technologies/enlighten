@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,7 @@ from enlighten.manager import Manager, get_manager
 from enlighten._util import EnlightenWarning, Justify, format_time
 
 
-__version__ = '1.13.0'
+__version__ = '1.14.0'
 __all__ = ['Counter', 'EnlightenWarning', 'format_time', 'get_manager', 'Justify',
            'Manager', 'NotebookManager', 'StatusBar', 'SubCounter']
 
