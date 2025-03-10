@@ -11,6 +11,7 @@ Test module for enlighten._manager
 
 import signal
 import sys
+import time
 
 import enlighten
 from enlighten import _manager
@@ -376,7 +377,7 @@ class TestManager(TestCase):
         self.assertRegex(output, 'counter2.+counter1')
 
         # If auto-refreshed counter has been refreshed recently, skip
-        counter1.last_update = counter1.start + 5.0
+        counter1.last_update = time.time() + 5.0
         counter2.refresh()
         self.tty.stdout.write(u'X\n')
         output = self.tty.stdread.readline()
