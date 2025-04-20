@@ -12,7 +12,7 @@ jobs:
 
   Tests:
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-    container: ${{ matrix.container }}
+    container: ${{ matrix.container || format('python:{0}', matrix.python-version) }}
     name: ${{ (matrix.toxenv && !startsWith(matrix.toxenv, 'py')) && format('{0} ({1})', matrix.toxenv, matrix.python-version) || matrix.python-version }} ${{ matrix.optional && '[OPTIONAL]' }}
     continue-on-error: ${{ matrix.optional || false }}
 
@@ -20,57 +20,52 @@ jobs:
       fail-fast: false
 
       matrix:
-        python-version:  ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version:  ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         include:
 
           - python-version: '3.13'
             toxenv: lint
+            os-deps:
+              - enchant-2
 
           - python-version: '3.13'
             toxenv: docs
+            os-deps:
+              - enchant-2
 
           - python-version: '3.13'
             toxenv: coverage
 
-          - python-version: '3.14-dev'
+          - python-version: '3.14'
+            container: 'python:3.14-rc'
             optional: true
-            toxenv: py314
-            toxpython: '3.14'
-
-          - python-version: '3.7'
-            toxenv: py37
-            os: ubuntu-22.04
-
-          - python-version: '3.6'
-            container: {image: 'python:3.6'}
-            toxenv: py36
-
-          - python-version: '3.5'
-            container: {image: 'python:3.5'}
-            toxenv: py35
-
-          - python-version: '2.7'
-            container: {image: 'python:2.7'}
-            toxenv: py27
 
           - python-version: pypy-2.7
             toxenv: pypy27
+            container: pypy:2.7
 
-          - python-version: pypy-3.10
-            toxenv: pypy310
+          - python-version: pypy-3
+            toxenv: pypy3
+            container: pypy:3
 
     env:
       TOXENV: ${{ matrix.toxenv || format('py{0}', matrix.python-version) }}
-      TOXPYTHON: python${{ matrix.toxpython || matrix.python-version }}
 
     steps:
+      # This is only needed for Python 3.6 and earlier because Tox 4 requires 3.7+
+      - name: Fix TOXENV
+        run: echo "TOXENV=$(echo $TOXENV | sed 's/\.//g')" >> $GITHUB_ENV
+        if: ${{ contains(fromJson('["2.7", "3.5", "3.6"]'), matrix.python-version) }}
+
+      - name: Install OS Dependencies
+        run: apt update && apt -y install ${{ join(matrix.os-deps, ' ') }}
+        if: ${{ matrix.os-deps }}
+
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-        if: ${{ !contains(fromJson('["2.7", "3.5", "3.6"]'), matrix.python-version) }}
+      # https://github.com/actions/checkout/issues/1048
+      - name: Workaround for git ownership issue
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Install tox
         run: pip install tox
