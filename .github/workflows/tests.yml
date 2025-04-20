@@ -42,15 +42,15 @@ jobs:
             os: ubuntu-22.04
 
           - python-version: '3.6'
+            container: {image: 'python:3.6'}
             toxenv: py36
-            os: ubuntu-20.04
 
           - python-version: '3.5'
+            container: {image: 'python:3.5'}
             toxenv: py35
-            os: ubuntu-20.04
 
           - python-version: '2.7'
-            container: {image: 'python:2.7.18-buster'}
+            container: {image: 'python:2.7'}
             toxenv: py27
 
           - python-version: pypy-2.7
@@ -70,16 +70,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-        if: ${{ matrix.python-version != '2.7' && matrix.python-version != '3.5' }}
-
-      # Workaround for https://github.com/actions/setup-python/issues/866
-      - name: Set up Python 3.5 (Workaround)
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.5
-        env:
-          PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
-        if: ${{ matrix.python-version == '3.5' }}
+        if: ${{ !contains(fromJson('["2.7", "3.5", "3.6"]'), matrix.python-version) }}
 
       - name: Install tox
         run: pip install tox
