@@ -160,7 +160,7 @@ class TestManager(TestCase):
         self.assertEqual(manager.counters[counter2], 1)
         self.assertEqual(counter1.calls, clear_and_refresh)
         self.assertEqual(counter2.calls, [])
-        self.assertEqual(ssa.call_count, 1)
+        self.assertEqual(ssa.call_count, 2)
         counter1.calls = []
 
         with mock.patch.object(manager, '_set_scroll_area') as ssa:
@@ -173,7 +173,7 @@ class TestManager(TestCase):
         self.assertEqual(counter1.calls, clear_and_refresh)
         self.assertEqual(counter2.calls, [])
         self.assertEqual(counter3.calls, [])
-        self.assertEqual(ssa.call_count, 1)
+        self.assertEqual(ssa.call_count, 2)
         counter1.calls = []
 
         manager.remove(counter3)
@@ -201,7 +201,7 @@ class TestManager(TestCase):
         self.assertEqual(counter1.calls, clear_and_refresh)
         self.assertEqual(counter2.calls, [])
         self.assertEqual(counter4.calls, [])
-        self.assertEqual(ssa.call_count, 1)
+        self.assertEqual(ssa.call_count, 2)
 
     def test_counter_position(self):
         manager = enlighten.Manager(stream=self.tty.stdout, set_scroll=False)
@@ -729,7 +729,7 @@ class TestManager(TestCase):
         """
 
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
-        counter3 = MockCounter(manager=manager)
+        counter3 = MockCounter(manager=manager, counter_format='COUNTER')
         manager.counters[counter3] = 3
         manager.scroll_offset = 4
         term = manager.term
@@ -753,14 +753,17 @@ class TestManager(TestCase):
             manager.resize_lock = False
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()
-                self.assertEqual(ssa.call_count, 1)
+                self.assertEqual(ssa.call_count, 2)
 
             self.assertEqual(manager.width, 70)
             self.assertFalse(manager.resize_lock)
 
             self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(21, 0) + term.clear_eos + 'X\n')
-
+            self.assertEqual(
+                self.tty.stdread.readline(),
+                term.move(21, 0) + term.clear_eos + term.move(22, 0) +
+                '\r' + term.clear_eol + 'COUNTER' + 'X\n'
+            )
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
     def test_threaded_eval(self):
@@ -818,7 +821,7 @@ class TestManager(TestCase):
         """
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                     threaded=True)
-        counter3 = MockCounter(manager=manager)
+        counter3 = MockCounter(manager=manager, counter_format='COUNTER')
         counter3.last_update = counter3.start
         manager.counters[counter3] = 3
         manager.scroll_offset = 4
@@ -837,12 +840,16 @@ class TestManager(TestCase):
 
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager.write()
-                self.assertEqual(ssa.call_count, 1)
+                self.assertEqual(ssa.call_count, 2)
 
             self.assertEqual(manager.width, 70)
 
             self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(21, 0) + term.clear_eos + 'X\n')
+            self.assertEqual(
+                self.tty.stdread.readline(),
+                term.move(21, 0) + term.clear_eos + term.move(22, 0) +
+                '\r' + term.clear_eol + 'COUNTER' + 'X\n'
+            )
             self.assertFalse(manager.resize_lock)
             self.assertFalse(manager._resize)
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
@@ -859,7 +866,7 @@ class TestManager(TestCase):
 
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()
-            self.assertEqual(ssa.call_count, 1)
+            self.assertEqual(ssa.call_count, 2)
 
             self.assertEqual(manager.height, 23)
 
@@ -903,14 +910,14 @@ class TestManager(TestCase):
 
             manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                         threaded=True)
-            counter3 = MockCounter(manager=manager)
+            counter3 = MockCounter(manager=manager, counter_format='COUNTER')
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
             term = manager.term
 
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()
-            self.assertEqual(ssa.call_count, 1)
+            self.assertEqual(ssa.call_count, 2)
 
             self.assertEqual(manager.height, 27)
 
@@ -918,7 +925,11 @@ class TestManager(TestCase):
             self.assertEqual(self.tty.stdread.readline(), term.move(27, 0) + '\n')
             self.assertEqual(self.tty.stdread.readline(), '\n')
             self.assertEqual(self.tty.stdread.readline(), '\n')
-            self.assertEqual(self.tty.stdread.readline(), term.move(23, 0) + term.clear_eos + 'X\n')
+            self.assertEqual(
+                self.tty.stdread.readline(),
+                term.move(23, 0) + term.clear_eos + term.move(24, 0) +
+                '\r' + term.clear_eol + 'COUNTER' + 'X\n'
+            )
 
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 

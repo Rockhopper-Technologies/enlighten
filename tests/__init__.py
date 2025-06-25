@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2022 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -160,6 +160,7 @@ class MockCounter(Counter):
     def refresh(self, flush=True, elapsed=None):
         self.output.append(self.count)
         self.calls.append('refresh(flush=%s, elapsed=%s)' % (flush, elapsed))
+        super(MockCounter, self).refresh()
 
     def clear(self, flush=True):
         self.calls.append('clear(flush=%s)' % flush)
