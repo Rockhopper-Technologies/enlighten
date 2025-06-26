@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2025s Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,17 +27,19 @@ class BaseManager(object):
     Args:
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
             defaults to :py:data:`sys.__stdout__`
-        status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
-        set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
+        status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         companion_stream(:py:term:`file object`): See :ref:`companion_stream <companion_stream>`
             below. (Default: :py:data:`None`)
-        enabled(bool): Status (Default: True)
+        enabled(bool): Status (Default: :py:data:`True`)
         no_resize(bool): Disable resizing support
+        preserve_column(bool): Preserve column after writes. This may have a performance impact on
+        Windows (Default: :py:data:`True`)
+        set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
         term(str): Terminal type passed to Blessed
-        threaded(bool): When True resize handling is deferred until next write (Default: False
-            unless multiple threads or multiple processes are detected)
-        width(int): Static output width. If unset, width is determined dynamically
+        threaded(bool): When True resize handling is deferred until next write
+        (Default: :py:data:`False` unless multiple threads or multiple processes are detected)
+        width(int): Static output width. If unset, terminal width is determined dynamically
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
 
@@ -57,6 +59,7 @@ class BaseManager(object):
         self.stream = kwargs.pop('stream', sys.__stdout__)
         self.threaded = kwargs.pop('threaded', None)
         self._width = kwargs.pop('width', None)
+        self.preserve_column = kwargs.pop('preserve_column', True)
 
         self.counters = OrderedDict()
 

@@ -489,10 +489,22 @@ class TestManager(TestCase):
 
         self.assertIn(term.move(scroll_position, 3), manager._buffer)
 
-        # Ensure on resize cursor is put at the start of the line
+        # During resize, ensure on resize cursor is put at the start of the line
         del manager._buffer[:]
         del manager._companion_buffer[:]
         manager.resize_lock = True
+        with mock.patch('enlighten._manager.atexit') as atexit:
+            with mock.patch('blessed.Terminal.get_location') as get_location:
+                get_location.return_value = (0, 3)
+                manager._set_scroll_area()
+
+        self.assertIn(term.move(scroll_position, 0), manager._buffer)
+
+        # When preserve_column is False, ensure on resize cursor is put at the start of the line
+        del manager._buffer[:]
+        del manager._companion_buffer[:]
+        manager.resize_lock = False
+        manager.preserve_column = False
         with mock.patch('enlighten._manager.atexit') as atexit:
             with mock.patch('blessed.Terminal.get_location') as get_location:
                 get_location.return_value = (0, 3)

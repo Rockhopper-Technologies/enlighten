@@ -31,15 +31,17 @@ class Manager(BaseManager):
     Args:
         stream(:py:term:`file object`): Output stream. If :py:data:`None`,
             defaults to :py:data:`sys.__stdout__`
-        status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         counter_class(:py:term:`class`): Progress bar class (Default: :py:class:`Counter`)
-        set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
+        status_bar_class(:py:term:`class`): Status bar class (Default: :py:class:`StatusBar`)
         companion_stream(:py:term:`file object`): See :ref:`companion_stream <companion_stream>`
             below. (Default: :py:data:`None`)
-        enabled(bool): Status (Default: True)
+        enabled(bool): Status (Default: :py:data:`True`)
         no_resize(bool): Disable resizing support
-        threaded(bool): When True resize handling is deferred until next write (Default: False
-            unless multiple threads or multiple processes are detected)
+        preserve_column(bool): Preserve column after writes. This may have a performance impact on
+        Windows (Default: :py:data:`True`)
+        set_scroll(bool): Enable scroll area redefinition (Default: :py:data:`True`)
+        threaded(bool): When True resize handling is deferred until next write
+        (Default: :py:data:`False` unless multiple threads or multiple processes are detected)
         width(int): Static output width. If unset, terminal width is determined dynamically
         kwargs(Dict[str, Any]): Any additional :py:term:`keyword arguments<keyword argument>`
             will be used as default values when :py:meth:`counter` is called.
@@ -207,7 +209,7 @@ class Manager(BaseManager):
                 buffer.append(term.csr(0, scrollPosition))
 
             # Get current horizontal position. If we can't get it, it's -1, so use 0 instead
-            if self.resize_lock:
+            if self.resize_lock or not self.preserve_column:
                 column = 0
             else:
                 self.stream.flush()
