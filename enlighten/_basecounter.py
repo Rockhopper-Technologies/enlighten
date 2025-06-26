@@ -179,6 +179,7 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         self.leave = kwargs.pop('leave', True)
         self.min_delta = kwargs.pop('min_delta', 0.1)
         self._pinned = False
+        # When last_update equals start, it's assumed the counter hasn't been drawn yet
         self.last_update = self.start = self._count_updated = time.time()
 
     def __str__(self):

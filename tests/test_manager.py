@@ -730,7 +730,9 @@ class TestManager(TestCase):
 
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter)
         counter3 = MockCounter(manager=manager, counter_format='COUNTER')
+        counter2 = MockCounter(manager=manager, counter_format='COUNTER')
         manager.counters[counter3] = 3
+        manager.counters[counter2] = 2
         manager.scroll_offset = 4
         term = manager.term
 
@@ -745,10 +747,11 @@ class TestManager(TestCase):
             self.assertEqual(manager.width, 80)
             self.assertTrue(manager.resize_lock)
 
+            # Counter won't draw on resize if it hasn't been drawn before
+            counter3.refresh()
+            del counter3.calls[:]
             self.tty.stdout.write(u'X\n')
-            self.assertEqual(self.tty.stdread.readline(), 'X\n')
-
-            self.assertEqual(counter3.calls, [])
+            self.tty.stdread.readline()
 
             manager.resize_lock = False
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
@@ -765,6 +768,8 @@ class TestManager(TestCase):
                 '\r' + term.clear_eol + 'COUNTER' + 'X\n'
             )
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
+            # Counter 2 was never drawn, so doesn't get drawn on resize
+            self.assertEqual(counter2.calls, [])
 
     def test_threaded_eval(self):
         """
@@ -822,15 +827,23 @@ class TestManager(TestCase):
         manager = enlighten.Manager(stream=self.tty.stdout, counter_class=MockCounter,
                                     threaded=True)
         counter3 = MockCounter(manager=manager, counter_format='COUNTER')
-        counter3.last_update = counter3.start
+        counter2 = MockCounter(manager=manager, counter_format='COUNTER')
         manager.counters[counter3] = 3
+        manager.counters[counter2] = 2
         manager.scroll_offset = 4
         term = manager.term
 
-        # simulate resize
+        # Counter won't be staged for resize if it hasn't been drawn before
+        counter3.refresh()
+        del counter3.calls[:]
+        self.tty.stdout.write(u'X\n')
+        self.tty.stdread.readline()
+
+        # Simulate resize, drawn counters get last update zeroed
         manager._stage_resize()
         self.assertTrue(manager._resize)
         self.assertEqual(counter3.last_update, 0)
+        self.assertEqual(counter2.last_update, counter2.start)
 
         with mock.patch('%s.width' % TERMINAL, new_callable=mock.PropertyMock) as mockwidth:
             mockwidth.return_value = 70
@@ -853,8 +866,11 @@ class TestManager(TestCase):
             self.assertFalse(manager.resize_lock)
             self.assertFalse(manager._resize)
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
+            # Counter 2 was never drawn, so doesn't get flagged for redraw
+            self.assertEqual(counter2.calls, [])
 
     def test_resize_handler_height_less(self):
+        """Resize to shorter terminal"""
 
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
             mockheight.side_effect = [25, 23]
@@ -863,6 +879,12 @@ class TestManager(TestCase):
             counter3 = MockCounter(manager=manager)
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
+
+            # Counter won't draw on resize if it hasn't been drawn before
+            counter3.refresh()
+            del counter3.calls[:]
+            self.tty.stdout.write(u'\n')
+            self.tty.stdread.readline()
 
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()
@@ -877,6 +899,7 @@ class TestManager(TestCase):
             self.assertEqual(counter3.calls, ['refresh(flush=False, elapsed=None)'])
 
     def test_resize_handler_height_less_empty(self):
+        """Resize to shorter terminal, no counters to draw"""
 
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
             mockheight.side_effect = [25, 23]
@@ -885,6 +908,13 @@ class TestManager(TestCase):
             counter3 = MockCounter(manager=manager, leave=False)
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
+
+            # Counter won't draw on resize if it hasn't been drawn before
+            counter3.refresh()
+            del counter3.calls[:]
+            self.tty.stdout.write(u'\n')
+            self.tty.stdread.readline()
+
             counter3.close()
 
             # Clear refresh on close
@@ -904,6 +934,7 @@ class TestManager(TestCase):
             self.assertEqual(counter3.calls, ['refresh(flush=True, elapsed=None)'])
 
     def test_resize_handler_height_greater_threaded(self):
+        """Resize to tall terminal when threaded"""
 
         with mock.patch('%s.height' % TERMINAL, new_callable=mock.PropertyMock) as mockheight:
             mockheight.side_effect = [25, 27]
@@ -914,6 +945,12 @@ class TestManager(TestCase):
             manager.counters[counter3] = 3
             manager.scroll_offset = 4
             term = manager.term
+
+            # Counter won't draw on resize if it hasn't been drawn before
+            counter3.refresh()
+            del counter3.calls[:]
+            self.tty.stdout.write(u'\n')
+            self.tty.stdread.readline()
 
             with mock.patch('enlighten._manager.Manager._set_scroll_area') as ssa:
                 manager._resize_handler()

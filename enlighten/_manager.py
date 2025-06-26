@@ -106,7 +106,9 @@ class Manager(BaseManager):
         if self.threaded:
             # Reset update time to avoid any delay in resize
             for counter in self.counters:
-                counter.last_update = 0
+                # Skip counters that haven't been drawn yet
+                if counter.last_update != counter.start:
+                    counter.last_update = 0
 
         else:
             # If not threaded, handle resize now
@@ -147,7 +149,9 @@ class Manager(BaseManager):
         self._set_scroll_area(force=True)
 
         for counter in self.counters:
-            counter.refresh(flush=False)
+            # Only refresh counters that have already been drawn
+            if counter.last_update != counter.start:
+                counter.refresh(flush=False)
         self._flush_streams()
 
         self.resize_lock = False
