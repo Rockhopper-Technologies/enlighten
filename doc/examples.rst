@@ -152,7 +152,7 @@ about valid colors.
 
     for num in range(100):
         time.sleep(0.1)  # Simulate work
-    counter.update()
+        counter.update()
 
 Additionally, any part of the progress bar can be colored using counter
 :ref:`formatting <counter_format>` and the
