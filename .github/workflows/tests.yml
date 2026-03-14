@@ -61,7 +61,7 @@ jobs:
         run: apt update && apt -y install ${{ join(matrix.os-deps, ' ') }}
         if: ${{ matrix.os-deps }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # https://github.com/actions/checkout/issues/1048
       - name: Workaround for git ownership issue
@@ -74,7 +74,7 @@ jobs:
         run: tox -- --verbose
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           verbose: true
           fail_ci_if_error: true
