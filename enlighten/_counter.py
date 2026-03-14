@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,17 +12,14 @@ Provides Counter and SubCounter classes
 """
 
 import math
-import os
-import platform
 import re
-import sys
 import time
 
 from prefixed import Float
 
 from enlighten._basecounter import BaseCounter, PrintableCounter
 from enlighten._util import (EnlightenWarning, FORMAT_MAP_SUPPORT, format_time,
-                             raise_from_none, warn_best_level)
+                             raise_from_none, warn_best_level, _get_default_series)
 
 COUNTER_FMT = u'{desc}{desc_pad}{count:d} {unit}{unit_pad}' + \
               u'[{elapsed}, {rate:.2f}{unit_pad}{unit}/s]{fill}'
@@ -32,19 +29,7 @@ BAR_FMT = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| {count:{len_total}d}/{tota
 
 STATUS_FMT = u'{message}'
 
-# Even with cp65001, Windows doesn't seem to support all unicode characters. Windows Terminal does
-if platform.system() == 'Windows' and not os.environ.get('WT_SESSION', None):  # pragma: no cover
-    SERIES_STD = u' ▌█'
-else:
-    SERIES_STD = u' ▏▎▍▌▋▊▉█'
-
-# Test for non-unicode terminals
-try:
-    SERIES_STD.encode(sys.__stdout__.encoding)
-except UnicodeEncodeError:  # pragma: no cover(Non-unicode Terminal)
-    SERIES_STD = u' |'
-except (AttributeError, TypeError):  # pragma: no cover(Non-standard Terminal)
-    pass
+SERIES_STD = _get_default_series()
 
 # Reserved fields
 BAR_SPECIFIC_FIELDS = {'bar', 'eta', 'len_total', 'percentage'}

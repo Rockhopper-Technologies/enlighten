@@ -1,6 +1,6 @@
 
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,6 +15,7 @@ Provides utility functions and objects
 from collections import OrderedDict
 import inspect
 import os
+import platform
 import re
 import sys
 import warnings
@@ -111,6 +112,29 @@ def raise_from_none(exc):  # pragma: no cover
 
 if sys.version_info[0] >= 3:  # pragma: no branch
     exec('def raise_from_none(exc):\n    raise exc from None')  # pylint: disable=exec-used
+
+
+def _get_default_series():
+    """
+    Get the default series accounting for unicode variances across platforms
+    """
+
+    # Even with cp65001, Windows doesn't seem to support all unicode characters.
+    # However, Windows Terminal, identified by WT_SESSION, does
+    if platform.system() == 'Windows' and not os.environ.get('WT_SESSION', None):
+        series = u' ▌█'
+    else:
+        series = u' ▏▎▍▌▋▊▉█'
+
+    # Test for non-unicode terminals
+    try:
+        series.encode(sys.__stdout__.encoding)
+    except UnicodeEncodeError:  # Non-unicode Terminal, use ASCII
+        series = u' |'
+    except (AttributeError, TypeError):  # Non-standard Terminal, assume Unicode support
+        pass
+
+    return series
 
 
 class Justify(object):

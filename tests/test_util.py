@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,10 +10,11 @@ Test module for enlighten._util
 """
 
 from textwrap import dedent
+from unittest import mock
 
 import blessed
 
-from enlighten._util import format_time, Lookahead, HTMLConverter
+from enlighten._util import format_time, Lookahead, HTMLConverter, _get_default_series
 
 from tests import TestCase, MockTTY
 
@@ -308,3 +309,48 @@ class TestHTMLConverter(TestCase):
         '''
 
         self.assertEqual(self.converter.style, dedent(style))
+
+
+@mock.patch('sys.__stdout__')
+@mock.patch('os.environ.get')
+@mock.patch('platform.system')
+class TestSeriesDefault(TestCase):
+    """Test _get_default_series()"""
+
+    def test_unicode_standard(self, mock_platform, mock_env, mock_stdout):
+        """Linux with Unicode uses full Unicode series"""
+        mock_platform.return_value = 'Linux'
+        mock_env.return_value = None
+        mock_stdout.encoding = 'utf-8'
+        self.assertEqual(_get_default_series(), u' ▏▎▍▌▋▊▉█')
+
+    def test_windows_legacy_console(self, mock_platform, mock_env, mock_stdout):
+        """Windows legacy terminals, usually with cp65001, use abbreviated Unicode series"""
+        mock_platform.return_value = 'Windows'
+        mock_env.return_value = None
+        mock_stdout.encoding = 'cp65001'
+        self.assertEqual(_get_default_series(), u' ▌█')
+
+    def test_windows_terminal(self, mock_platform, mock_env, mock_stdout):
+        """Windows Terminal uses full Unicode series"""
+        mock_platform.return_value = 'Windows'
+        mock_env.side_effect = {'WT_SESSION': 'some_id'}.get
+        mock_stdout.encoding = 'utf-8'
+        self.assertEqual(_get_default_series(), u' ▏▎▍▌▋▊▉█')
+
+    def test_ascii_fallback(self, mock_platform, mock_env, mock_stdout):
+        """Encoding errors result in simple ASCII"""
+        mock_platform.return_value = 'Linux'
+        mock_stdout.encoding = 'ascii'
+        mock_env.return_value = None
+        self.assertEqual(_get_default_series(), u' |')
+
+    def test_attribute_error_handling(self, mock_platform, mock_env, mock_stdout):
+        """Weird Terminals assume full Unicode series"""
+        mock_platform.return_value = 'Linux'
+        mock_env.return_value = None
+        mock_stdout.encoding = None  # TypeError
+        self.assertEqual(_get_default_series(), u' ▏▎▍▌▋▊▉█')
+
+        del mock_stdout.encoding  # AttributeError
+        self.assertEqual(_get_default_series(), u' ▏▎▍▌▋▊▉█')
