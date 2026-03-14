@@ -10,7 +10,11 @@ Test module for enlighten._util
 """
 
 from textwrap import dedent
-from unittest import mock
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock  # Python 2.7
 
 import blessed
 
@@ -328,7 +332,8 @@ class TestSeriesDefault(TestCase):
         """Windows legacy terminals, usually with cp65001, use abbreviated Unicode series"""
         mock_platform.return_value = 'Windows'
         mock_env.return_value = None
-        mock_stdout.encoding = 'cp65001'
+        # Prefer to use cp65001, but it's only on Windows for Python <= 3.7
+        mock_stdout.encoding = 'utf-8'
         self.assertEqual(_get_default_series(), u' ▌█')
 
     def test_windows_terminal(self, mock_platform, mock_env, mock_stdout):
