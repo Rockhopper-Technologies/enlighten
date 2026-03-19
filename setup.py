@@ -43,7 +43,7 @@ setup(
     zip_safe=False,
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
-    packages=find_packages(exclude=['tests', 'tests.*', 'examples']),
+    packages=find_packages(exclude=['tests', 'tests.*', 'examples', 'benchmarks']),
     test_suite='tests',
 
     classifiers=[

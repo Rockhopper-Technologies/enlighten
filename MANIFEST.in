@@ -1,5 +1,6 @@
 include LICENSE setup_helpers.py README.*
 graft tests
 prune tests/.ipynb_checkpoints
+prune benchmarks
 graft examples
 global-exclude *.pyc __pycache__
