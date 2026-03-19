@@ -48,14 +48,16 @@ jobs:
             toxenv: pypy3
             container: pypy:3
 
-    env:
-      TOXENV: ${{ matrix.toxenv || format('py{0}', matrix.python-version) }}
 
     steps:
-      # This is only needed for Python 3.6 and earlier because Tox 4 requires 3.7+
-      - name: Fix TOXENV
-        run: echo "TOXENV=$(echo $TOXENV | sed 's/\.//g')" >> $GITHUB_ENV
-        if: ${{ contains(fromJson('["2.7", "3.5", "3.6"]'), matrix.python-version) }}
+      - name: Set TOXENV
+        # Use toxenv if defined or us the python version with the dot removed
+        run: |
+          if [ -n "${{ matrix.toxenv }}" ]; then
+            echo "TOXENV=${{ matrix.toxenv }}" >> $GITHUB_ENV
+          else
+            echo "TOXENV=py$(echo ${{ matrix.python-version }} | tr -d .)" >> $GITHUB_ENV
+          fi
 
       - name: Install OS Dependencies
         run: apt update && apt -y install ${{ join(matrix.os-deps, ' ') }}
