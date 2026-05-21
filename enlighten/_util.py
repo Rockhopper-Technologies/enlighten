@@ -306,7 +306,7 @@ class HTMLConverter(object):
             # Look for normal to close span
             if value == normal[0] and normal[1:] == [val[0] for val in parsed[: self.normal_rem]]:
 
-                # Clear rest of normal
+                # Clear rest of normal when normal contains multiple sequences
                 for _ in range(self.normal_rem):
                     next(parsed)
 

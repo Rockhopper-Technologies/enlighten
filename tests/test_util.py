@@ -314,6 +314,18 @@ class TestHTMLConverter(TestCase):
 
         self.assertEqual(self.converter.style, dedent(style))
 
+    def test_span_normal(self):
+        """Verify spans are closed regardless of how many sequences make up normal"""
+
+        # Try with single and multi-sequence normal
+        for seq in ['\x1b[m', '\x1b(B\x1b[m']:
+            with mock.patch.object(self.term, '_normal', seq):
+                self.assertEqual(
+                    HTMLConverter(term=self.term).to_html(
+                        self.term.blue + 'hello' + self.term.normal
+                    ),
+                    u'<pre><span class="enlighten-fg-blue">hello</span></pre>'
+                )
 
 @mock.patch('sys.__stdout__')
 @mock.patch('os.environ.get')
