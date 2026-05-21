@@ -327,6 +327,7 @@ class TestHTMLConverter(TestCase):
                     u'<pre><span class="enlighten-fg-blue">hello</span></pre>'
                 )
 
+
 @mock.patch('sys.__stdout__')
 @mock.patch('os.environ.get')
 @mock.patch('platform.system')
