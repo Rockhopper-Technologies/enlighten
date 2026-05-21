@@ -13,6 +13,8 @@ import signal
 import sys
 import time
 
+from blessed.formatters import ParameterizingString
+
 import enlighten
 from enlighten import _manager
 
@@ -634,7 +636,7 @@ class TestManager(TestCase):
         term = manager.term
 
         with mock.patch('enlighten._manager.atexit'):
-            with mock.patch.object(term, 'change_scroll'):
+            with mock.patch.object(manager.term, 'csr', ParameterizingString('')):
                 manager._set_scroll_area()
 
         self.assertEqual(manager.scroll_offset, 5)
@@ -1037,13 +1039,13 @@ class TestManager(TestCase):
 
                 # Test no resize signal set_scroll_area
                 with mock.patch.object(_manager, 'RESIZE_SUPPORTED', False):
-                    with mock.patch.object(manager.term, 'change_scroll'):
+                    with mock.patch.object(manager.term, 'csr', ParameterizingString('')):
                         manager._set_scroll_area()
 
                 self.assertFalse(mocksignal.called)
 
                 # Test normal case set_scroll_area
-                with mock.patch.object(stdmgr.term, 'change_scroll'):
+                with mock.patch.object(manager.term, 'csr', ParameterizingString('')):
                     stdmgr._set_scroll_area()
                 self.assertTrue(mocksignal.called)
 
@@ -1072,7 +1074,7 @@ class TestManager(TestCase):
             manager.counters[MockCounter(manager=manager)] = 3
             manager.counters[MockCounter(manager=manager)] = 4
 
-            with mock.patch.object(manager.term, 'change_scroll'):
+            with mock.patch.object(manager.term, 'csr', ParameterizingString('')):
                 manager._set_scroll_area()
 
             self.assertFalse(mocksignal.called)
