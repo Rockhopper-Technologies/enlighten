@@ -48,7 +48,7 @@ class TestManager(TestCase):
         # Companion stream is __stderr__ if stream is __stdout__
 
         # Need to mock isatty() for some build and test environments
-        with mock.patch.object(sys, '__stderr__') as mock_stderr:
+        with mock.patch.object(sys, '__stderr__', wraps=sys.__stderr__) as mock_stderr:
             mock_stderr.isatty.return_value = True
             manager = enlighten.Manager(stream=sys.__stdout__)
 
@@ -69,7 +69,7 @@ class TestManager(TestCase):
         # Companion stream is __stdout__ if stream is __stderr__
 
         # Need to mock isatty() for some build and test environments
-        with mock.patch.object(sys, '__stdout__') as mock_stdout:
+        with mock.patch.object(sys, '__stdout__', wraps=sys.__stdout__) as mock_stdout:
             mock_stdout.isatty.return_value = True
             manager = enlighten.Manager(stream=sys.__stderr__)
 
@@ -84,7 +84,7 @@ class TestManager(TestCase):
         with redirect_output('stdout', OUTPUT):
 
             # Need to mock isatty() for some build and test environments
-            with mock.patch.object(sys, 'stderr') as mock_stderr:
+            with mock.patch.object(sys, 'stderr', wraps=sys.stderr) as mock_stderr:
                 mock_stderr.isatty.return_value = True
                 manager = enlighten.Manager(stream=sys.stdout)
 
@@ -99,7 +99,7 @@ class TestManager(TestCase):
         with redirect_output('stderr', OUTPUT):
 
             # Need to mock isatty() for some build and test environments
-            with mock.patch.object(sys, 'stdout') as mock_stdout:
+            with mock.patch.object(sys, 'stdout', wraps=sys.stdout) as mock_stdout:
                 mock_stdout.isatty.return_value = True
                 manager = enlighten.Manager(stream=sys.stderr)
 
