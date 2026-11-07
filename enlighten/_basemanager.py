@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2025s Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,11 +14,30 @@ Provides BaseManager class
 import sys
 import time
 from collections import OrderedDict
+from functools import wraps
+from threading import RLock, local
 
 from blessed import Terminal
 
 from enlighten._counter import Counter
 from enlighten._statusbar import StatusBar
+
+
+def _synchronized(method):
+    """Serialize manager operations while allowing recursive refreshes."""
+
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        # pylint: disable=protected-access
+        # Guard acquisition and release too: Python 2's lock is implemented in Python.
+        self._local.depth = getattr(self._local, 'depth', 0) + 1
+        try:
+            with self._lock:
+                return method(self, *args, **kwargs)
+        finally:
+            self._local.depth -= 1
+
+    return wrapped
 
 
 class BaseManager(object):
@@ -48,6 +67,9 @@ class BaseManager(object):
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
+
+        self._lock = RLock()
+        self._local = local()
 
         self.enabled = kwargs.get('enabled', True)  # Double duty for counters
 
@@ -183,6 +205,7 @@ class BaseManager(object):
 
         return self._add_counter(self.status_bar_class, *args, position=position, **kwargs)
 
+    @_synchronized
     def _add_counter(self, counter_class, *args, **kwargs):  # pylint: disable=too-many-branches
         """
         Args:
@@ -298,6 +321,7 @@ class BaseManager(object):
         It is called when adding counters for managers which manage scrollable regions
         """
 
+    @_synchronized
     def remove(self, counter):
         """
         Args:
@@ -352,6 +376,7 @@ class BaseManager(object):
             ctr.refresh(flush=False)
         self._flush_streams()
 
+    @_synchronized
     def _autorefresh(self, exclude):
         """
         Args:

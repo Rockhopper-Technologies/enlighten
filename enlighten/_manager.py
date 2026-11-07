@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@ import threading
 
 from blessed import Terminal
 
-from enlighten._basemanager import BaseManager
+from enlighten._basemanager import BaseManager, _synchronized
 
 
 RESIZE_SUPPORTED = hasattr(signal, 'SIGWINCH')
@@ -105,17 +105,31 @@ class Manager(BaseManager):
         # Set semaphore to trigger resize on next write
         self._resize = True
 
-        if self.threaded:
-            # Reset update time to avoid any delay in resize
-            for counter in self.counters:
-                # Skip counters that haven't been drawn yet
-                if counter.last_update != counter.start:
-                    counter.last_update = 0
+        # Guard the entire lock operation against signal reentry, including the
+        # acquire/release internals of Python 2's pure-Python lock.
+        if getattr(self._local, 'depth', 0):
+            return
+        self._local.depth = 1
+        try:
+            # Never wait for a worker in a signal handler.
+            if not self._lock.acquire(False):
+                return
+            try:
+                if self.threaded:
+                    # Reset update time to avoid any delay in resize
+                    for counter in self.counters:
+                        # Skip counters that haven't been drawn yet
+                        if counter.last_update != counter.start:
+                            counter.last_update = 0
+                else:
+                    # If not threaded, handle resize now
+                    self._resize_handler()
+            finally:
+                self._lock.release()
+        finally:
+            self._local.depth = 0
 
-        else:
-            # If not threaded, handle resize now
-            self._resize_handler()
-
+    @_synchronized
     def _resize_handler(self):
         """
         Called when a window resize has been detected
@@ -158,6 +172,7 @@ class Manager(BaseManager):
 
         self.resize_lock = False
 
+    @_synchronized
     def _set_scroll_area(self, force=False):
         """
         Args:
@@ -220,6 +235,7 @@ class Manager(BaseManager):
             if self.companion_term is not None:
                 self._companion_buffer.append(term.move(scrollPosition, column))
 
+    @_synchronized
     def _flush_streams(self):
         """
         Flush stream and companion buffers
@@ -241,6 +257,7 @@ class Manager(BaseManager):
         del buffer[:]  # Python 2.7 does not support list.clear()
         del companion_buffer[:]
 
+    @_synchronized
     def _at_exit(self):
         """
         Resets terminal to normal configuration
@@ -265,6 +282,7 @@ class Manager(BaseManager):
         except ValueError:  # Possibly closed file handles
             pass
 
+    @_synchronized
     def stop(self):
         # See parent class for docstring
 
@@ -310,6 +328,7 @@ class Manager(BaseManager):
 
         self._flush_streams()
 
+    @_synchronized
     def write(self, output='', flush=True, counter=None, **kwargs):
         # See parent class for docstring
 
@@ -318,11 +337,9 @@ class Manager(BaseManager):
 
         # If resize signal was caught, handle resize
         if self._resize and not self.resize_lock:
-            try:
-                self._resize_handler()
-            finally:
-                self._resize = False
-
+            # Consume this request before handling it so a new signal stays pending.
+            self._resize = False
+            self._resize_handler()
             return
 
         position = self.counters[counter] if counter else 0

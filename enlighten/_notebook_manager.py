@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2023 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +13,7 @@ Provides Manager class
 
 from IPython.display import DisplayHandle, HTML
 
-from enlighten._basemanager import BaseManager
+from enlighten._basemanager import BaseManager, _synchronized
 from enlighten._util import HTMLConverter
 
 
@@ -61,6 +61,7 @@ class NotebookManager(BaseManager):
     def __repr__(self):
         return '%s()' % self.__class__.__name__
 
+    @_synchronized
     def _flush_streams(self):
         """
         Display buffered output
@@ -78,6 +79,7 @@ class NotebookManager(BaseManager):
             self._primed = True
             self._display.display(self._html)
 
+    @_synchronized
     def stop(self):
         # See parent class for docstring
 
@@ -96,6 +98,7 @@ class NotebookManager(BaseManager):
 
         self._flush_streams()
 
+    @_synchronized
     def write(self, output='', flush=True, counter=None, **kwargs):
         # See parent class for docstring
 

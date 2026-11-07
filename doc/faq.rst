@@ -1,5 +1,5 @@
 ..
-  Copyright 2017 - 2024 Avram Lubkin, All Rights Reserved
+  Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -108,6 +108,24 @@ be deferred.
 
 In order to guarantee resize handling is deferred, it is best to pass ``threaded=True`` when
 creating a manager instance.
+
+Can multiple threads use the same manager?
+------------------------------------------
+
+Manager operations serialize counter registration, removal, layout changes and output with
+an internal lock. Recursive refreshes, including auto-refresh, can use the same lock.
+Resize signals received during a manager operation are deferred until a later write.
+
+When resize handling is enabled, create the manager and its first counter in the main thread,
+and call ``stop()`` in the main thread, because Python only allows signal handlers to be
+installed or restored there. Alternatively, use ``no_resize=True``.
+
+This locking does not make counter increments or direct changes to manager configuration
+atomic. Coordinate updates to the same counter and do not update counters after removal.
+Custom formatting and stream callbacks execute while the manager lock is held; they must not
+wait for another thread that needs the same manager. Other managers, logging handlers and
+direct writes to the same terminal do not share this lock. Applications remain responsible
+for coordinating those writes.
 
 Why isn't my progress bar displayed until :py:meth:`~enlighten.Counter.update` is called?
 -----------------------------------------------------------------------------------------
