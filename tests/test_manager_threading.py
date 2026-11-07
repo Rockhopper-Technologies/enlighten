@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import io
 import sys
 import threading
+import warnings
 
 from enlighten import Manager
 try:
@@ -49,6 +50,8 @@ class ObservedLock(object):
     def acquire(self, blocking=True):
         """Acquire the observed lock."""
         if threading.current_thread().name == 'second-writer':
+            if self.lock.acquire(False):  # pylint: disable=consider-using-with
+                return True
             self.reached.set()
         return self.lock.acquire(blocking)
 
@@ -159,6 +162,85 @@ class TestManagerThreading(TestCase):
         self.assertEqual(sorted(self.manager.counters.values()), [1, 2])
         self.assertEqual(self.manager.counters[moved], 2)
 
+    def run_close_race(self, close_again=False, clear=False):
+        counter = self.manager.counter(leave=False)
+        method = 'clear' if clear else 'refresh'
+        original = getattr(type(counter), method)
+        paused = []
+
+        def render(current, *args, **kwargs):
+            if current is counter and not paused:
+                paused.append(True)
+                self.stream.entered.set()
+                if not self.stream.release.wait(5):
+                    raise RuntimeError('Timed out during counter close')
+            return original(current, *args, **kwargs)
+
+        def close():
+            counter.close(clear=clear)
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter('always')
+            with mock.patch.object(type(counter), method, autospec=True, side_effect=render):
+                operation = close if close_again else lambda: self.manager.remove(counter)
+                self.run_concurrent(operation, first_operation=close)
+        self.assertNotIn(counter, self.manager.counters)
+
+    def test_close_while_removing(self):
+        self.run_close_race()
+
+    def test_concurrent_close(self):
+        self.run_close_race(close_again=True)
+
+    def test_concurrent_close_clear(self):
+        self.run_close_race(close_again=True, clear=True)
+
+    def test_close_clear_after_removal(self):
+        counter = self.manager.counter(leave=False)
+        self.manager.remove(counter)
+        counter.close(clear=True)
+        self.assertNotIn(counter, self.manager.counters)
+
+    def test_clear_queued_behind_remove(self):
+        counter = self.manager.counter(leave=False)
+        original_flush = self.manager._flush_streams
+        paused = []
+
+        def flush():
+            if not paused:
+                paused.append(True)
+                self.stream.entered.set()
+                if not self.stream.release.wait(5):
+                    raise RuntimeError('Timed out during counter removal')
+            return original_flush()
+
+        with mock.patch.object(self.manager, '_flush_streams', side_effect=flush):
+            self.run_concurrent(counter.clear,
+                                first_operation=lambda: self.manager.remove(counter))
+        self.assertNotIn(counter, self.manager.counters)
+
+    def test_position_during_registration(self):
+        moved = self.manager.counter()
+        original_clear = type(moved).clear
+        registered = []
+        positions = []
+
+        def clear(current, *args, **kwargs):
+            if current is moved and not registered:
+                registered.extend(counter for counter in self.manager.counters
+                                  if counter is not moved)
+                self.stream.entered.set()
+                if not self.stream.release.wait(5):
+                    raise RuntimeError('Timed out during counter registration')
+            return original_clear(current, *args, **kwargs)
+
+        with mock.patch.object(type(moved), 'clear', autospec=True, side_effect=clear):
+            try:
+                self.run_concurrent(lambda: positions.append(moved.position),
+                                    first_operation=self.manager.counter)
+            finally:
+                self.assertEqual(positions, [2])
+
     def test_stop(self):
         self.run_concurrent(self.manager.stop)
         self.assertFalse(self.manager.enabled)
@@ -188,8 +270,9 @@ class TestManagerThreading(TestCase):
     def test_signal_during_resize_stays_pending(self):
         self.manager._resize = True
         with mock.patch.object(self.manager, '_resize_handler',
-                               side_effect=self.manager._stage_resize):
+                               side_effect=self.manager._stage_resize) as resize:
             self.manager.write('')
+            resize.assert_called_once_with()
         self.assertTrue(self.manager._resize)
 
     @unittest.skipUnless(hasattr(threading, '_RLock'), 'Pure-Python lock unavailable')
@@ -208,6 +291,7 @@ class TestManagerThreading(TestCase):
         try:
             sys.settrace(trace)
             self.manager.write('SIGNALS-DURING-LOCK')
+            self.assertTrue(self.manager._resize)
             # The handler's own non-blocking acquisition must also be protected.
             self.manager._stage_resize()
         finally:
@@ -257,7 +341,7 @@ class TestNotebookManagerThreading(TestCase):
             self.manager = NotebookManager()
         self.addCleanup(self.manager.stop)
 
-    def run_concurrent(self, operation):
+    def run_concurrent(self, operation, first_operation=None):
         paused = []
 
         def display(_html):
@@ -270,7 +354,8 @@ class TestNotebookManagerThreading(TestCase):
         self.manager._display.display.side_effect = display
         self.manager._display.update.side_effect = display
         TestManagerThreading.run_concurrent(
-            self, operation, first_operation=lambda: self.manager.write('FIRST-MARKER'))
+            self, operation, first_operation=(first_operation or
+                                              (lambda: self.manager.write('FIRST-MARKER'))))
 
     def test_write(self):
         # pylint: disable=no-member
@@ -292,3 +377,23 @@ class TestNotebookManagerThreading(TestCase):
         counter = self.manager.counter()
         self.run_concurrent(self.manager.stop)
         self.assertFalse(counter.enabled)
+
+    def test_write_queued_behind_stop(self):
+        # pylint: disable=no-member
+        self.run_concurrent(lambda: self.manager.write('AFTER-SHUTDOWN'),
+                            first_operation=self.manager.stop)
+        self.assertFalse(self.manager.enabled)
+        self.assertNotIn('AFTER-SHUTDOWN', self.manager._html.data)
+        self.manager._display.update.assert_not_called()
+        self.manager.write('AFTER-RETURN')
+        self.assertNotIn('AFTER-RETURN', self.manager._html.data)
+
+    def test_stop_display_error(self):
+        counter = self.manager.counter()
+        self.manager._display.update.side_effect = ValueError('synthetic display error')
+        with self.assertRaises(ValueError):
+            self.manager.stop()
+        self.assertFalse(self.manager.enabled)
+        self.assertFalse(counter.enabled)
+        self.manager.write('AFTER-DISPLAY-ERROR')
+        self.assertNotIn('AFTER-DISPLAY-ERROR', self.manager._html.data)

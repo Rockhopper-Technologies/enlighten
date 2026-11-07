@@ -96,7 +96,10 @@ class NotebookManager(BaseManager):
         for counter in self.counters:
             counter.enabled = False
 
-        self._flush_streams()
+        try:
+            self._flush_streams()
+        finally:
+            self.enabled = False
 
     @_synchronized
     def write(self, output='', flush=True, counter=None, **kwargs):

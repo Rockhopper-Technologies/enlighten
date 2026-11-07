@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 - 2025 Avram Lubkin, All Rights Reserved
+# Copyright 2017 - 2026 Avram Lubkin, All Rights Reserved
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -241,7 +241,8 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         Fetch position from the manager
         """
 
-        return self.manager.counters.get(self, 0)
+        with self.manager._locked():  # pylint: disable=protected-access
+            return self.manager.counters.get(self, 0)
 
     def clear(self, flush=True):
         """
@@ -251,9 +252,10 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         Clear bar
         """
 
-        if self.enabled:
-            self.manager.write(flush=flush, counter=self)
-            self.last_update = 0
+        with self.manager._locked():  # pylint: disable=protected-access
+            if self.enabled and self in self.manager.counters:
+                self.manager.write(flush=flush, counter=self)
+                self.last_update = 0
 
     def close(self, clear=False):
         """
@@ -264,20 +266,21 @@ class PrintableCounter(BaseCounter):  # pylint: disable=too-many-instance-attrib
         When closed, elapsed time will stop even when refreshed
         """
 
-        # Warn if counter is already closed
-        if self._closed:
-            warn_best_level('Closing already closed counter: %r' % self, EnlightenWarning)
-        else:
-            self._closed = time.time()
+        with self.manager._locked():  # pylint: disable=protected-access
+            # Warn if counter is already closed
+            if self._closed:
+                warn_best_level('Closing already closed counter: %r' % self, EnlightenWarning)
+            else:
+                self._closed = time.time()
 
-        if clear and not self.leave:
-            self.clear()
+            if clear and not self.leave:
+                self.clear()
 
-        # If counter was already closed we may not know the position
-        elif self in self.manager.counters:
-            self.refresh()
+            # If counter was already closed we may not know the position
+            elif self in self.manager.counters:
+                self.refresh()
 
-        self.manager.remove(self)
+            self.manager.remove(self)
 
     def format(self, width=None, elapsed=None):
         """

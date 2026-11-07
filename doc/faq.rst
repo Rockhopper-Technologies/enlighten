@@ -113,7 +113,9 @@ Can multiple threads use the same manager?
 ------------------------------------------
 
 Manager operations serialize counter registration, removal, layout changes and output with
-an internal lock. Recursive refreshes, including auto-refresh, can use the same lock.
+an internal lock. Reading a counter's position waits for layout changes to finish, and
+closing a counter keeps its final refresh and removal together. Recursive refreshes,
+including auto-refresh, can use the same lock.
 Resize signals received during a manager operation are deferred until a later write.
 
 When resize handling is enabled, create the manager and its first counter in the main thread,

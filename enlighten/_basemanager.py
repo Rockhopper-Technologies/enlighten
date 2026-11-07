@@ -14,6 +14,7 @@ Provides BaseManager class
 import sys
 import time
 from collections import OrderedDict
+from contextlib import contextmanager
 from functools import wraps
 from threading import RLock, local
 
@@ -29,13 +30,8 @@ def _synchronized(method):
     @wraps(method)
     def wrapped(self, *args, **kwargs):
         # pylint: disable=protected-access
-        # Guard acquisition and release too: Python 2's lock is implemented in Python.
-        self._local.depth = getattr(self._local, 'depth', 0) + 1
-        try:
-            with self._lock:
-                return method(self, *args, **kwargs)
-        finally:
-            self._local.depth -= 1
+        with self._locked():
+            return method(self, *args, **kwargs)
 
     return wrapped
 
@@ -102,6 +98,18 @@ class BaseManager(object):
         self.width = self._width or self.term.width
 
         self.defaults = kwargs  # Counter defaults
+
+    @contextmanager
+    def _locked(self):
+        """Guard manager access, including the lock's own acquire/release operations."""
+
+        # Guard acquisition and release too: Python 2's lock is implemented in Python.
+        self._local.depth = getattr(self._local, 'depth', 0) + 1
+        try:
+            with self._lock:
+                yield
+        finally:
+            self._local.depth -= 1
 
     def write(self, output='', flush=True, counter=None, **kwargs):
         """
